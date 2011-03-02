@@ -1,0 +1,7 @@
+#!/bin/sh
+
+cd <%= File.join(node[:nova][:local_branch_dir]) %>
+source <%= File.join(node[:nova][:local_branch_dir], "novarc") %>
+exec 2>&1
+exec <%= File.join(node[:nova][:local_branch_dir], "tools", "with_venv.sh") %> <%= File.join(node[:nova][:local_branch_dir], "bin", "nova-api") %> --verbose --nodaemonize
+

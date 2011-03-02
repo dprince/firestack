@@ -1,0 +1,36 @@
+# slapd.conf - Configuration file for LDAP SLAPD
+##########
+# Basics #
+##########
+include /etc/ldap/schema/core.schema
+include /etc/ldap/schema/cosine.schema
+include /etc/ldap/schema/inetorgperson.schema
+include /etc/ldap/schema/openssh-lpk_openldap.schema
+include /etc/ldap/schema/nova.schema
+pidfile /var/run/slapd/slapd.pid
+argsfile /var/run/slapd/slapd.args
+loglevel none
+modulepath /usr/lib/ldap
+# modulepath /usr/local/libexec/openldap
+moduleload back_hdb
+##########################
+# Database Configuration #
+##########################
+database hdb
+suffix "dc=example,dc=com"
+rootdn "cn=Manager,dc=example,dc=com"
+rootpw changeme
+directory /var/lib/ldap
+# directory /usr/local/var/openldap-data
+index objectClass,cn eq
+########
+# ACLs #
+########
+access to attrs=userPassword
+       by anonymous auth
+       by self write
+       by * none
+access to *
+       by self write
+       by * none
+

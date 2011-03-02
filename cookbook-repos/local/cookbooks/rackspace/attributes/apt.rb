@@ -1,0 +1,1 @@
+default[:apt][:distro] = "maverick"

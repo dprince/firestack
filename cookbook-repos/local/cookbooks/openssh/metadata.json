@@ -1,0 +1,53 @@
+{
+  "platforms": {
+    "debian": [
+
+    ],
+    "fedora": [
+
+    ],
+    "centos": [
+
+    ],
+    "ubuntu": [
+
+    ],
+    "redhat": [
+
+    ]
+  },
+  "maintainer": "Opscode, Inc.",
+  "replacing": {
+
+  },
+  "license": "Apache 2.0",
+  "maintainer_email": "cookbooks@opscode.com",
+  "groupings": {
+
+  },
+  "recommendations": {
+
+  },
+  "description": "Installs openssh",
+  "version": "0.7.0",
+  "suggestions": {
+
+  },
+  "attributes": {
+
+  },
+  "conflicting": {
+
+  },
+  "name": "openssh",
+  "recipes": {
+
+  },
+  "dependencies": {
+
+  },
+  "long_description": "",
+  "providing": {
+
+  }
+}

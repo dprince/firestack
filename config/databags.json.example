@@ -1,0 +1,24 @@
+{
+  "ip_interfaces": [
+    {
+      "id": "gate1",
+      "ip1": "123.123.123.1",
+      "ip2": "123.123.123.2"
+    },
+    {
+      "id": "gate2",
+      "ip1": "123.123.123.3",
+      "ip2": "123.123.123.4"
+    }
+  ],
+  "admins": [
+    {
+      "id": "jim",
+      "first_name": "Jim"
+    },
+    {
+      "id": "bill",
+      "first_name": "William"
+    }
+  ]
+}

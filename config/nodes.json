@@ -1,0 +1,32 @@
+{
+	"login": {
+		"run_list": [
+		]
+	},
+	"nova1": {
+		"run_list": [
+			"role[mysql-server]",
+			"role[rabbitmq-server]",
+			"role[nova-base]",
+			"recipe[nova::setup]",
+			"role[nova-api]",
+			"role[nova-scheduler]",
+			"role[nova-network]",
+			"role[nova-objectstore]",
+			"recipe[rackspace::nova_compute]",
+			"recipe[nova::creds]",
+			"recipe[rackspace::nova_compute_setup]"
+		]
+	},
+	"glance1": {
+		"glance": {
+			"verbose": "true",
+			"debug": "true"
+		},
+		"run_list": [
+			"role[glance-api]",
+			"role[glance-registry]",
+			"recipe[glance::setup]"
+		]
+	}
+}

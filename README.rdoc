@@ -1,0 +1,52 @@
+= OpenStack VPC
+
+== Description
+
+Openstack Compute Virtual Private Cloud project. Creates an installation
+of Openstack Nova and Glance in a secured Cloud Servers VPN group.
+
+By default trunk PPA packages are used from Launchpad. 
+
+Nova is configured to use Glance as an image store. 
+
+QEMU is used a hypervisor which can be used to launch small instances
+in the cloud (cloud in a cloud).
+
+By default a group of 3 servers is created:
+
+ -login
+ -glance1
+ -nova1
+
+Useful for developmental functional testing (API, etc.).
+
+== Requirements
+
+-Cloud Servers VPC: https://github.com/rackspace/cloud_servers_vpc
+-Chef VPC Toolkit: https://github.com/rackspace/chef_vpc_toolkit
+
+== Limitations
+
+This setup cannot currently be used to test compute nodes using XenServer.
+
+== Examples
+
+# Create a new OpenStack VPC server group (Cloud Servers/VPN/Chef/etc.)
+
+ rake create
+
+# Ssh into the group
+
+ rake ssh
+
+# Delete a group
+
+ rake group:delete
+
+# Rebuild/rechef a server within the group.
+
+ rake rechef SERVER_NAME=nova1
+
+# Install local nova source code branch onto a server within the group.
+
+ rake nova:install_source SOURCE_DIR=~/projects/nova-my-branch SERVER_NAME=nova1

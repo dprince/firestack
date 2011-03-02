@@ -1,0 +1,14 @@
+= DESCRIPTION:
+
+Chef Cookbooks to setup Glance API and Registry.
+
+= REQUIREMENTS:
+
+Requires access to glance packages.
+
+= ATTRIBUTES: 
+
+See attributes/default.rb.
+
+= USAGE:
+

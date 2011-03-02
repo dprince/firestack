@@ -1,0 +1,68 @@
+# This is the root of the directory tree
+dn: dc=example,dc=com
+description: Example.Com, your trusted non-existent corporation.
+dc: example
+o: Example.Com
+objectClass: top
+objectClass: dcObject
+objectClass: organization
+
+# Subtree for users
+dn: ou=Users,dc=example,dc=com
+ou: Users
+description: Users
+objectClass: organizationalUnit
+
+# Subtree for groups
+dn: ou=Groups,dc=example,dc=com
+ou: Groups
+description: Groups
+objectClass: organizationalUnit
+
+# Subtree for system accounts
+dn: ou=System,dc=example,dc=com
+ou: System
+description: Special accounts used by software applications.
+objectClass: organizationalUnit
+
+# Special Account for Authentication:
+dn: uid=authenticate,ou=System,dc=example,dc=com
+uid: authenticate
+ou: System
+description: Special account for authenticating users
+userPassword: {MD5}TLnIqASP0CKUR3/LGkEZGg==
+objectClass: account
+objectClass: simpleSecurityObject
+
+# create the sysadmin entry
+
+dn: cn=developers,ou=Groups,dc=example,dc=com
+objectclass: groupOfNames
+cn: developers
+description: IT admin group
+member: uid=admin,ou=Users,dc=example,dc=com
+
+dn: cn=sysadmins,ou=Groups,dc=example,dc=com
+objectclass: groupOfNames
+cn: sysadmins
+description: IT admin group
+member: uid=admin,ou=Users,dc=example,dc=com
+
+dn: cn=netadmins,ou=Groups,dc=example,dc=com
+objectclass: groupOfNames
+cn: netadmins
+description: Network admin group
+member: uid=admin,ou=Users,dc=example,dc=com
+
+dn: cn=cloudadmins,ou=Groups,dc=example,dc=com
+objectclass: groupOfNames
+cn: cloudadmins
+description: Cloud admin group
+member: uid=admin,ou=Users,dc=example,dc=com
+
+dn: cn=itsec,ou=Groups,dc=example,dc=com
+objectclass: groupOfNames
+cn: itsec
+description: IT security users group
+member: uid=admin,ou=Users,dc=example,dc=com
+
