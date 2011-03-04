@@ -5,12 +5,6 @@
 
 include_recipe "nova::common"
 
-package "libvirt-bin" do
-  options "--force-yes"
-  version node[:libvirt][:version]
-  action :install
-end
-
 package "nova-compute" do
   options "--force-yes"
   action :install
