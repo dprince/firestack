@@ -21,3 +21,4 @@
 set_unless[:nova][:db][:password] = secure_password
 default[:nova][:db][:user] = "nova"
 default[:nova][:db][:database] = "nova"
+default[:nova][:db][:sql_idle_timeout] = "60"
