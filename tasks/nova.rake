@@ -44,4 +44,38 @@ rm -Rf "$MY_TMP"
 
     end
 
+    desc "Smoke test nova."
+    task :smoke_tests do
+
+        sg=ServerGroup.fetch(:source => "cache")
+		gw_ip=sg.vpn_gateway_ip
+        server_name=ENV['SERVER_NAME']
+        raise "Please specify a SERVER_NAME." if server_name.nil?
+        pwd=Dir.pwd
+        out=%x{
+MY_TMP=$(mktemp -d)
+cd tests/ruby
+tar czf $MY_TMP/ruby-tests.tar.gz *
+scp $MY_TMP/ruby-tests.tar.gz root@#{gw_ip}:/tmp/ruby-tests.tar.gz
+ssh root@#{gw_ip} bash <<-"BASH_EOF"
+scp /tmp/ruby-tests.tar.gz #{server_name}:/tmp
+ssh #{server_name} bash <<-"EOF_SERVER_NAME"
+    if ! gem list | grep openstack-compute &> /dev/null; then
+        gem install openstack-compute
+    fi
+    [ -d ~/ruby-tests ] || mkdir ~/ruby-tests
+    cd ruby-tests
+    tar xzf /tmp/ruby-tests.tar.gz
+    bash ~/ruby-tests/run.sh
+EOF_SERVER_NAME
+BASH_EOF
+        }
+        retval=$?
+        puts out
+        if not retval.success?
+            fail "Test task failed!"
+        end
+
+    end
+
 end
