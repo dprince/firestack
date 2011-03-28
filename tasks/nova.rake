@@ -28,7 +28,7 @@ rm -Rf nova
 tar xf /tmp/nova.tar.gz
 for FILE in $(find nova -name '*.py'); do
     DIR=$(dirname /usr/lib/pymodules/python2.6/$FILE)
-    [ -d $DIR ] || mkdir $DIR
+    [ -d $DIR ] || mkdir -p $DIR
     [ -f /usr/lib/pymodules/python2.6/$FILE ] || ln -s /usr/share/pyshared/$FILE /usr/lib/pymodules/python2.6/$FILE
 done
 [ -f /etc/init/nova-api.conf ] && service nova-api restart
