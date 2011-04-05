@@ -43,15 +43,15 @@ class TestServers < Test::Unit::TestCase
 
     server = create_server(:name => "test1", :imageId => 3, :flavorId => 1)
     assert_not_nil(server.adminPass)
-    assert_not_nil(server.flavorId) #FIXME: returns 'm1.small' file bug
     assert_not_nil(server.hostId)
+    #assert_equal(1, server.flavorId)
     assert_equal("3", server.imageId)
     assert_equal('test1', server.name)
     server = @cs.server(server.id)
 
     begin
       timeout(30) do
-        until server.status == 'active' do
+        until server.status == 'ACTIVE' do
           server = @cs.server(server.id)
           sleep 1
         end
@@ -69,7 +69,7 @@ class TestServers < Test::Unit::TestCase
     metadata={ "key1" => "value1", "key2" => "value2" }
     server = create_server(:name => "test1", :imageId => 3, :flavorId => 1, :metadata => metadata)
     assert_not_nil(server.adminPass)
-    assert_not_nil(server.flavorId) #FIXME: returns 'm1.small' file bug
+    #assert_equal(1, server.flavorId)
     assert_equal("3", server.imageId)
     assert_equal('test1', server.name)
     assert_not_nil(server.hostId)
@@ -79,7 +79,7 @@ class TestServers < Test::Unit::TestCase
 
   end
 
-  def test_create_server_with_metadata
+  def test_create_server_with_personality
 
     tmp_file=Tempfile.new "server_tests"
     tmp_file.write("test")
@@ -88,7 +88,7 @@ class TestServers < Test::Unit::TestCase
     personalities={tmp_file.path => "/root/test.txt"}
     server = create_server(:name => "test1", :imageId => 3, :flavorId => 1, :personality => personalities)
     assert_not_nil(server.adminPass)
-    assert_not_nil(server.flavorId) #FIXME: returns 'm1.small' file bug
+    #assert_equal(1, server.flavorId)
     assert_equal("3", server.imageId)
     assert_equal('test1', server.name)
     assert_not_nil(server.hostId)
