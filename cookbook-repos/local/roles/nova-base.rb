@@ -22,6 +22,7 @@ default_attributes(
 		"flat_network_dhcp_start" => "172.19.1.2",
 		"network" => "172.19.1.0/24 1 256",
 		"image_service" => "nova.image.glance.GlanceImageService",
-		"images" => ["http://images.ansolabs.com/tty.tgz"]
+		"images" => ["http://images.ansolabs.com/tty.tgz"],
+		"use_ipv6" => "True"
 	}
 )
