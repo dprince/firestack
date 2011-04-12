@@ -20,6 +20,8 @@
 include_recipe "nova::common"
 nova_package("network")
 
+package "radvd"
+
 execute "sysctl -p" do
   user "root"
   action :nothing
