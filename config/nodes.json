@@ -13,9 +13,9 @@
 			"role[nova-scheduler]",
 			"role[nova-network]",
 			"role[nova-objectstore]",
-			"recipe[rackspace::nova_compute]",
+			"recipe[vpc::nova_compute]",
 			"recipe[nova::creds]",
-			"recipe[rackspace::nova_compute_setup]"
+			"recipe[vpc::nova_compute_setup]"
 		]
 	},
 	"glance1": {
