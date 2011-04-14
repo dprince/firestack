@@ -25,10 +25,6 @@ Useful for developmental functional testing (API, etc.).
 -Cloud Servers VPC: https://github.com/rackspace/cloud_servers_vpc
 -Chef VPC Toolkit: https://github.com/rackspace/chef_vpc_toolkit
 
-== Limitations
-
-This setup cannot currently be used to test compute nodes using XenServer.
-
 == Examples
 
 # Create a new OpenStack VPC server group (Cloud Servers/VPN/Chef/etc.)
