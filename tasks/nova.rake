@@ -15,7 +15,7 @@ namespace :nova do
         out=%x{
 cd #{src_dir}
 [ -f nova/flags.py ] || { echo "Please specify a top level nova project dir."; exit 1; }
-scp ./etc/api-paste.ini root@#{gw_ip}:/tmp/api-paste.ini
+scp ./etc/nova/api-paste.ini root@#{gw_ip}:/tmp/api-paste.ini
 MY_TMP=$(mktemp -d)
 tar czf $MY_TMP/nova.tar.gz ./nova
 scp $MY_TMP/nova.tar.gz root@#{gw_ip}:/tmp/nova.tar.gz
