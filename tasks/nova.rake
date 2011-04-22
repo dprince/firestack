@@ -57,6 +57,7 @@ MY_TMP=$(mktemp -d)
 cd tests/ruby
 tar czf $MY_TMP/ruby-tests.tar.gz *
 scp $MY_TMP/ruby-tests.tar.gz root@#{gw_ip}:/tmp/ruby-tests.tar.gz
+rm -Rf "$MY_TMP"
 ssh root@#{gw_ip} bash <<-"BASH_EOF"
 scp /tmp/ruby-tests.tar.gz #{server_name}:/tmp
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
@@ -69,7 +70,6 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
     bash ~/ruby-tests/run.sh
 EOF_SERVER_NAME
 BASH_EOF
-rm -Rf "$MY_TMP"
         }
         retval=$?
         puts out
