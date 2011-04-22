@@ -3,6 +3,10 @@ require 'tempfile'
 
 class TestServers < Test::Unit::TestCase
 
+  SSH_TIMEOUT=30
+  PING_TIMEOUT=60
+  ACTIVE_TIMEOUT=60
+
   def setup
     @cs=Helper::get_connection
     @servers = []
@@ -14,9 +18,28 @@ class TestServers < Test::Unit::TestCase
     end
   end
 
+  def ssh_test(ip_addr)
+    begin
+      Timeout::timeout(SSH_TIMEOUT) do
+
+        while(1) do
+          if system("ssh -i /root/test.pem root@#{ip_addr} /bin/true > /dev/null 2>&1") then
+            return true
+          end
+        end
+
+      end
+    rescue Timeout::Error => te
+      fail("Timeout trying to ssh to server: #{ip_addr}")
+    end
+
+    return false
+
+  end
+
   def ping_test(ip_addr)
     begin
-      Timeout::timeout(30) do
+      Timeout::timeout(PING_TIMEOUT) do
 
         while(1) do
           if system("ping -c 1 #{ip_addr} > /dev/null 2>&1") then
@@ -50,7 +73,7 @@ class TestServers < Test::Unit::TestCase
     server = @cs.server(server.id)
 
     begin
-      timeout(30) do
+      timeout(ACTIVE_TIMEOUT) do
         until server.status == 'ACTIVE' do
           server = @cs.server(server.id)
           sleep 1
@@ -61,6 +84,7 @@ class TestServers < Test::Unit::TestCase
     end
 
     ping_test(server.addresses[:private][0])
+    ssh_test(server.addresses[:private][0])
 
   end
 

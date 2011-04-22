@@ -15,7 +15,7 @@ namespace :nova do
         out=%x{
 cd #{src_dir}
 [ -f nova/flags.py ] || { echo "Please specify a top level nova project dir."; exit 1; }
-scp ./etc/api-paste.ini root@#{gw_ip}:/tmp/api-paste.ini
+scp ./etc/nova/api-paste.ini root@#{gw_ip}:/tmp/api-paste.ini
 MY_TMP=$(mktemp -d)
 tar czf $MY_TMP/nova.tar.gz ./nova
 scp $MY_TMP/nova.tar.gz root@#{gw_ip}:/tmp/nova.tar.gz
@@ -57,6 +57,7 @@ MY_TMP=$(mktemp -d)
 cd tests/ruby
 tar czf $MY_TMP/ruby-tests.tar.gz *
 scp $MY_TMP/ruby-tests.tar.gz root@#{gw_ip}:/tmp/ruby-tests.tar.gz
+rm -Rf "$MY_TMP"
 ssh root@#{gw_ip} bash <<-"BASH_EOF"
 scp /tmp/ruby-tests.tar.gz #{server_name}:/tmp
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
@@ -67,6 +68,32 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
     cd ruby-tests
     tar xzf /tmp/ruby-tests.tar.gz
     bash ~/ruby-tests/run.sh
+EOF_SERVER_NAME
+BASH_EOF
+        }
+        retval=$?
+        puts out
+        if not retval.success?
+            fail "Test task failed!"
+        end
+
+    end
+
+    desc "Tail nova logs."
+    task :tail_logs do
+
+        sg=ServerGroup.fetch(:source => "cache")
+		gw_ip=sg.vpn_gateway_ip
+        server_name=ENV['SERVER_NAME']
+        raise "Please specify a SERVER_NAME." if server_name.nil?
+        line_count=ENV['LINE_COUNT']
+        line_count = 50 if line_count.nil?
+
+        pwd=Dir.pwd
+        out=%x{
+ssh root@#{gw_ip} bash <<-"BASH_EOF"
+ssh #{server_name} bash <<-"EOF_SERVER_NAME"
+tail -n #{line_count} /var/log/nova/nova-*
 EOF_SERVER_NAME
 BASH_EOF
         }
