@@ -1,6 +1,7 @@
 {
 	"login": {
 		"run_list": [
+			"role[apt-repo]"
 		]
 	},
 	"nova1": {
