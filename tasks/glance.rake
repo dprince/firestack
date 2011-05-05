@@ -10,11 +10,10 @@ namespace :glance do
         src_dir=ENV['SOURCE_DIR']
         raise "Please specify a SOURCE_DIR." if src_dir.nil?
         server_name=ENV['SERVER_NAME']
-        raise "Please specify a SERVER_NAME." if server_name.nil?
+        server_name = "glance1" if server_name.nil?
         pwd=Dir.pwd
         out=%x{
 cd #{src_dir}
-[ -f glance/version.py ] || { echo "Please specify a top level glance project dir."; exit 1; }
 MY_TMP=$(mktemp -d)
 tar czf $MY_TMP/glance.tar.gz ./glance
 scp $MY_TMP/glance.tar.gz root@#{gw_ip}:/tmp/glance.tar.gz
@@ -36,6 +35,58 @@ BASH_EOF
 rm -Rf "$MY_TMP"
         }
         puts out
+
+    end
+
+    desc "Build packages from a local glance source directory."
+    task :build_packages do
+
+        sg=ServerGroup.fetch(:source => "cache")
+		gw_ip=sg.vpn_gateway_ip
+        src_dir=ENV['SOURCE_DIR']
+        raise "Please specify a SOURCE_DIR." if src_dir.nil?
+        pwd=Dir.pwd
+        out=%x{
+cd #{src_dir}
+[ -f glance/version.py ] || { echo "Please specify a top level glance project dir."; exit 1; }
+MY_TMP=$(mktemp -d)
+tar czf $MY_TMP/glance.tar.gz .
+scp $MY_TMP/glance.tar.gz root@#{gw_ip}:/tmp/glance.tar.gz
+ssh root@#{gw_ip} bash <<-"BASH_EOF"
+
+aptitude -y -q install dpkg-dev bzr git quilt debhelper python-m2crypto python-all python-setuptools python-sphinx python-distutils-extra python-twisted-web python-gflags python-mox python-carrot python-boto python-amqplib python-ipy python-sqlalchemy-ext  python-eventlet python-routes python-webob python-cheetah python-nose python-paste python-pastedeploy python-tempita python-migrate python-netaddr python-glance python-lockfile pep8 python-sphinx &> /dev/null || { echo "Failed to install prereq packages."; exit 1; }
+
+BUILD_TMP=$(mktemp -d)
+cd "$BUILD_TMP"
+mkdir glance && cd glance
+tar xzf /tmp/glance.tar.gz
+NOVA_REVISION=$(bzr version-info | grep revno | sed -e "s|revno: ||")
+rm -rf .bzr
+rm -rf .git
+cd ..
+bzr checkout --lightweight lp:~openstack-ubuntu-packagers/ubuntu/natty/glance/ubuntu glance
+rm -rf glance/.bzr
+rm -rf glance/.git
+cd glance
+echo "glance (9999.1-bzr${NOVA_REVISION}) maverick; urgency=high" > debian/changelog
+echo " -- Dev Null <dev@null.com>  $(date +\"%a, %e %b %Y %T %z\")" >> debian/changelog
+QUILT_PATCHES=debian/patches quilt push -a || \
+ { echo "Failed to patch glance."; exit 1; }
+DEB_BUILD_OPTIONS=nocheck,nodocs dpkg-buildpackage -rfakeroot -b -uc -us -d \
+ &> /dev/null || { echo "Failed to build packages."; exit 1; }
+cd /tmp
+[ -d /root/openstack-packages ] || mkdir -p /root/openstack-packages
+rm -f /root/openstack-packages/glance*
+cp $BUILD_TMP/*.deb /root/openstack-packages
+rm -Rf "$BUILD_TMP"
+BASH_EOF
+rm -Rf "$MY_TMP"
+        }
+        retval=$?
+        puts out
+        if not retval.success?
+            fail "Build packages failed!"
+        end
 
     end
 
