@@ -85,7 +85,7 @@ BASH_EOF
 
     end
 
-    desc "Build packages from a nova source directory."
+    desc "Build packages from a local nova source directory."
     task :build_packages do
 
         sg=ServerGroup.fetch(:source => "cache")
@@ -107,7 +107,7 @@ BUILD_TMP=$(mktemp -d)
 cd "$BUILD_TMP"
 mkdir nova && cd nova
 tar xzf /tmp/nova.tar.gz
-NOVA_REVISION=$(bzr version-info nova_source | grep revno | sed -e "s|revno: ||")
+NOVA_REVISION=$(bzr version-info | grep revno | sed -e "s|revno: ||")
 rm -rf .bzr
 rm -rf .git
 cd ..
@@ -123,8 +123,8 @@ DEB_BUILD_OPTIONS=nocheck,nodocs dpkg-buildpackage -rfakeroot -b -uc -us -d \
  &> /dev/null || { echo "Failed to build packages."; exit 1; }
 cd /tmp
 [ -d /root/openstack-packages ] || mkdir -p /root/openstack-packages
-rm /root/openstack-packages/nova*
-rm /root/openstack-packages/python-nova*
+rm -f /root/openstack-packages/nova*
+rm -f /root/openstack-packages/python-nova*
 cp $BUILD_TMP/*.deb /root/openstack-packages
 rm -Rf "$BUILD_TMP"
 BASH_EOF
