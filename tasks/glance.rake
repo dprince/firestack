@@ -45,6 +45,10 @@ rm -Rf "$MY_TMP"
 		gw_ip=sg.vpn_gateway_ip
         src_dir=ENV['SOURCE_DIR']
         raise "Please specify a SOURCE_DIR." if src_dir.nil?
+        deb_packager_url=ENV['DEB_PACKAGER_URL']
+        if deb_packager_url.nil? then
+            deb_packager_url="lp:~openstack-ubuntu-packagers/glance/ubuntu"
+        end
         pwd=Dir.pwd
         out=%x{
 cd #{src_dir}
@@ -64,14 +68,14 @@ NOVA_REVISION=$(bzr version-info | grep revno | sed -e "s|revno: ||")
 rm -rf .bzr
 rm -rf .git
 cd ..
-bzr checkout --lightweight lp:~openstack-ubuntu-packagers/ubuntu/natty/glance/ubuntu glance
+bzr checkout --lightweight #{deb_packager_url} glance
 rm -rf glance/.bzr
 rm -rf glance/.git
 cd glance
 echo "glance (9999.1-bzr${NOVA_REVISION}) maverick; urgency=high" > debian/changelog
 echo " -- Dev Null <dev@null.com>  $(date +\"%a, %e %b %Y %T %z\")" >> debian/changelog
-QUILT_PATCHES=debian/patches quilt push -a || \
- { echo "Failed to patch glance."; exit 1; }
+#QUILT_PATCHES=debian/patches quilt push -a || \
+# { echo "Failed to patch glance."; exit 1; }
 DEB_BUILD_OPTIONS=nocheck,nodocs dpkg-buildpackage -rfakeroot -b -uc -us -d \
  &> /dev/null || { echo "Failed to build packages."; exit 1; }
 cd /tmp

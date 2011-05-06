@@ -6,11 +6,11 @@ namespace :nova do
     task :install_source do
 
         sg=ServerGroup.fetch(:source => "cache")
-		gw_ip=sg.vpn_gateway_ip
+        gw_ip=sg.vpn_gateway_ip
         src_dir=ENV['SOURCE_DIR']
         raise "Please specify a SOURCE_DIR." if src_dir.nil?
         server_name=ENV['SERVER_NAME']
-		# default to nova1 if SERVER_NAME is unset
+        # default to nova1 if SERVER_NAME is unset
         server_name = "nova1" if server_name.nil?
         pwd=Dir.pwd
         out=%x{
@@ -53,9 +53,9 @@ rm -Rf "$MY_TMP"
     task :smoke_tests do
 
         sg=ServerGroup.fetch(:source => "cache")
-		gw_ip=sg.vpn_gateway_ip
+        gw_ip=sg.vpn_gateway_ip
         server_name=ENV['SERVER_NAME']
-		# default to nova1 if SERVER_NAME is unset
+        # default to nova1 if SERVER_NAME is unset
         server_name = "nova1" if server_name.nil?
         pwd=Dir.pwd
         out=%x{
@@ -89,9 +89,13 @@ BASH_EOF
     task :build_packages do
 
         sg=ServerGroup.fetch(:source => "cache")
-		gw_ip=sg.vpn_gateway_ip
+        gw_ip=sg.vpn_gateway_ip
         src_dir=ENV['SOURCE_DIR']
         raise "Please specify a SOURCE_DIR." if src_dir.nil?
+        deb_packager_url=ENV['DEB_PACKAGER_URL']
+        if deb_packager_url.nil? then
+            deb_packager_url="lp:~openstack-ubuntu-packagers/nova/ubuntu"
+        end
         pwd=Dir.pwd
         out=%x{
 cd #{src_dir}
@@ -111,7 +115,7 @@ NOVA_REVISION=$(bzr version-info | grep revno | sed -e "s|revno: ||")
 rm -rf .bzr
 rm -rf .git
 cd ..
-bzr checkout --lightweight lp:~openstack-ubuntu-packagers/ubuntu/natty/nova/ubuntu nova
+bzr checkout --lightweight #{deb_packager_url} nova
 rm -rf nova/.bzr
 rm -rf nova/.git
 cd nova
@@ -142,7 +146,7 @@ rm -Rf "$MY_TMP"
     task :tail_logs do
 
         sg=ServerGroup.fetch(:source => "cache")
-		gw_ip=sg.vpn_gateway_ip
+        gw_ip=sg.vpn_gateway_ip
         server_name=ENV['SERVER_NAME']
         raise "Please specify a SERVER_NAME." if server_name.nil?
         line_count=ENV['LINE_COUNT']
