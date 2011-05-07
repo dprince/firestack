@@ -39,7 +39,9 @@ done
 [ -f /etc/init/nova-objectstore.conf ] && service nova-objectstore restart
 EOF_SERVER_NAME
 BASH_EOF
+RETVAL=$?
 rm -Rf "$MY_TMP"
+exit $RETVAL
         }
         retval=$?
         puts out
@@ -132,7 +134,9 @@ rm -f /root/openstack-packages/python-nova*
 cp $BUILD_TMP/*.deb /root/openstack-packages
 rm -Rf "$BUILD_TMP"
 BASH_EOF
+RETVAL=$?
 rm -Rf "$MY_TMP"
+exit $RETVAL
         }
         retval=$?
         puts out

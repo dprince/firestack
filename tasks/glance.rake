@@ -32,7 +32,9 @@ done
 [ -f /etc/init/glance-registry.conf ] && service glance-registry restart
 EOF_SERVER_NAME
 BASH_EOF
+RETVAL=$?
 rm -Rf "$MY_TMP"
+exit $RETVAL
         }
         puts out
 
@@ -84,7 +86,9 @@ rm -f /root/openstack-packages/glance*
 cp $BUILD_TMP/*.deb /root/openstack-packages
 rm -Rf "$BUILD_TMP"
 BASH_EOF
+RETVAL=$?
 rm -Rf "$MY_TMP"
+exit $RETVAL
         }
         retval=$?
         puts out
