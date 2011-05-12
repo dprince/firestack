@@ -52,6 +52,14 @@ exit $RETVAL
             deb_packager_url="lp:~openstack-ubuntu-packagers/glance/ubuntu"
         end
         pwd=Dir.pwd
+        glance_revision=%x{
+            cd #{src_dir}
+            bzr version-info | grep revno | sed -e "s|revno: ||"
+        }.chomp
+        if glance_revision.empty? then
+            raise "Failed to get glance revision."
+        end
+
         out=%x{
 cd #{src_dir}
 [ -f glance/version.py ] || { echo "Please specify a top level glance project dir."; exit 1; }
@@ -66,7 +74,6 @@ BUILD_TMP=$(mktemp -d)
 cd "$BUILD_TMP"
 mkdir glance && cd glance
 tar xzf /tmp/glance.tar.gz
-NOVA_REVISION=$(bzr version-info | grep revno | sed -e "s|revno: ||")
 rm -rf .bzr
 rm -rf .git
 cd ..
@@ -74,7 +81,7 @@ bzr checkout --lightweight #{deb_packager_url} glance
 rm -rf glance/.bzr
 rm -rf glance/.git
 cd glance
-echo "glance (9999.1-bzr${NOVA_REVISION}) maverick; urgency=high" > debian/changelog
+echo "glance (9999.1-bzr#{glance_revision}) maverick; urgency=high" > debian/changelog
 echo " -- Dev Null <dev@null.com>  $(date +\"%a, %e %b %Y %T %z\")" >> debian/changelog
 #QUILT_PATCHES=debian/patches quilt push -a || \
 # { echo "Failed to patch glance."; exit 1; }

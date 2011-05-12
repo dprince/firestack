@@ -99,6 +99,15 @@ BASH_EOF
             deb_packager_url="lp:~openstack-ubuntu-packagers/nova/ubuntu"
         end
         pwd=Dir.pwd
+
+		nova_revision=%x{
+			cd #{src_dir}
+			bzr version-info | grep revno | sed -e "s|revno: ||"
+		}.chomp
+        if nova_revision.empty? then
+			raise "Failed to get nova revision."
+		end
+
         out=%x{
 cd #{src_dir}
 [ -f nova/flags.py ] || { echo "Please specify a top level nova project dir."; exit 1; }
@@ -113,7 +122,6 @@ BUILD_TMP=$(mktemp -d)
 cd "$BUILD_TMP"
 mkdir nova && cd nova
 tar xzf /tmp/nova.tar.gz
-NOVA_REVISION=$(bzr version-info | grep revno | sed -e "s|revno: ||")
 rm -rf .bzr
 rm -rf .git
 cd ..
@@ -121,7 +129,7 @@ bzr checkout --lightweight #{deb_packager_url} nova
 rm -rf nova/.bzr
 rm -rf nova/.git
 cd nova
-echo "nova (9999.1-bzr${NOVA_REVISION}) maverick; urgency=high" > debian/changelog
+echo "nova (9999.1-bzr#{nova_revision}) maverick; urgency=high" > debian/changelog
 echo " -- Dev Null <dev@null.com>  $(date +\"%a, %e %b %Y %T %z\")" >> debian/changelog
 QUILT_PATCHES=debian/patches quilt push -a || \
  { echo "Failed to patch nova."; exit 1; }
