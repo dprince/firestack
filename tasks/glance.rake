@@ -83,8 +83,7 @@ rm -rf glance/.git
 cd glance
 echo "glance (9999.1-bzr#{glance_revision}) maverick; urgency=high" > debian/changelog
 echo " -- Dev Null <dev@null.com>  $(date +\"%a, %e %b %Y %T %z\")" >> debian/changelog
-#QUILT_PATCHES=debian/patches quilt push -a || \
-# { echo "Failed to patch glance."; exit 1; }
+QUILT_PATCHES=debian/patches quilt push -a || \ { echo "Failed to patch glance."; exit 1; }
 DEB_BUILD_OPTIONS=nocheck,nodocs dpkg-buildpackage -rfakeroot -b -uc -us -d \
  &> /dev/null || { echo "Failed to build packages."; exit 1; }
 cd /tmp
