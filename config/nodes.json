@@ -6,6 +6,7 @@
 	},
 	"nova1": {
 		"run_list": [
+			"role[ruby]",
 			"role[nova-mysql-server]",
 			"role[nova-rabbitmq-server]",
 			"role[nova-base]",
