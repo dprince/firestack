@@ -68,7 +68,7 @@ class TestServers < Test::Unit::TestCase
     assert_not_nil(server.adminPass)
     assert_not_nil(server.hostId)
     #assert_equal(1, server.flavorId)
-    assert_equal("3", server.imageId)
+    assert_equal("3", server.imageId.to_s)
     assert_equal('test1', server.name)
     server = @cs.server(server.id)
 
@@ -94,7 +94,7 @@ class TestServers < Test::Unit::TestCase
     server = create_server(:name => "test1", :imageId => 3, :flavorId => 1, :metadata => metadata)
     assert_not_nil(server.adminPass)
     #assert_equal(1, server.flavorId)
-    assert_equal("3", server.imageId)
+    assert_equal("3", server.imageId.to_s)
     assert_equal('test1', server.name)
     assert_not_nil(server.hostId)
     metadata.each_pair do |key, value|
@@ -113,7 +113,7 @@ class TestServers < Test::Unit::TestCase
     server = create_server(:name => "test1", :imageId => 3, :flavorId => 1, :personality => personalities)
     assert_not_nil(server.adminPass)
     #assert_equal(1, server.flavorId)
-    assert_equal("3", server.imageId)
+    assert_equal("3", server.imageId.to_s)
     assert_equal('test1', server.name)
     assert_not_nil(server.hostId)
 
