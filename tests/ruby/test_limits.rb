@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/helper'
 
-class TestFlavors < Test::Unit::TestCase
+class TestLimits < Test::Unit::TestCase
 
   def setup
     @cs=Helper::get_connection
