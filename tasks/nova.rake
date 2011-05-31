@@ -104,8 +104,8 @@ cd #{src_dir}
 [ -f nova/flags.py ] || { echo "Please specify a top level nova project dir."; exit 1; }
 MY_TMP=$(mktemp -d)
 tar czf $MY_TMP/nova.tar.gz .
-scp $MY_TMP/nova.tar.gz root@#{gw_ip}:/tmp/nova.tar.gz
-ssh root@#{gw_ip} bash <<-"BASH_EOF"
+scp -o StrictHostKeyChecking=no $MY_TMP/nova.tar.gz root@#{gw_ip}:/tmp/nova.tar.gz
+ssh -o StrictHostKeyChecking=no root@#{gw_ip} bash <<-"BASH_EOF"
 
 aptitude -y -q install dpkg-dev bzr git quilt debhelper python-m2crypto python-all python-setuptools python-sphinx python-distutils-extra python-twisted-web python-gflags python-mox python-carrot python-boto python-amqplib python-ipy python-sqlalchemy-ext  python-eventlet python-routes python-webob python-cheetah python-nose python-paste python-pastedeploy python-tempita python-migrate python-netaddr python-glance python-novaclient python-lockfile pep8 python-sphinx &> /dev/null || { echo "Failed to install prereq packages."; exit 1; }
 
