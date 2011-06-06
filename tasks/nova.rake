@@ -51,8 +51,8 @@ exit $RETVAL
 
     end
 
-    desc "Smoke test nova."
-    task :smoke_tests do
+    desc "Ruby Openstack API v1.0 tests."
+    task :ruby_osapi_tests do
 
         sg=ServerGroup.fetch(:source => "cache")
         gw_ip=sg.vpn_gateway_ip
@@ -76,6 +76,56 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
     cd ruby-tests
     tar xzf /tmp/ruby-tests.tar.gz
     bash ~/ruby-tests/run.sh
+EOF_SERVER_NAME
+BASH_EOF
+        }
+        retval=$?
+        puts out
+        if not retval.success?
+            fail "Test task failed!"
+        end
+
+    end
+
+    desc "Run the nova smoke tests."
+    task :smoke_tests do
+
+        sg=ServerGroup.fetch(:source => "cache")
+        gw_ip=sg.vpn_gateway_ip
+        server_name=ENV['SERVER_NAME']
+        # default to nova1 if SERVER_NAME is unset
+        server_name = "nova1" if server_name.nil?
+        pwd=Dir.pwd
+        out=%x{
+ssh root@#{gw_ip} bash <<-"BASH_EOF"
+[ -f /tmp/nova.tar.gz ] && scp /tmp/nova.tar.gz #{server_name}:/tmp
+ssh #{server_name} bash <<-"EOF_SERVER_NAME"
+
+if [ ! -d /root/nova_source ]; then
+  if [ -f /tmp/nova.tar.gz ]; then
+    mkdir nova_source && cd nova_source
+    tar xzf /tmp/nova.tar.gz
+    rm -rf .bzr
+    rm -rf .git
+    cd ..
+  else
+    dpkg -l bzr &> /dev/null || aptitude -y -q install bzr
+    bzr checkout --lightweight lp:nova /root/nova_source
+  fi
+fi
+
+dpkg -l python-pip &> /dev/null || aptitude -y -q install python-pip
+pip install nova-adminclient > /dev/null
+
+if grep -c "VolumeTests" /root/nova_source/smoketests/test_sysadmin.py &> /dev/null; then
+  sed -e '/class Volume/q' /root/nova_source/smoketests/test_sysadmin.py \
+   | sed -e 's/^class VolumeTests.*//g' > tmp_test_sysadmin.py
+  mv tmp_test_sysadmin.py /root/nova_source/smoketests/test_sysadmin.py
+fi
+cd /root/nova_source/smoketests
+source /home/stacker/novarc
+python run_tests.py --test_image=ami-00000003
+
 EOF_SERVER_NAME
 BASH_EOF
         }
