@@ -2,6 +2,8 @@ include ChefVPCToolkit::CloudServersVPC
 
 namespace :nova do
 
+	SSH_OPTS="-o StrictHostKeyChecking=no"
+
     desc "Push source into a nova installation."
     task :install_source do
 
@@ -16,11 +18,11 @@ namespace :nova do
         out=%x{
 cd #{src_dir}
 [ -f nova/flags.py ] || { echo "Please specify a top level nova project dir."; exit 1; }
-scp ./etc/nova/api-paste.ini root@#{gw_ip}:/tmp/api-paste.ini
+scp #{SSH_OPTS} ./etc/nova/api-paste.ini root@#{gw_ip}:/tmp/api-paste.ini
 MY_TMP=$(mktemp -d)
 tar czf $MY_TMP/nova.tar.gz ./nova
-scp $MY_TMP/nova.tar.gz root@#{gw_ip}:/tmp/nova.tar.gz
-ssh root@#{gw_ip} bash <<-"BASH_EOF"
+scp #{SSH_OPTS} $MY_TMP/nova.tar.gz root@#{gw_ip}:/tmp/nova.tar.gz
+ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 scp /tmp/api-paste.ini #{server_name}:/etc/nova/api-paste.ini
 scp /tmp/nova.tar.gz #{server_name}:/tmp
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
@@ -64,9 +66,9 @@ exit $RETVAL
 MY_TMP=$(mktemp -d)
 cd tests/ruby
 tar czf $MY_TMP/ruby-tests.tar.gz *
-scp $MY_TMP/ruby-tests.tar.gz root@#{gw_ip}:/tmp/ruby-tests.tar.gz
+scp #{SSH_OPTS} $MY_TMP/ruby-tests.tar.gz root@#{gw_ip}:/tmp/ruby-tests.tar.gz
 rm -Rf "$MY_TMP"
-ssh root@#{gw_ip} bash <<-"BASH_EOF"
+ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 scp /tmp/ruby-tests.tar.gz #{server_name}:/tmp
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
     if ! gem list | grep openstack-compute &> /dev/null; then
@@ -97,8 +99,8 @@ BASH_EOF
         server_name = "nova1" if server_name.nil?
         pwd=Dir.pwd
         out=%x{
-ssh root@#{gw_ip} bash <<-"BASH_EOF"
-[ -f /tmp/nova.tar.gz ] && scp /tmp/nova.tar.gz #{server_name}:/tmp
+ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
+[ -f /tmp/nova.tar.gz ] && scp #{SSH_OPTS} /tmp/nova.tar.gz #{server_name}:/tmp
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 
 if [ ! -d /root/nova_source ]; then
@@ -163,8 +165,8 @@ cd #{src_dir}
 [ -f nova/flags.py ] || { echo "Please specify a top level nova project dir."; exit 1; }
 MY_TMP=$(mktemp -d)
 tar czf $MY_TMP/nova.tar.gz .
-scp -o StrictHostKeyChecking=no $MY_TMP/nova.tar.gz root@#{gw_ip}:/tmp/nova.tar.gz
-ssh -o StrictHostKeyChecking=no root@#{gw_ip} bash <<-"BASH_EOF"
+scp #{SSH_OPTS} $MY_TMP/nova.tar.gz root@#{gw_ip}:/tmp/nova.tar.gz
+ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 
 aptitude -y -q install dpkg-dev bzr git quilt debhelper python-m2crypto python-all python-setuptools python-sphinx python-distutils-extra python-twisted-web python-gflags python-mox python-carrot python-boto python-amqplib python-ipy python-sqlalchemy-ext  python-eventlet python-routes python-webob python-cheetah python-nose python-paste python-pastedeploy python-tempita python-migrate python-netaddr python-glance python-novaclient python-lockfile pep8 python-sphinx &> /dev/null || { echo "Failed to install prereq packages."; exit 1; }
 
@@ -216,7 +218,7 @@ exit $RETVAL
 
         pwd=Dir.pwd
         out=%x{
-ssh root@#{gw_ip} bash <<-"BASH_EOF"
+ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 tail -n #{line_count} /var/log/nova/nova-*
 EOF_SERVER_NAME

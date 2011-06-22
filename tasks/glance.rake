@@ -2,11 +2,13 @@ include ChefVPCToolkit::CloudServersVPC
 
 namespace :glance do
 
+    SSH_OPTS="-o StrictHostKeyChecking=no"
+
     desc "Push source into a glance installation."
     task :install_source do
 
         sg=ServerGroup.fetch(:source => "cache")
-		gw_ip=sg.vpn_gateway_ip
+        gw_ip=sg.vpn_gateway_ip
         src_dir=ENV['SOURCE_DIR']
         raise "Please specify a SOURCE_DIR." if src_dir.nil?
         server_name=ENV['SERVER_NAME']
@@ -16,8 +18,8 @@ namespace :glance do
 cd #{src_dir}
 MY_TMP=$(mktemp -d)
 tar czf $MY_TMP/glance.tar.gz ./glance
-scp $MY_TMP/glance.tar.gz root@#{gw_ip}:/tmp/glance.tar.gz
-ssh root@#{gw_ip} bash <<-"BASH_EOF"
+scp #{SSH_OPTS} $MY_TMP/glance.tar.gz root@#{gw_ip}:/tmp/glance.tar.gz
+ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 scp /tmp/glance.tar.gz #{server_name}:/tmp
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 cd /usr/share/pyshared
@@ -44,7 +46,7 @@ exit $RETVAL
     task :build_packages do
 
         sg=ServerGroup.fetch(:source => "cache")
-		gw_ip=sg.vpn_gateway_ip
+        gw_ip=sg.vpn_gateway_ip
         src_dir=ENV['SOURCE_DIR']
         raise "Please specify a SOURCE_DIR." if src_dir.nil?
         deb_packager_url=ENV['DEB_PACKAGER_URL']
@@ -65,8 +67,8 @@ cd #{src_dir}
 [ -f glance/version.py ] || { echo "Please specify a top level glance project dir."; exit 1; }
 MY_TMP=$(mktemp -d)
 tar czf $MY_TMP/glance.tar.gz .
-scp $MY_TMP/glance.tar.gz root@#{gw_ip}:/tmp/glance.tar.gz
-ssh root@#{gw_ip} bash <<-"BASH_EOF"
+scp #{SSH_OPTS} $MY_TMP/glance.tar.gz root@#{gw_ip}:/tmp/glance.tar.gz
+ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 
 aptitude -y -q install dpkg-dev bzr git quilt debhelper python-m2crypto python-all python-setuptools python-sphinx python-distutils-extra python-twisted-web python-gflags python-mox python-carrot python-boto python-amqplib python-ipy python-sqlalchemy-ext  python-eventlet python-routes python-webob python-cheetah python-nose python-paste python-pastedeploy python-tempita python-migrate python-netaddr python-glance python-lockfile pep8 python-sphinx &> /dev/null || { echo "Failed to install prereq packages."; exit 1; }
 
