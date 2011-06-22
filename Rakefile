@@ -1,4 +1,5 @@
 CHEF_VPC_PROJECT = "#{File.dirname(__FILE__)}" unless defined?(CHEF_VPC_PROJECT)
+SSH_OPTS="-o StrictHostKeyChecking=no"
 
 require 'rubygems'
 

@@ -2,8 +2,6 @@ include ChefVPCToolkit::CloudServersVPC
 
 namespace :nova do
 
-	SSH_OPTS="-o StrictHostKeyChecking=no"
-
     desc "Push source into a nova installation."
     task :install_source do
 

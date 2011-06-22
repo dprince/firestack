@@ -2,8 +2,6 @@ include ChefVPCToolkit::CloudServersVPC
 
 namespace :glance do
 
-    SSH_OPTS="-o StrictHostKeyChecking=no"
-
     desc "Push source into a glance installation."
     task :install_source do
 

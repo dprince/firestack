@@ -1,7 +1,5 @@
 require "base64"
 
-SSH_OPTS="-o StrictHostKeyChecking=no"
-
 include ChefVPCToolkit::CloudServersVPC
 include ChefVPCToolkit::Util
 
