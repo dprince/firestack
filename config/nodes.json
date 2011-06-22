@@ -5,6 +5,10 @@
 		]
 	},
 	"nova1": {
+		"nova": {
+			"public_interface": "tap0",
+			"flat_interface": "tap0"
+		},
 		"run_list": [
 			"role[ruby]",
 			"role[nova-mysql-server]",
