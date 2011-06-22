@@ -3,6 +3,7 @@
 	"domain_name": "vpc",
 	"description": "Openstack Nova Dev",
 	"vpn_device": "tap",
+	"vpn_proto": "udp",
 	"servers": {
 		"login": {
 			"image_id": "69",
