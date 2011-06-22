@@ -1,0 +1,76 @@
+{
+	"login": {
+		"run_list": [
+			"role[apt-repo]"
+		]
+	},
+	"nova1": {
+        "nova": {
+            "public_interface": "tap0",
+            "flat_interface": "tap0",
+			"flat_network_bridge": "xenbr0"
+        },
+		"run_list": [
+			"role[ruby]",
+			"role[nova-mysql-server]",
+			"role[nova-rabbitmq-server]",
+			"role[nova-base]",
+			"recipe[nova::setup]",
+			"role[nova-api]",
+			"role[nova-scheduler]",
+			"role[nova-network]",
+			"role[nova-objectstore]",
+			"recipe[nova::creds]"
+		]
+	},
+	"glance1": {
+		"glance": {
+			"verbose": "true",
+			"debug": "true"
+		},
+		"run_list": [
+			"role[glance-api]",
+			"role[glance-registry]",
+			"recipe[glance::setup]"
+		]
+	},
+	"compute1": {
+		"nova": {
+			"flat_interface": "",
+			"flat_network_bridge": "xenbr0",
+			"connection_type": "xenapi",
+			"xenapi_connection_url": "http://xen1",
+			"xenapi_connection_username": "root",
+			"xenapi_connection_password": "openstack",
+			"rescue_timeout": "86400",
+			"xenapi_remap_vbd_dev": "true",
+			"block_device_creation_timeout": "60",
+			"run_compute_as_root": "true"
+		},
+		"run_list": [
+			"role[nova-compute]",
+			"recipe[vpc::nova_compute_setup]"
+		]
+	},
+	"xen1": {
+		"xenserver": {
+		  "instances": [
+			{
+			"hostname": "compute1.vpc",
+			"ip_address": "172.19.0.101",
+			"netmask": "255.255.224.0",
+			"broadcast": "172.19.31.255",
+			"dns_nameservers": "172.19.0.1",
+			"gateway": "172.19.0.1",
+			"mac": "00:00:00:ab:c1:23",
+			"inject_dom0_authorized_keys": "true"
+			}
+		],
+	   },
+	   "run_list": [
+		 "recipe[xenserver::xapi]",
+		 "recipe[xenserver::create_instances]",
+		 "recipe[xenserver::sr_config]"
+	   ]
+	}
+}
