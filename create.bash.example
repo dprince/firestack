@@ -1,0 +1,19 @@
+#!/bin/bash
+rake group:create
+rake group:poll
+
+# NOTE: we build packages right now because the PPA won't work on Cloud Servers
+# There are a couple show stoppers:
+#
+# - libvirt 0.8.8 doesn't quite: https://bugs.launchpad.net/bugs/790837
+# - Additionally the init script for nova-compute modprobes 'nbd'
+#
+# Until we fix these issues building packages is required.
+rake nova:build_packages SOURCE_DIR="/home/dan.prince/projects/nova/trunk/" \
+  DEB_PACKAGER_URL="lp:~rackspace-titan/nova/ubuntu-nova-vpc"
+
+# Optionally you can build Glance packages too
+rake glance:build_packages SOURCE_DIR="/home/dan.prince/projects/glance/trunk"
+
+rake chef:push_repos
+rake chef:install
