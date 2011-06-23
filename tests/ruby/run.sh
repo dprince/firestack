@@ -1,6 +1,9 @@
 #!/bin/bash
 source /home/stacker/novarc
+
+#FIXME use the OSAPI to generate keypairs (when available)
 KEYPAIR="/root/test.pem"
+dpkg -l euca2ools &> /dev/null || apt-get install -y euca2ools &> /dev/null
 [ -d "$KEYPAIR" ] || euca-add-keypair test > "$KEYPAIR"
 chmod 600 /root/test.pem
 RETVAL=0
