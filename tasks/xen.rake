@@ -56,8 +56,8 @@ namespace :xen do
         src_dir=ENV['SOURCE_DIR']
         raise "Please specify a SOURCE_DIR." if src_dir.nil?
         server_name=ENV['SERVER_NAME']
-        # default to xenserver if SERVER_NAME is unset
-        server_name = "xenserver" if server_name.nil?
+        # default to xen1 if SERVER_NAME is unset
+        server_name = "xen1" if server_name.nil?
         pwd=Dir.pwd
         out=%x{
 cd #{src_dir}
@@ -257,5 +257,46 @@ EOF_BASH
         puts out
 
     end
+
+    desc "Disconnect and cleanup Xen instance from VPC Group."
+    task :disconnect do
+
+        sg=ServerGroup.fetch(:source => "cache")
+        gw_ip=sg.vpn_gateway_ip
+        server_name=ENV['SERVER_NAME']
+        # default to xen1 if SERVER_NAME is unset
+        server_name = "xen1" if server_name.nil?
+        pwd=Dir.pwd
+        out=%x{
+ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
+ssh #{server_name} bash <<"EOF_XEN1_BASH"
+[ -f /etc/logrotate.d/chef ] && rm /etc/logrotate.d/chef
+service chef-client stop &> /dev/null
+[ -f /etc/chef/validation.pem ] && rm /etc/chef/validation.pem
+[ -f /etc/chef/client.pem ] && rm /etc/chef/client.pem
+rm -Rf /var/log/chef/*
+rm -Rf /var/log/nova/*
+
+for UUID in $(xe vm-list is-control-domain=false | grep uuid | sed -e 's|.*: ||'); do
+echo "Destroying Xen instance uuid: $UUID"
+xe vm-shutdown uuid=$UUID
+xe vm-destroy uuid=$UUID
+done
+
+TMP_SHUTDOWN=$(mktemp)
+echo 'sleep 2 && service openvpn stop' > $TMP_SHUTDOWN
+bash $TMP_SHUTDOWN </dev/null &> /dev/null &
+EOF_XEN1_BASH
+BASH_EOF
+
+	}
+
+		retval=$?
+		puts out
+		if not retval.success?
+			fail "Failed to disconnect #{server_name} from VPC Group!"
+		end
+
+	end
 
 end
