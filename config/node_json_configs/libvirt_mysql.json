@@ -1,0 +1,37 @@
+{
+	"login": {
+		"run_list": [
+			"role[apt-repo]"
+		]
+	},
+	"nova1": {
+		"nova": {
+			"public_interface": "tap0",
+			"flat_interface": "tap0"
+		},
+		"run_list": [
+			"role[ruby]",
+			"role[nova-mysql-server]",
+			"role[nova-rabbitmq-server]",
+			"role[nova-base]",
+			"recipe[nova::setup]",
+			"role[nova-api]",
+			"role[nova-scheduler]",
+			"role[nova-network]",
+			"role[nova-objectstore]",
+			"role[nova-compute]",
+			"recipe[nova::creds]"
+		]
+	},
+	"glance1": {
+		"glance": {
+			"verbose": "true",
+			"debug": "true"
+		},
+		"run_list": [
+			"role[glance-api]",
+			"role[glance-registry]",
+			"recipe[glance::setup]"
+		]
+	}
+}
