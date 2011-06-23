@@ -48,8 +48,7 @@
 			"run_compute_as_root": "true"
 		},
 		"run_list": [
-			"role[nova-compute]",
-			"recipe[vpc::nova_compute_setup]"
+			"role[nova-compute]"
 		]
 	},
 	"xen1": {
