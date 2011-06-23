@@ -64,7 +64,7 @@
 			"mac": "00:00:00:ab:c1:23",
 			"inject_dom0_authorized_keys": "true"
 			}
-		],
+		]
 	   },
 	   "run_list": [
 		 "recipe[xenserver::xapi]",
