@@ -98,7 +98,7 @@ BASH_EOF
         pwd=Dir.pwd
         out=%x{
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
-[ -f /tmp/nova.tar.gz ] && scp #{SSH_OPTS} /tmp/nova.tar.gz #{server_name}:/tmp
+[ -f /tmp/nova.tar.gz ] && scp /tmp/nova.tar.gz #{server_name}:/tmp
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 
 if [ ! -d /root/nova_source ]; then
