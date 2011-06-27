@@ -271,6 +271,7 @@ EOF_BASH
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 ssh #{server_name} bash <<"EOF_XEN1_BASH"
 [ -f /etc/logrotate.d/chef ] && rm /etc/logrotate.d/chef
+chkconfig chef-client off
 service chef-client stop &> /dev/null
 [ -f /etc/chef/validation.pem ] && rm /etc/chef/validation.pem
 [ -f /etc/chef/client.pem ] && rm /etc/chef/client.pem
