@@ -137,6 +137,55 @@ BASH_EOF
 
     end
 
+    desc "Build xen plugins rpm."
+    task :build_rpms do
+        sg = ServerGroup.fetch(:source => "cache")
+        gw_ip = sg.vpn_gateway_ip
+        src_dir = ENV['SOURCE_DIR']
+        raise "Please specify a SOURCE_DIR." if src_dir.nil?
+        nova_revision = %x{bzr version-info #{src_dir}} \
+            .sub(/.*^revno: (\S+).*/m, '\1')
+        if nova_revision.to_i == 0 then
+            raise "Failed to get nova revision."
+        end
+
+        out=%x{
+cd #{src_dir}
+[ -f nova/flags.py ] \
+    || { echo "Please specify a top level nova project dir."; exit 1; }
+MY_TMP=$(mktemp -d)
+tar czf $MY_TMP/nova.tar.gz .
+scp #{SSH_OPTS} $MY_TMP/nova.tar.gz root@#{gw_ip}:/tmp
+rm -rf "$MY_TMP"
+
+ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
+aptitude -y -q install rpm createrepo &> /dev/null \
+    || { echo "Failed to install rpm packages."; exit 1; }
+[ -d /root/openstack-rpms ] || mkdir -p /root/openstack-rpms
+BUILD_TMP=$(mktemp -d)
+cd "$BUILD_TMP"
+mkdir nova && cd nova
+tar xzf /tmp/nova.tar.gz
+cd plugins/xenserver/xenapi/contrib
+chown -R root:root .
+./build-rpm.sh &> /dev/null \
+    || { echo "Failed to build rpm packages."; exit 1; }
+cp rpmbuild/RPMS/x86_64/*.rpm /root/openstack-rpms
+createrepo /root/openstack-rpms &> /dev/null \
+    || { echo "Failed to create rpm repo."; exit 1; }
+rm -rf "$BUILD_TMP"
+BASH_EOF
+}
+
+        retval=$?
+        puts out
+        if not retval.success?
+            fail "Building rpms failed sucka!"
+        end
+        puts 'Great success!'
+
+    end
+
     desc "Build packages from a local nova source directory."
     task :build_packages do
 
