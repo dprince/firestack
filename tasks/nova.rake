@@ -114,6 +114,7 @@ if [ ! -d /root/nova_source ]; then
   fi
 fi
 
+dpkg -l euca2ools &> /dev/null || aptitude -y -q install euca2ools
 dpkg -l python-pip &> /dev/null || aptitude -y -q install python-pip
 pip install nova-adminclient > /dev/null
 
