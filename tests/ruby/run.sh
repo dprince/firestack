@@ -9,7 +9,7 @@ chmod 600 /root/test.pem
 RETVAL=0
 for TEST in $(ls test*); do
     echo -n "Running: $TEST - "
-    TMP_STDOUT=$(mktemp)
+    TMP_STDOUT=$(mktemp -t tmp.XXXXXXXXXX)
     if ruby $TEST > $TMP_STDOUT; then
       echo "PASS"
     else

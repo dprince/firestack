@@ -14,7 +14,7 @@ namespace :glance do
         pwd=Dir.pwd
         out=%x{
 cd #{src_dir}
-MY_TMP=$(mktemp -d)
+MY_TMP=$(mktemp -d -t tmp.XXXXXXXXXX)
 tar czf $MY_TMP/glance.tar.gz ./glance
 scp #{SSH_OPTS} $MY_TMP/glance.tar.gz root@#{gw_ip}:/tmp/glance.tar.gz
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
@@ -63,14 +63,14 @@ exit $RETVAL
         out=%x{
 cd #{src_dir}
 [ -f glance/version.py ] || { echo "Please specify a top level glance project dir."; exit 1; }
-MY_TMP=$(mktemp -d)
+MY_TMP=$(mktemp -d -t tmp.XXXXXXXXXX)
 tar czf $MY_TMP/glance.tar.gz .
 scp #{SSH_OPTS} $MY_TMP/glance.tar.gz root@#{gw_ip}:/tmp/glance.tar.gz
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 
 aptitude -y -q install dpkg-dev bzr git quilt debhelper python-m2crypto python-all python-setuptools python-sphinx python-distutils-extra python-twisted-web python-gflags python-mox python-carrot python-boto python-amqplib python-ipy python-sqlalchemy-ext  python-eventlet python-routes python-webob python-cheetah python-nose python-paste python-pastedeploy python-tempita python-migrate python-netaddr python-glance python-lockfile pep8 python-sphinx &> /dev/null || { echo "Failed to install prereq packages."; exit 1; }
 
-BUILD_TMP=$(mktemp -d)
+BUILD_TMP=$(mktemp -d -t tmp.XXXXXXXXXX)
 cd "$BUILD_TMP"
 mkdir glance && cd glance
 tar xzf /tmp/glance.tar.gz
