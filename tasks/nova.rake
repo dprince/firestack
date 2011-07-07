@@ -150,7 +150,6 @@ BASH_EOF
         sh %{
             ssh #{SSH_OPTS} root@#{gw_ip} bash <<BASH_EOF
             set -e
-            mkdir /tmp
             aptitude -y -q install rpm createrepo > /dev/null
             mkdir -p /root/openstack-rpms
             BUILD_TMP=$(mktemp -d)
@@ -170,7 +169,7 @@ BASH_EOF
     end
 
     desc "Build packages from a local nova source directory."
-    task :build_packages do
+    task :build_packages => :tarball do
 
         sg=ServerGroup.fetch(:source => "cache")
         gw_ip=sg.vpn_gateway_ip
@@ -191,11 +190,6 @@ BASH_EOF
 		end
 
         out=%x{
-cd #{src_dir}
-[ -f nova/flags.py ] || { echo "Please specify a top level nova project dir."; exit 1; }
-MY_TMP=$(mktemp -d)
-tar czf $MY_TMP/nova.tar.gz .
-scp #{SSH_OPTS} $MY_TMP/nova.tar.gz root@#{gw_ip}:/tmp/nova.tar.gz
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 
 aptitude -y -q install dpkg-dev bzr git quilt debhelper python-m2crypto python-all python-setuptools python-sphinx python-distutils-extra python-twisted-web python-gflags python-mox python-carrot python-boto python-amqplib python-ipy python-sqlalchemy-ext  python-eventlet python-routes python-webob python-cheetah python-nose python-paste python-pastedeploy python-tempita python-migrate python-netaddr python-glance python-novaclient python-lockfile pep8 python-sphinx &> /dev/null || { echo "Failed to install prereq packages."; exit 1; }
@@ -225,7 +219,6 @@ cp $BUILD_TMP/*.deb /root/openstack-packages
 rm -Rf "$BUILD_TMP"
 BASH_EOF
 RETVAL=$?
-rm -Rf "$MY_TMP"
 exit $RETVAL
         }
         retval=$?
