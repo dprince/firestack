@@ -17,7 +17,7 @@ namespace :nova do
 cd #{src_dir}
 [ -f nova/flags.py ] || { echo "Please specify a top level nova project dir."; exit 1; }
 scp #{SSH_OPTS} ./etc/nova/api-paste.ini root@#{gw_ip}:/tmp/api-paste.ini
-MY_TMP=$(mktemp -d)
+MY_TMP=$(mktemp -d -t tmp.XXXXXXXXXX tmp.XXXXXXXXXX)
 tar czf $MY_TMP/nova.tar.gz ./nova
 scp #{SSH_OPTS} $MY_TMP/nova.tar.gz root@#{gw_ip}:/tmp/nova.tar.gz
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
@@ -61,7 +61,7 @@ exit $RETVAL
         server_name = "nova1" if server_name.nil?
         pwd=Dir.pwd
         out=%x{
-MY_TMP=$(mktemp -d)
+MY_TMP=$(mktemp -d -t tmp.XXXXXXXXXX)
 cd tests/ruby
 tar czf $MY_TMP/ruby-tests.tar.gz *
 scp #{SSH_OPTS} $MY_TMP/ruby-tests.tar.gz root@#{gw_ip}:/tmp/ruby-tests.tar.gz
@@ -154,7 +154,7 @@ BASH_EOF
 cd #{src_dir}
 [ -f nova/flags.py ] \
     || { echo "Please specify a top level nova project dir."; exit 1; }
-MY_TMP=$(mktemp -d)
+MY_TMP=$(mktemp -d -t tmp.XXXXXXXXXX)
 tar czf $MY_TMP/nova.tar.gz .
 scp #{SSH_OPTS} $MY_TMP/nova.tar.gz root@#{gw_ip}:/tmp
 rm -rf "$MY_TMP"
@@ -163,7 +163,7 @@ ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 aptitude -y -q install rpm createrepo &> /dev/null \
     || { echo "Failed to install rpm packages."; exit 1; }
 [ -d /root/openstack-rpms ] || mkdir -p /root/openstack-rpms
-BUILD_TMP=$(mktemp -d)
+BUILD_TMP=$(mktemp -d -t tmp.XXXXXXXXXX)
 cd "$BUILD_TMP"
 mkdir nova && cd nova
 tar xzf /tmp/nova.tar.gz
@@ -211,14 +211,14 @@ BASH_EOF
         out=%x{
 cd #{src_dir}
 [ -f nova/flags.py ] || { echo "Please specify a top level nova project dir."; exit 1; }
-MY_TMP=$(mktemp -d)
+MY_TMP=$(mktemp -d -t tmp.XXXXXXXXXX)
 tar czf $MY_TMP/nova.tar.gz .
 scp #{SSH_OPTS} $MY_TMP/nova.tar.gz root@#{gw_ip}:/tmp/nova.tar.gz
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 
 aptitude -y -q install dpkg-dev bzr git quilt debhelper python-m2crypto python-all python-setuptools python-sphinx python-distutils-extra python-twisted-web python-gflags python-mox python-carrot python-boto python-amqplib python-ipy python-sqlalchemy-ext  python-eventlet python-routes python-webob python-cheetah python-nose python-paste python-pastedeploy python-tempita python-migrate python-netaddr python-glance python-novaclient python-lockfile pep8 python-sphinx &> /dev/null || { echo "Failed to install prereq packages."; exit 1; }
 
-BUILD_TMP=$(mktemp -d)
+BUILD_TMP=$(mktemp -d -t tmp.XXXXXXXXXX)
 cd "$BUILD_TMP"
 mkdir nova && cd nova
 tar xzf /tmp/nova.tar.gz

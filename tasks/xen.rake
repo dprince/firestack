@@ -63,7 +63,7 @@ namespace :xen do
 cd #{src_dir}
 [ -f nova/flags.py ] || { echo "Please specify a top level nova project dir."; exit 1; }
 cd plugins/xenserver/xenapi
-MY_TMP=$(mktemp -d)
+MY_TMP=$(mktemp -d -t tmp.XXXXXXXXXX)
 tar czf $MY_TMP/plugins.tar.gz ./etc
 scp #{SSH_OPTS} $MY_TMP/plugins.tar.gz root@#{gw_ip}:/tmp/plugins.tar.gz
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
@@ -212,7 +212,7 @@ chmod 755 /etc/openvpn/up.bash
 
 # bootstrap the 32bit Chef client if it isn't already there
 if ! rpm -q rubygem-chef &> /dev/null; then
-CHEF_RPM_DIR=$(mktemp -d)
+CHEF_RPM_DIR=$(mktemp -d tmp.XXXXXXXXXX)
 wget http://c2521002.r2.cf0.rackcdn.com/chef-client-0.9.8-centos5.5-i386.tar.gz -O $CHEF_RPM_DIR/chef.tar.gz &> /dev/null \
         || { echo "Failed to download Chef RPM tarball."; exit 1; }
 cd $CHEF_RPM_DIR
@@ -284,7 +284,7 @@ xe vm-shutdown uuid=$UUID
 xe vm-destroy uuid=$UUID
 done
 
-TMP_SHUTDOWN=$(mktemp)
+TMP_SHUTDOWN=$(mktemp -t tmp.XXXXXXXXXX)
 echo 'sleep 2 && service openvpn stop' > $TMP_SHUTDOWN
 bash $TMP_SHUTDOWN </dev/null &> /dev/null &
 EOF_XEN1_BASH
