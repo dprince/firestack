@@ -63,7 +63,7 @@ namespace :xen do
 cd #{src_dir}
 [ -f nova/flags.py ] || { echo "Please specify a top level nova project dir."; exit 1; }
 cd plugins/xenserver/xenapi
-MY_TMP=$(mktemp -d)
+MY_TMP="#{mktempdir}"
 tar czf $MY_TMP/plugins.tar.gz ./etc
 scp #{SSH_OPTS} $MY_TMP/plugins.tar.gz root@#{gw_ip}:/tmp/plugins.tar.gz
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"

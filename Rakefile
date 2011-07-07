@@ -19,6 +19,16 @@ require 'chef-vpc-toolkit'
 
 include ChefVPCToolkit
 
+require 'tempfile'
+require 'fileutils'
+def mktempdir(prefix="vpc")
+	tmp_file=Tempfile.new(prefix)
+	path=tmp_file.path
+	tmp_file.close(true)
+	FileUtils.mkdir_p path
+	return path
+end
+
 Dir[File.join("#{ChefVPCToolkit::Version::CHEF_VPC_TOOLKIT_ROOT}/rake", '*.rake')].each do  |rakefile|
     import(rakefile)
 end
