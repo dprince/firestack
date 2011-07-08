@@ -18,7 +18,7 @@ namespace :nova do
 cd #{src_dir}
 [ -f nova/flags.py ] || { echo "Please specify a top level nova project dir."; exit 1; }
 scp #{SSH_OPTS} ./etc/nova/api-paste.ini root@#{gw_ip}:/tmp/api-paste.ini
-MY_TMP=$(mktemp -d)
+MY_TMP="#{mktempdir}"
 tar czf $MY_TMP/nova.tar.gz ./nova
 scp #{SSH_OPTS} $MY_TMP/nova.tar.gz root@#{gw_ip}:/tmp/nova.tar.gz
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
@@ -62,7 +62,7 @@ exit $RETVAL
         server_name = "nova1" if server_name.nil?
         pwd=Dir.pwd
         out=%x{
-MY_TMP=$(mktemp -d)
+MY_TMP="#{mktempdir}"
 cd tests/ruby
 tar czf $MY_TMP/ruby-tests.tar.gz *
 scp #{SSH_OPTS} $MY_TMP/ruby-tests.tar.gz root@#{gw_ip}:/tmp/ruby-tests.tar.gz
@@ -269,7 +269,7 @@ BASH_EOF
             cd #{src_dir}
             [ -f nova/flags.py ] \
                 || { echo "Please specify a valid nova project dir."; exit 1; }
-            MY_TMP=$(mktemp -d)
+            MY_TMP="#{mktempdir}"
             tar czf $MY_TMP/nova.tar.gz .
             scp #{SSH_OPTS} $MY_TMP/nova.tar.gz root@#{gw_ip}:/tmp
             rm -rf "$MY_TMP"

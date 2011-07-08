@@ -14,7 +14,7 @@ namespace :glance do
         pwd=Dir.pwd
         out=%x{
 cd #{src_dir}
-MY_TMP=$(mktemp -d)
+MY_TMP="#{mktempdir}"
 tar czf $MY_TMP/glance.tar.gz ./glance
 scp #{SSH_OPTS} $MY_TMP/glance.tar.gz root@#{gw_ip}:/tmp/glance.tar.gz
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
@@ -63,7 +63,7 @@ exit $RETVAL
         out=%x{
 cd #{src_dir}
 [ -f glance/version.py ] || { echo "Please specify a top level glance project dir."; exit 1; }
-MY_TMP=$(mktemp -d)
+MY_TMP="#{mktempdir}"
 tar czf $MY_TMP/glance.tar.gz .
 scp #{SSH_OPTS} $MY_TMP/glance.tar.gz root@#{gw_ip}:/tmp/glance.tar.gz
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
