@@ -148,7 +148,7 @@ BASH_EOF
         nova_revision = version_info[1]
 
         sh %{
-            ssh #{SSH_OPTS} root@#{gw_ip} bash <<BASH_EOF
+            ssh #{SSH_OPTS} root@#{gw_ip} <<'BASH_EOF'
             set -e
             aptitude -y -q install rpm createrepo > /dev/null
             mkdir -p /root/openstack-rpms
