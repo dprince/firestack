@@ -48,6 +48,7 @@
 			"run_compute_as_root": "true"
 		},
 		"run_list": [
+            "recipe[vpc::add_tap]",
 			"role[nova-compute]"
 		]
 	},
