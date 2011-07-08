@@ -148,7 +148,7 @@ BASH_EOF
         nova_revision = version_info[1]
 
         sh %{
-            ssh #{SSH_OPTS} root@#{gw_ip} <<'BASH_EOF'
+            ssh #{SSH_OPTS} root@#{gw_ip} bash <<'BASH_EOF'
             set -e
             aptitude -y -q install rpm createrepo > /dev/null
             mkdir -p /root/openstack-rpms
@@ -158,14 +158,16 @@ BASH_EOF
             tar xzf /tmp/nova.tar.gz > /dev/null
             cd plugins/xenserver/xenapi/contrib
             chown -R root:root .
-            ./build-rpm.sh > /dev/null
+            perl -i -pe 's/^(Release:\s+).*/${1}#{nova_revision}/' rpmbuild/SPECS/openstack-xen-plugins.spec
+            ./build-rpm.sh &> /dev/null
             cp rpmbuild/RPMS/x86_64/*.rpm /root/openstack-rpms
-            createrepo /root/openstack-rpms > /dev/null
+            createrepo /root/openstack-rpms &> /dev/null
             rm -rf "$BUILD_TMP"
 BASH_EOF
         } do |ok, res|
             fail "Building rpms failed sucka!" unless ok
         end
+        puts "Great success!"
     end
 
     desc "Build packages from a local nova source directory."
