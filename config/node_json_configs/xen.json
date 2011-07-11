@@ -69,6 +69,7 @@
 		]
 	   },
 	   "run_list": [
+		 "recipe[yum::client]",
 		 "recipe[xenserver::xapi]",
 		 "recipe[xenserver::create_instances]",
 		 "recipe[xenserver::sr_config]"
