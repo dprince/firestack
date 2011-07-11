@@ -22,11 +22,21 @@ include ChefVPCToolkit
 require 'tempfile'
 require 'fileutils'
 def mktempdir(prefix="vpc")
-	tmp_file=Tempfile.new(prefix)
-	path=tmp_file.path
-	tmp_file.close(true)
-	FileUtils.mkdir_p path
-	return path
+    tmp_file=Tempfile.new(prefix)
+    path=tmp_file.path
+    tmp_file.close(true)
+    FileUtils.mkdir_p path
+    return path
+end
+
+def shh(script)
+    out=%x{#{script}}
+    retval=$?
+    if block_given? then
+        yield retval.success?, out
+    else
+        return [retval.success?, out]
+    end
 end
 
 Dir[File.join("#{ChefVPCToolkit::Version::CHEF_VPC_TOOLKIT_ROOT}/rake", '*.rake')].each do  |rakefile|

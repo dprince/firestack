@@ -1,5 +1,4 @@
 include ChefVPCToolkit::CloudServersVPC
-require 'fileutils'
 
 namespace :nova do
 
@@ -147,7 +146,7 @@ BASH_EOF
         raise "Failed to get nova revision." unless version_info
         nova_revision = version_info[1]
 
-        sh %{
+        shh %{
             ssh #{SSH_OPTS} root@#{gw_ip} bash <<'BASH_EOF'
             set -e
             aptitude -y -q install rpm createrepo > /dev/null
@@ -165,7 +164,7 @@ BASH_EOF
             rm -rf "$BUILD_TMP"
 BASH_EOF
         } do |ok, res|
-            fail "Building rpms failed sucka!" unless ok
+            fail "Building rpms failed! \n #{res}" unless ok
         end
         puts "Great success!"
     end
@@ -264,7 +263,7 @@ BASH_EOF
         raise "Failed to get nova revision." unless version_info
         nova_revision = version_info[1]
 
-        sh %{
+        shh %{
             set -e
             cd #{src_dir}
             [ -f nova/flags.py ] \
@@ -274,7 +273,7 @@ BASH_EOF
             scp #{SSH_OPTS} $MY_TMP/nova.tar.gz root@#{gw_ip}:/tmp
             rm -rf "$MY_TMP"
         } do |ok, res|
-            fail "Unable to create nova tarball!" unless ok
+            fail "Unable to create nova tarball! \n #{res}" unless ok
         end
     end
 
