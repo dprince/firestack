@@ -1,7 +1,8 @@
 {
 	"login": {
 		"run_list": [
-			"role[apt-repo]"
+			"role[apt-repo]",
+			"role[yum-repo]"
 		]
 	},
 	"nova1": {
@@ -68,6 +69,7 @@
 		]
 	   },
 	   "run_list": [
+		 "recipe[yum::client]",
 		 "recipe[xenserver::xapi]",
 		 "recipe[xenserver::create_instances]",
 		 "recipe[xenserver::sr_config]"
