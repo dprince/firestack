@@ -159,7 +159,7 @@ BASH_EOF
             chown -R root:root .
             perl -i -pe 's/^(Release:\s+).*/${1}#{nova_revision}/' rpmbuild/SPECS/openstack-xen-plugins.spec
             ./build-rpm.sh &> /dev/null
-            cp rpmbuild/RPMS/x86_64/*.rpm /root/openstack-rpms
+            cp rpmbuild/RPMS/noarch/*.rpm /root/openstack-rpms
             rm -rf "$BUILD_TMP"
 BASH_EOF
         } do |ok, res|
