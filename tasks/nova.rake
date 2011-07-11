@@ -160,7 +160,6 @@ BASH_EOF
             perl -i -pe 's/^(Release:\s+).*/${1}#{nova_revision}/' rpmbuild/SPECS/openstack-xen-plugins.spec
             ./build-rpm.sh &> /dev/null
             cp rpmbuild/RPMS/x86_64/*.rpm /root/openstack-rpms
-            createrepo /root/openstack-rpms &> /dev/null
             rm -rf "$BUILD_TMP"
 BASH_EOF
         } do |ok, res|
