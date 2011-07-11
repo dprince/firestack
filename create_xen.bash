@@ -25,8 +25,10 @@ rake group:poll
 # Until we fix these issues building packages is required.
 
 rake nova:build_packages \
-    SOURCE_DIR=$NOVA
+    SOURCE_DIR=$NOVA \
     DEB_PACKAGER_URL=$DEB_PACKAGER_URL
+
+rake nova:build_rpms SOURCE_DIR=$NOVA
 
 rake glance:build_packages \
     SOURCE_DIR=$GLANCE
@@ -45,10 +47,6 @@ rake chef:install \
 
 rake chef:poll_clients \
     SERVER_NAME=$XENSERVER_NAME
-
-rake xen:install_plugins \
-    SERVER_NAME=$XENSERVER_NAME \
-    SOURCE_DIR=$NOVA
 
 rake ssh bash <<-EOF_BASH
 if ! grep -c "compute1.vpc" /etc/hosts &> /dev/null; then
