@@ -139,56 +139,38 @@ BASH_EOF
     end
 
     desc "Build xen plugins rpm."
-    task :build_rpms do
-        sg = ServerGroup.fetch(:source => "cache")
-        gw_ip = sg.vpn_gateway_ip
-        src_dir = ENV['SOURCE_DIR']
-        raise "Please specify a SOURCE_DIR." if src_dir.nil?
-        nova_revision = %x{bzr version-info #{src_dir}} \
-            .sub(/.*^revno: (\S+).*/m, '\1')
-        if nova_revision.to_i == 0 then
-            raise "Failed to get nova revision."
-        end
+    task :build_rpms => :tarball do
+        gw_ip = ServerGroup.fetch(:source => "cache").vpn_gateway_ip
+        src_dir = ENV['SOURCE_DIR'] or raise "Please specify a SOURCE_DIR."
+        version_info = %x{bzr version-info #{src_dir}}.match(/^revno: (.+)/)
+        raise "Failed to get nova revision." unless version_info
+        nova_revision = version_info[1]
 
-        out=%x{
-cd #{src_dir}
-[ -f nova/flags.py ] \
-    || { echo "Please specify a top level nova project dir."; exit 1; }
-MY_TMP="#{mktempdir}"
-tar czf $MY_TMP/nova.tar.gz .
-scp #{SSH_OPTS} $MY_TMP/nova.tar.gz root@#{gw_ip}:/tmp
-rm -rf "$MY_TMP"
-
-ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
-aptitude -y -q install rpm createrepo &> /dev/null \
-    || { echo "Failed to install rpm packages."; exit 1; }
-[ -d /root/openstack-rpms ] || mkdir -p /root/openstack-rpms
-BUILD_TMP=$(mktemp -d)
-cd "$BUILD_TMP"
-mkdir nova && cd nova
-tar xzf /tmp/nova.tar.gz
-cd plugins/xenserver/xenapi/contrib
-chown -R root:root .
-./build-rpm.sh &> /dev/null \
-    || { echo "Failed to build rpm packages."; exit 1; }
-cp rpmbuild/RPMS/x86_64/*.rpm /root/openstack-rpms
-createrepo /root/openstack-rpms &> /dev/null \
-    || { echo "Failed to create rpm repo."; exit 1; }
-rm -rf "$BUILD_TMP"
+        shh %{
+            ssh #{SSH_OPTS} root@#{gw_ip} bash <<'BASH_EOF'
+            set -e
+            aptitude -y -q install rpm createrepo > /dev/null
+            mkdir -p /root/openstack-rpms
+            BUILD_TMP=$(mktemp -d)
+            cd "$BUILD_TMP"
+            mkdir nova && cd nova
+            tar xzf /tmp/nova.tar.gz > /dev/null
+            cd plugins/xenserver/xenapi/contrib
+            chown -R root:root .
+            perl -i -pe 's/^(Release:\s+).*/${1}#{nova_revision}/' rpmbuild/SPECS/openstack-xen-plugins.spec
+            ./build-rpm.sh &> /dev/null
+            cp rpmbuild/RPMS/x86_64/*.rpm /root/openstack-rpms
+            createrepo /root/openstack-rpms &> /dev/null
+            rm -rf "$BUILD_TMP"
 BASH_EOF
-}
-
-        retval=$?
-        puts out
-        if not retval.success?
-            fail "Building rpms failed sucka!"
+        } do |ok, res|
+            fail "Building rpms failed! \n #{res}" unless ok
         end
-        puts 'Great success!'
-
+        puts "Great success!"
     end
 
     desc "Build packages from a local nova source directory."
-    task :build_packages do
+    task :build_packages => :tarball do
 
         sg=ServerGroup.fetch(:source => "cache")
         gw_ip=sg.vpn_gateway_ip
@@ -209,11 +191,6 @@ BASH_EOF
 		end
 
         out=%x{
-cd #{src_dir}
-[ -f nova/flags.py ] || { echo "Please specify a top level nova project dir."; exit 1; }
-MY_TMP="#{mktempdir}"
-tar czf $MY_TMP/nova.tar.gz .
-scp #{SSH_OPTS} $MY_TMP/nova.tar.gz root@#{gw_ip}:/tmp/nova.tar.gz
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 
 aptitude -y -q install dpkg-dev bzr git quilt debhelper python-m2crypto python-all python-setuptools python-sphinx python-distutils-extra python-twisted-web python-gflags python-mox python-carrot python-boto python-amqplib python-ipy python-sqlalchemy-ext  python-eventlet python-routes python-webob python-cheetah python-nose python-paste python-pastedeploy python-tempita python-migrate python-netaddr python-glance python-novaclient python-lockfile pep8 python-sphinx &> /dev/null || { echo "Failed to install prereq packages."; exit 1; }
@@ -243,7 +220,6 @@ cp $BUILD_TMP/*.deb /root/openstack-packages
 rm -Rf "$BUILD_TMP"
 BASH_EOF
 RETVAL=$?
-rm -Rf "$MY_TMP"
 exit $RETVAL
         }
         retval=$?
@@ -280,4 +256,27 @@ BASH_EOF
 
     end
 
+    task :tarball do
+        gw_ip = ServerGroup.fetch(:source => "cache").vpn_gateway_ip
+        src_dir = ENV['SOURCE_DIR'] or raise "Please specify a SOURCE_DIR."
+        version_info = %x{bzr version-info #{src_dir}}.match(/^revno: (.+)/)
+        raise "Failed to get nova revision." unless version_info
+        nova_revision = version_info[1]
+
+        shh %{
+            set -e
+            cd #{src_dir}
+            [ -f nova/flags.py ] \
+                || { echo "Please specify a valid nova project dir."; exit 1; }
+            MY_TMP="#{mktempdir}"
+            tar czf $MY_TMP/nova.tar.gz .
+            scp #{SSH_OPTS} $MY_TMP/nova.tar.gz root@#{gw_ip}:/tmp
+            rm -rf "$MY_TMP"
+        } do |ok, res|
+            fail "Unable to create nova tarball! \n #{res}" unless ok
+        end
+    end
+
 end
+
+
