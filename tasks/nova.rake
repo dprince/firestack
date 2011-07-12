@@ -95,6 +95,7 @@ BASH_EOF
         server_name=ENV['SERVER_NAME']
         # default to nova1 if SERVER_NAME is unset
         server_name = "nova1" if server_name.nil?
+        xunit_output=ENV['XUNIT_OUTPUT'] # set if you want Xunit style output
         pwd=Dir.pwd
         out=%x{
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
@@ -117,6 +118,11 @@ fi
 dpkg -l euca2ools &> /dev/null || aptitude -y -q install euca2ools
 dpkg -l python-pip &> /dev/null || aptitude -y -q install python-pip
 pip install nova-adminclient > /dev/null
+
+if [ -n "#{xunit_output}" ]; then
+easy_install nosexunit > /dev/null
+export NOSE_WITH_NOSEXUNIT=true
+fi
 
 if grep -c "VolumeTests" /root/nova_source/smoketests/test_sysadmin.py &> /dev/null; then
   sed -e '/class Volume/q' /root/nova_source/smoketests/test_sysadmin.py \
