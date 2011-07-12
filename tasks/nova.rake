@@ -120,7 +120,7 @@ dpkg -l python-pip &> /dev/null || aptitude -y -q install python-pip
 pip install nova-adminclient > /dev/null
 
 if [ -n "#{xunit_output}" ]; then
-easy_install nosexunit > /dev/null
+pip install nosexunit > /dev/null
 export NOSE_WITH_NOSEXUNIT=true
 fi
 
