@@ -7,9 +7,10 @@
 	},
 	"nova1": {
         "nova": {
-            "public_interface": "tap0",
-            "flat_interface": "tap0",
-			"flat_network_bridge": "xenbr0"
+			"public_interface": "tap0",
+			"flat_network_bridge": "xenbr0",
+			"network_manager": "nova.network.manager.FlatManager",
+			"network_driver": "nova.network.xenapi_net"
         },
 		"run_list": [
 			"role[ruby]",
@@ -37,16 +38,14 @@
 	},
 	"compute1": {
 		"nova": {
-			"flat_interface": "",
+            "network_manager": "nova.network.manager.FlatManager",
 			"flat_network_bridge": "xenbr0",
 			"connection_type": "xenapi",
+            "xenapi_inject_image": "false",
 			"xenapi_connection_url": "http://xen1",
 			"xenapi_connection_username": "root",
 			"xenapi_connection_password": "openstack",
-			"rescue_timeout": "86400",
-			"xenapi_remap_vbd_dev": "true",
-			"block_device_creation_timeout": "60",
-			"run_compute_as_root": "true"
+			"rescue_timeout": "86400"
 		},
 		"run_list": [
 			"recipe[vpc::add_tap]",
