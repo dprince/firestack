@@ -17,7 +17,7 @@ if [[ "$MODE" == "xenserver" ]]; then
 	# image is a bit larger and boot time takes longer
 	export SSH_TIMEOUT="60"
 	export PING_TIMEOUT="60"
-	export SERVER_BUILD_TIMEOUT="360"
+	export SERVER_BUILD_TIMEOUT="420"
 
 else
 	# When using libvirt we'll use an AMI style image which require keypairs
