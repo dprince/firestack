@@ -28,12 +28,20 @@
 	"glance1": {
 		"glance": {
 			"verbose": "true",
-			"debug": "true"
+			"debug": "true",
+			"image_list": [
+				{
+					"name": "squeeze",
+					"url": "http://c3324746.r46.cf0.rackcdn.com/squeeze-agent-0.0.1.28.ova",
+					"disk_format": "vhd",
+					"container_format": "ovf"
+				}
+			]
 		},
 		"run_list": [
 			"role[glance-api]",
 			"role[glance-registry]",
-			"recipe[glance::setup]"
+			"recipe[glance::load_images]"
 		]
 	},
 	"compute1": {

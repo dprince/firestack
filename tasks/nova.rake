@@ -75,6 +75,7 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
     [ -d ~/ruby-tests ] || mkdir ~/ruby-tests
     cd ruby-tests
     tar xzf /tmp/ruby-tests.tar.gz
+    source /home/stacker/novarc 
     bash ~/ruby-tests/run.sh
 EOF_SERVER_NAME
 BASH_EOF

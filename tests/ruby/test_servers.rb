@@ -3,12 +3,16 @@ require 'tempfile'
 
 class TestServers < Test::Unit::TestCase
 
-  SSH_TIMEOUT=30
-  PING_TIMEOUT=60
-  ACTIVE_TIMEOUT=60
-
   def setup
     @cs=Helper::get_connection
+
+    @image_id = ENV['IMAGE_ID']
+    #take the last image if IMAGE_ID isn't set
+    if @image_id.nil? or @image_id.empty? then
+      images = @cs.images.sort{|x,y| x[:id] <=> y[:id]}
+      @image_id = images.last[:id].to_s
+    end
+
     @servers = []
   end
 
@@ -23,7 +27,11 @@ class TestServers < Test::Unit::TestCase
       Timeout::timeout(SSH_TIMEOUT) do
 
         while(1) do
-          if system("ssh -i /root/test.pem root@#{ip_addr} /bin/true > /dev/null 2>&1") then
+          ssh_identity=SSH_PRIVATE_KEY
+          if KEYPAIR and not KEYPAIR.empty? then
+              ssh_identity=ENV['KEYPAIR']
+          end
+          if system("ssh -o StrictHostKeyChecking=no -i #{ssh_identity} root@#{ip_addr} /bin/true > /dev/null 2>&1") then
             return true
           end
         end
@@ -64,16 +72,24 @@ class TestServers < Test::Unit::TestCase
 
   def test_create_server
 
-    server = create_server(:name => "test1", :imageId => 3, :flavorId => 1)
+    # test data file to file inject into the server
+    tmp_file=Tempfile.new "server_tests"
+    tmp_file.write("yo")
+    tmp_file.flush
+
+    # NOTE: When using AMI style images we rely on keypairs for SSH access
+    personalities={SSH_PUBLIC_KEY => "/root/.ssh/authorized_keys", tmp_file.path => "/tmp/foo/bar"}
+    server = create_server(:name => "test1", :imageId => @image_id, :flavorId => 2, :personality => personalities)
+
     assert_not_nil(server.adminPass)
     assert_not_nil(server.hostId)
-    #assert_equal(1, server.flavorId)
-    assert_equal("3", server.imageId.to_s)
+    #assert_equal(2, server.flavorId)
+    assert_equal(@image_id, server.imageId.to_s)
     assert_equal('test1', server.name)
     server = @cs.server(server.id)
 
     begin
-      timeout(ACTIVE_TIMEOUT) do
+      timeout(SERVER_BUILD_TIMEOUT) do
         until server.status == 'ACTIVE' do
           server = @cs.server(server.id)
           sleep 1
@@ -91,31 +107,15 @@ class TestServers < Test::Unit::TestCase
   def test_create_server_with_metadata
 
     metadata={ "key1" => "value1", "key2" => "value2" }
-    server = create_server(:name => "test1", :imageId => 3, :flavorId => 1, :metadata => metadata)
+    server = create_server(:name => "test1", :imageId => @image_id, :flavorId => 1, :metadata => metadata)
     assert_not_nil(server.adminPass)
     #assert_equal(1, server.flavorId)
-    assert_equal("3", server.imageId.to_s)
+    assert_equal(@image_id, server.imageId.to_s)
     assert_equal('test1', server.name)
     assert_not_nil(server.hostId)
     metadata.each_pair do |key, value|
       assert_equal(value, server.metadata[key])
     end
-
-  end
-
-  def test_create_server_with_personality
-
-    tmp_file=Tempfile.new "server_tests"
-    tmp_file.write("test")
-    tmp_file.flush
-
-    personalities={tmp_file.path => "/root/test.txt"}
-    server = create_server(:name => "test1", :imageId => 3, :flavorId => 1, :personality => personalities)
-    assert_not_nil(server.adminPass)
-    #assert_equal(1, server.flavorId)
-    assert_equal("3", server.imageId.to_s)
-    assert_equal('test1', server.name)
-    assert_not_nil(server.hostId)
 
   end
 
