@@ -278,6 +278,8 @@ service chef-client stop &> /dev/null
 rm -Rf /var/log/chef/*
 rm -Rf /var/log/nova/*
 
+rpm -ev openstack-xen-plugins &> /dev/null
+
 for UUID in $(xe vm-list is-control-domain=false | grep uuid | sed -e 's|.*: ||'); do
 echo "Destroying Xen instance uuid: $UUID"
 xe vm-shutdown uuid=$UUID
