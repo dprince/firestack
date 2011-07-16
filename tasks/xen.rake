@@ -279,6 +279,7 @@ rm -Rf /var/log/chef/*
 rm -Rf /var/log/nova/*
 
 rpm -ev openstack-xen-plugins &> /dev/null
+yum clean all &> /dev/null
 
 for UUID in $(xe vm-list is-control-domain=false | grep uuid | sed -e 's|.*: ||'); do
 echo "Destroying Xen instance uuid: $UUID"
