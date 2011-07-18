@@ -132,7 +132,8 @@ if grep -c "VolumeTests" /root/nova_source/smoketests/test_sysadmin.py &> /dev/n
 fi
 cd /root/nova_source/smoketests
 source /home/stacker/novarc
-python run_tests.py --test_image=ami-00000003
+AMI_ID=$(euca-describe-images | grep ami | tail -n 1 | cut -f 2)
+python run_tests.py --test_image=$AMI_ID
 
 EOF_SERVER_NAME
 BASH_EOF
