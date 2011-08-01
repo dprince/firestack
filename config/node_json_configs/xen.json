@@ -9,8 +9,7 @@
         "nova": {
 			"public_interface": "tap0",
 			"flat_network_bridge": "xenbr0",
-			"network_manager": "nova.network.manager.FlatManager",
-			"network_driver": "nova.network.xenapi_net"
+			"network_manager": "nova.network.manager.FlatManager"
         },
 		"run_list": [
 			"role[ruby]",
