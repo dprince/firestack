@@ -7,7 +7,7 @@ if [ ! -f ~/.ssh/id_rsa ]; then
 fi
 
 if [ -z "$MODE" ] && [ -f /etc/nova/nova.conf ]; then
-	if grep "nova.network.xenapi_net" /etc/nova/nova.conf &> /dev/null; then
+	if grep "xenapi" /etc/nova/nova.conf &> /dev/null; then
 		MODE="xenserver"
 	fi
 fi
