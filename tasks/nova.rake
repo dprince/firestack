@@ -59,6 +59,9 @@ exit $RETVAL
         server_name=ENV['SERVER_NAME']
         # default to nova1 if SERVER_NAME is unset
         server_name = "nova1" if server_name.nil?
+
+        mode=ENV['MODE'] # set to 'xen' if running tests for XenServer
+
         pwd=Dir.pwd
         out=%x{
 MY_TMP="#{mktempdir}"
@@ -75,8 +78,8 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
     [ -d ~/ruby-tests ] || mkdir ~/ruby-tests
     cd ruby-tests
     tar xzf /tmp/ruby-tests.tar.gz
-    source /home/stacker/novarc 
-    bash ~/ruby-tests/run.sh
+    source /home/stacker/novarc
+    bash ~/ruby-tests/run.sh "#{mode}"
 EOF_SERVER_NAME
 BASH_EOF
         }

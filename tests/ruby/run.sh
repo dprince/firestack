@@ -1,4 +1,5 @@
 #!/bin/bash
+MODE=${1:-"libvirt"}
 
 if [ ! -f ~/.ssh/id_rsa ]; then
 	[ -d ~/.ssh ] || mkdir ~/.ssh
@@ -6,13 +7,7 @@ if [ ! -f ~/.ssh/id_rsa ]; then
 		echo "Failed to create private key."
 fi
 
-if [ -z "$MODE" ] && [ -f /etc/nova/nova.conf ]; then
-	if grep "xenapi" /etc/nova/nova.conf &> /dev/null; then
-		MODE="xenserver"
-	fi
-fi
-
-if [[ "$MODE" == "xenserver" ]]; then
+if [[ "$MODE" == "xen" ]]; then
 	# When using XenServer we make our timeouts a bit larger since our test
 	# image is a bit larger and boot time takes longer
 	export SSH_TIMEOUT="60"
