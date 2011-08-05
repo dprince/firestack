@@ -3,12 +3,13 @@ require File.dirname(__FILE__) + '/helper'
 class TestImages < Test::Unit::TestCase
 
   def setup
-    @cs=Helper::get_connection
+    @conn=Helper::get_connection
+    @image_id = Helper::get_last_image_id(@conn)
   end
 
   def test_list
 
-    @cs.images.each do |image|
+    @conn.images.each do |image|
       assert_not_equal(0, image[:id].to_i)
       assert_not_nil(image[:name])
       assert_equal("ACTIVE", image[:status])
@@ -16,11 +17,15 @@ class TestImages < Test::Unit::TestCase
 
   end
 
-# FIXME resolve date issue with images
-#  def test_get
-#
-#    image=@cs.image(1)
-#
-#  end
+  def test_get
+
+    image=@conn.image(@image_id)
+    assert_equal(@image_id, image.id.to_s)
+    assert_not_nil(image.name)
+    assert_not_nil(image.updated)
+    assert_not_nil(image.created)
+    assert_not_nil(image.status)
+
+  end
 
 end

@@ -13,6 +13,7 @@ if [[ "$MODE" == "xen" ]]; then
 	export SSH_TIMEOUT="60"
 	export PING_TIMEOUT="60"
 	export SERVER_BUILD_TIMEOUT="420"
+	export TEST_SNAPSHOT_IMAGE="true"
 
 else
 	# When using libvirt we'll use an AMI style image which require keypairs
