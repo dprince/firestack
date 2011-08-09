@@ -54,7 +54,11 @@ exit $RETVAL
         pwd=Dir.pwd
         glance_revision=%x{
             cd #{src_dir}
-            bzr version-info | grep revno | sed -e "s|revno: ||"
+            if [ -d ".git" ]; then
+              git log --oneline | wc -l
+            else
+              bzr revno --tree
+            fi
         }.chomp
         if glance_revision.empty? then
             raise "Failed to get glance revision."

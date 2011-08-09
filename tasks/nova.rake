@@ -2,6 +2,17 @@ include ChefVPCToolkit::CloudServersVPC
 
 namespace :nova do
 
+    def nova_version(source_dir)
+        %x{
+            cd #{source_dir}
+            if [ -d ".git" ]; then
+              git log --oneline | wc -l
+            else
+              bzr revno --tree
+            fi
+        }.chomp
+    end
+
     desc "Push source into a nova installation."
     task :install_source do
 
@@ -153,9 +164,8 @@ BASH_EOF
     task :build_rpms => :tarball do
         gw_ip = ServerGroup.fetch(:source => "cache").vpn_gateway_ip
         src_dir = ENV['SOURCE_DIR'] or raise "Please specify a SOURCE_DIR."
-        version_info = %x{bzr version-info #{src_dir}}.match(/^revno: (.+)/)
-        raise "Failed to get nova revision." unless version_info
-        nova_revision = version_info[1]
+        nova_revision = nova_version(src_dir)
+        raise "Failed to get nova revision." if nova_revision.empty?
 
         shh %{
             ssh #{SSH_OPTS} root@#{gw_ip} bash <<'BASH_EOF'
@@ -176,7 +186,6 @@ BASH_EOF
         } do |ok, res|
             fail "Building rpms failed! \n #{res}" unless ok
         end
-        puts "Great success!"
     end
 
     desc "Build packages from a local nova source directory."
@@ -192,13 +201,8 @@ BASH_EOF
         end
         pwd=Dir.pwd
 
-		nova_revision=%x{
-			cd #{src_dir}
-			bzr version-info | grep revno | sed -e "s|revno: ||"
-		}.chomp
-        if nova_revision.empty? then
-			raise "Failed to get nova revision."
-		end
+        nova_revision = nova_version(src_dir)
+        raise "Failed to get nova revision." if nova_revision.empty?
 
         out=%x{
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
@@ -269,9 +273,8 @@ BASH_EOF
     task :tarball do
         gw_ip = ServerGroup.fetch(:source => "cache").vpn_gateway_ip
         src_dir = ENV['SOURCE_DIR'] or raise "Please specify a SOURCE_DIR."
-        version_info = %x{bzr version-info #{src_dir}}.match(/^revno: (.+)/)
-        raise "Failed to get nova revision." unless version_info
-        nova_revision = version_info[1]
+        nova_revision = nova_version(src_dir)
+        raise "Failed to get nova revision." if nova_revision.empty?
 
         shh %{
             set -e
