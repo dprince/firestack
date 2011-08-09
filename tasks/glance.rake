@@ -52,17 +52,8 @@ exit $RETVAL
             deb_packager_url="lp:~openstack-ubuntu-packagers/glance/ubuntu"
         end
         pwd=Dir.pwd
-        glance_revision=%x{
-            cd #{src_dir}
-            if [ -d ".git" ]; then
-              git log --oneline | wc -l
-            else
-              bzr revno --tree
-            fi
-        }.chomp
-        if glance_revision.empty? then
-            raise "Failed to get glance revision."
-        end
+        glance_revision=get_revision(src_dir)
+		raise "Failed to get glance revision." if glance_revision.empty?
 
         out=%x{
 cd #{src_dir}

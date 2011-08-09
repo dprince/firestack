@@ -39,6 +39,17 @@ def shh(script)
     end
 end
 
+def get_revision(source_dir)
+	%x{
+		cd #{source_dir}
+		if [ -d ".git" ]; then
+		  git log --oneline | wc -l
+		else
+		  bzr revno --tree
+		fi
+	}.chomp
+end
+
 Dir[File.join("#{ChefVPCToolkit::Version::CHEF_VPC_TOOLKIT_ROOT}/rake", '*.rake')].each do  |rakefile|
     import(rakefile)
 end

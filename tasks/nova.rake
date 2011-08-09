@@ -2,17 +2,6 @@ include ChefVPCToolkit::CloudServersVPC
 
 namespace :nova do
 
-    def nova_version(source_dir)
-        %x{
-            cd #{source_dir}
-            if [ -d ".git" ]; then
-              git log --oneline | wc -l
-            else
-              bzr revno --tree
-            fi
-        }.chomp
-    end
-
     desc "Push source into a nova installation."
     task :install_source do
 
@@ -164,7 +153,7 @@ BASH_EOF
     task :build_rpms => :tarball do
         gw_ip = ServerGroup.fetch(:source => "cache").vpn_gateway_ip
         src_dir = ENV['SOURCE_DIR'] or raise "Please specify a SOURCE_DIR."
-        nova_revision = nova_version(src_dir)
+        nova_revision = get_revision(src_dir)
         raise "Failed to get nova revision." if nova_revision.empty?
 
         shh %{
@@ -201,7 +190,7 @@ BASH_EOF
         end
         pwd=Dir.pwd
 
-        nova_revision = nova_version(src_dir)
+        nova_revision = get_revision(src_dir)
         raise "Failed to get nova revision." if nova_revision.empty?
 
         out=%x{
@@ -273,7 +262,7 @@ BASH_EOF
     task :tarball do
         gw_ip = ServerGroup.fetch(:source => "cache").vpn_gateway_ip
         src_dir = ENV['SOURCE_DIR'] or raise "Please specify a SOURCE_DIR."
-        nova_revision = nova_version(src_dir)
+        nova_revision = get_revision(src_dir)
         raise "Failed to get nova revision." if nova_revision.empty?
 
         shh %{
