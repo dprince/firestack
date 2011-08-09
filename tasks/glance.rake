@@ -53,7 +53,7 @@ exit $RETVAL
         end
         pwd=Dir.pwd
         glance_revision=get_revision(src_dir)
-		raise "Failed to get glance revision." if glance_revision.empty?
+        raise "Failed to get glance revision." if glance_revision.empty?
 
         out=%x{
 cd #{src_dir}
