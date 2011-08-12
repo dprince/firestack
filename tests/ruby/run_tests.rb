@@ -31,13 +31,12 @@ else
     :keypair => keypair
   }
   if not File.exists?(keypair) then
-    if not system(%{
-    which euca-add-keypair || apt-get install -q -y euca2ools &> /dev/null
+    %x{
+    aptitude -y -q install euca2ools &> /dev/null
     euca-add-keypair test > #{keypair} || { rm -f #{keypair}; exit 1; }
     chmod 600 #{keypair}
-    }) then
-      puts "Failed to create keypair." and exit 1
-    end
+    }
+    raise "Failed to create keypair" if not File.exists?(keypair)
   end
 
 end
