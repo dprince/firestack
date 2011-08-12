@@ -83,10 +83,32 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
     cd ruby-tests
     tar xzf /tmp/ruby-tests.tar.gz
     source /home/stacker/novarc
-    if [ -n "#{xunit_output}" ]; then
-        ./run_tests.rb "#{mode}" --xml-report=TEST-ruby.xml
+    if [ ! -f ~/.ssh/id_rsa ]; then
+           [ -d ~/.ssh ] || mkdir ~/.ssh
+           ssh-keygen -q -t rsa -f ~/.ssh/id_rsa &> /dev/null || \
+                   echo "Failed to create private key."
+    fi
+    if [[ "#{mode}" == "libvirt" ]]; then
+        # When using libvirt we use an AMI style image which require keypairs
+        export KEYPAIR="/root/test.pem"
+        dpkg -l euca2ools &> /dev/null || apt-get install -q -y euca2ools &> /dev/n
+        [ -f "$KEYPAIR" ] || euca-add-keypair test > "$KEYPAIR"
+        chmod 600 /root/test.pem
+        echo "export KEYPAIR='$KEYPAIR'" > test.env
+    elif [[ "#{mode}" == "xen" ]]; then
+        echo "export SSH_TIMEOUT='60'" > test.env
+        echo "export PING_TIMEOUT='60'" >> test.env
+        echo "export SERVER_BUILD_TIMEOUT='420'" >> test.env
+        echo "export TEST_SNAPSHOT_IMAGE='true'" >> test.env
     else
-        ./run_tests.rb "#{mode}"
+        echo "Invalid mode specified." 
+        exit 1
+    fi
+    source test.env
+    if [ -n "#{xunit_output}" ]; then
+        ./run_tests.rb --xml-report=TEST-ruby.xml
+    else
+        ./run_tests.rb
     fi
 EOF_SERVER_NAME
 BASH_EOF
