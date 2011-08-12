@@ -59,8 +59,9 @@ exit $RETVAL
         server_name=ENV['SERVER_NAME']
         # default to nova1 if SERVER_NAME is unset
         server_name = "nova1" if server_name.nil?
-
-        mode=ENV['MODE'] # set to 'xen' if running tests for XenServer
+        mode=ENV['MODE'] # set to 'xen' or 'libvirt'
+        mode = "libvirt" if mode.nil?
+        xunit_output=ENV['XUNIT_OUTPUT'] # set if you want Xunit style output
 
         pwd=Dir.pwd
         out=%x{
@@ -75,11 +76,18 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
     if ! gem list | grep openstack-compute &> /dev/null; then
         gem install openstack-compute
     fi
+    if ! gem list | grep test-unit-ext &> /dev/null; then
+        gem install test-unit-ext -v 0.5.0
+    fi
     [ -d ~/ruby-tests ] || mkdir ~/ruby-tests
     cd ruby-tests
     tar xzf /tmp/ruby-tests.tar.gz
     source /home/stacker/novarc
-    bash ~/ruby-tests/run.sh "#{mode}"
+    if [ -n "#{xunit_output}" ]; then
+        ./run_tests.rb "#{mode}" --xml-report=TEST-ruby.xml
+    else
+        ./run_tests.rb "#{mode}"
+    fi
 EOF_SERVER_NAME
 BASH_EOF
         }
@@ -119,6 +127,7 @@ if [ ! -d /root/nova_source ]; then
   fi
 fi
 
+dpkg -l dialog &> /dev/null || aptitude -y -q install dialog
 dpkg -l euca2ools &> /dev/null || aptitude -y -q install euca2ools
 dpkg -l python-pip &> /dev/null || aptitude -y -q install python-pip
 pip install nova-adminclient > /dev/null
