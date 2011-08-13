@@ -12,7 +12,6 @@ namespace :nova do
         server_name=ENV['SERVER_NAME']
         # default to nova1 if SERVER_NAME is unset
         server_name = "nova1" if server_name.nil?
-        pwd=Dir.pwd
         out=%x{
 cd #{src_dir}
 [ -f nova/flags.py ] || { echo "Please specify a top level nova project dir."; exit 1; }
@@ -63,7 +62,6 @@ exit $RETVAL
         mode = "libvirt" if mode.nil?
         xunit_output=ENV['XUNIT_OUTPUT'] # set if you want Xunit style output
 
-        pwd=Dir.pwd
         out=%x{
 MY_TMP="#{mktempdir}"
 cd tests/ruby
@@ -85,13 +83,14 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
     source /home/stacker/novarc
     if [ ! -f ~/.ssh/id_rsa ]; then
            [ -d ~/.ssh ] || mkdir ~/.ssh
-           ssh-keygen -q -t rsa -f ~/.ssh/id_rsa &> /dev/null || \
+           ssh-keygen -q -t rsa -f ~/.ssh/id_rsa -N "" || \
                    echo "Failed to create private key."
+
     fi
     if [[ "#{mode}" == "libvirt" ]]; then
         # When using libvirt we use an AMI style image which require keypairs
         export KEYPAIR="/root/test.pem"
-        dpkg -l euca2ools &> /dev/null || apt-get install -q -y euca2ools &> /dev/n
+        dpkg -l euca2ools &> /dev/null || apt-get install -q -y euca2ools &> /dev/null
         [ -f "$KEYPAIR" ] || euca-add-keypair test > "$KEYPAIR"
         chmod 600 /root/test.pem
         echo "export KEYPAIR='$KEYPAIR'" > test.env
@@ -101,8 +100,7 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
         echo "export SERVER_BUILD_TIMEOUT='420'" >> test.env
         echo "export TEST_SNAPSHOT_IMAGE='true'" >> test.env
     else
-        echo "Invalid mode specified." 
-        exit 1
+        echo "Invalid mode specified."
     fi
     source test.env
     if [ -n "#{xunit_output}" ]; then
@@ -130,7 +128,6 @@ BASH_EOF
         # default to nova1 if SERVER_NAME is unset
         server_name = "nova1" if server_name.nil?
         xunit_output=ENV['XUNIT_OUTPUT'] # set if you want Xunit style output
-        pwd=Dir.pwd
         out=%x{
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 [ -f /tmp/nova.tar.gz ] && scp /tmp/nova.tar.gz #{server_name}:/tmp
@@ -144,14 +141,13 @@ if [ ! -d /root/nova_source ]; then
     rm -rf .git
     cd ..
   else
-    dpkg -l bzr &> /dev/null || aptitude -y -q install bzr
+    dpkg -l bzr &> /dev/null || apt-get -y -q install bzr &> /dev/null
     bzr checkout --lightweight lp:nova /root/nova_source
   fi
 fi
 
-dpkg -l dialog &> /dev/null || aptitude -y -q install dialog
-dpkg -l euca2ools &> /dev/null || aptitude -y -q install euca2ools
-dpkg -l python-pip &> /dev/null || aptitude -y -q install python-pip
+dpkg -l euca2ools &> /dev/null || apt-get -y -q install euca2ools &> /dev/null
+dpkg -l python-pip &> /dev/null || apt-get -y -q install python-pip &> /dev/null
 pip install nova-adminclient > /dev/null
 
 if [ -n "#{xunit_output}" ]; then
@@ -166,8 +162,8 @@ if grep -c "VolumeTests" /root/nova_source/smoketests/test_sysadmin.py &> /dev/n
 fi
 cd /root/nova_source/smoketests
 source /home/stacker/novarc
-AMI_ID=$(euca-describe-images | grep ami | tail -n 1 | cut -f 2)
-python run_tests.py --test_image=$AMI_ID
+IMG_ID=$(euca-describe-images | grep ami | tail -n 1 | cut -f 2)
+python run_tests.py --test_image=$IMG_ID
 
 EOF_SERVER_NAME
 BASH_EOF
@@ -180,6 +176,52 @@ BASH_EOF
 
     end
 
+    desc "Run stacktester tests."
+    task :stacktester do
+
+        sg=ServerGroup.fetch(:source => "cache")
+        gw_ip=sg.vpn_gateway_ip
+        server_name=ENV['SERVER_NAME']
+        server_name = "nova1" if server_name.nil?
+        git_url=ENV['GIT_URL']
+        git_url = "git://github.com/rackspace-titan/stacktester.git" if git_url.nil?
+        out=%x{
+ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
+scp /tmp/ruby-tests.tar.gz #{server_name}:/tmp
+ssh #{server_name} bash <<-"EOF_SERVER_NAME"
+    dpkg -l git &> /dev/null || apt-get -y -q install git &> /dev/null
+    dpkg -l python-unittest2 &> /dev/null || apt-get -y -q install python-unittest2 &> /dev/null
+    [ -d "/root/stacktester" ] || git clone #{git_url}
+    if [ ! -f "/usr/local/bin/stacktester" ]; then
+        cd stacktester
+        ./setup.py develop
+    fi
+    source /home/stacker/novarc
+    IMG_ID=$(nova image-list | grep ACTIVE | tail -n 1 | sed -e "s|\\| \\([0-9]*\\)  .*|\\1|")
+    cat > /etc/stacktester.cfg <<EOF_CAT
+[nova]
+host=127.0.0.1
+port=8774
+user=admin
+base_url=v1.1/
+api_key=$NOVA_API_KEY
+ssh_timeout=300
+
+[environment]
+image_ref=$IMG_ID
+image_ref_alt=$IMG_ID
+flavor_ref=$IMG_ID
+flavor_ref_alt=$IMG_ID
+multi_node=false
+EOF_CAT
+
+    stacktester --config=/etc/stacktester.cfg --verbose
+
+EOF_SERVER_NAME
+BASH_EOF
+    }
+    end 
+
     desc "Build xen plugins rpm."
     task :build_rpms => :tarball do
         gw_ip = ServerGroup.fetch(:source => "cache").vpn_gateway_ip
@@ -190,7 +232,7 @@ BASH_EOF
         shh %{
             ssh #{SSH_OPTS} root@#{gw_ip} bash <<'BASH_EOF'
             set -e
-            aptitude -y -q install rpm createrepo > /dev/null
+            apt-get -y -q install rpm createrepo > /dev/null
             mkdir -p /root/openstack-rpms
             BUILD_TMP=$(mktemp -d)
             cd "$BUILD_TMP"
@@ -219,7 +261,6 @@ BASH_EOF
         if deb_packager_url.nil? then
             deb_packager_url="lp:~openstack-ubuntu-packagers/nova/ubuntu"
         end
-        pwd=Dir.pwd
 
         nova_revision = get_revision(src_dir)
         raise "Failed to get nova revision." if nova_revision.empty?
@@ -274,7 +315,6 @@ exit $RETVAL
         line_count=ENV['LINE_COUNT']
         line_count = 50 if line_count.nil?
 
-        pwd=Dir.pwd
         out=%x{
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
