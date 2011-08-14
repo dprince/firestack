@@ -191,6 +191,7 @@ scp /tmp/ruby-tests.tar.gz #{server_name}:/tmp
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
     dpkg -l git &> /dev/null || apt-get -y -q install git &> /dev/null
     dpkg -l python-unittest2 &> /dev/null || apt-get -y -q install python-unittest2 &> /dev/null
+    dpkg -l python-paramiko &> /dev/null || apt-get -y -q install python-paramiko &> /dev/null
     [ -d "/root/stacktester" ] || git clone #{git_url}
     if [ ! -f "/usr/local/bin/stacktester" ]; then
         cd stacktester
