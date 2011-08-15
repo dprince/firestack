@@ -221,10 +221,9 @@ EOF_CAT
 EOF_SERVER_NAME
 BASH_EOF
     }
-    retval=$?
-    puts out
-    if not retval.success?
-        fail "Test task failed!"
+        retval=$?
+        puts out
+        fail "Test task failed!" if not retval.success?
     end
 
     desc "Build xen plugins rpm."
