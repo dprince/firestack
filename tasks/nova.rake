@@ -221,7 +221,11 @@ EOF_CAT
 EOF_SERVER_NAME
 BASH_EOF
     }
-    end 
+    retval=$?
+    puts out
+    if not retval.success?
+        fail "Test task failed!"
+    end
 
     desc "Build xen plugins rpm."
     task :build_rpms => :tarball do
