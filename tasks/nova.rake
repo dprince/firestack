@@ -161,6 +161,8 @@ if grep -c "VolumeTests" /root/nova_source/smoketests/test_sysadmin.py &> /dev/n
   mv tmp_test_sysadmin.py /root/nova_source/smoketests/test_sysadmin.py
 fi
 cd /root/nova_source/smoketests
+#FIXME: remove test_admin.py until lp#832476 is fixed
+rm test_admin.py
 source /home/stacker/novarc
 IMG_ID=$(euca-describe-images | grep ami | tail -n 1 | cut -f 2)
 python run_tests.py --test_image=$IMG_ID
