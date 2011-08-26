@@ -71,8 +71,8 @@ rm -Rf "$MY_TMP"
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 scp /tmp/ruby-tests.tar.gz #{server_name}:/tmp
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
-    if ! gem list | grep openstack-compute &> /dev/null; then
-        gem install openstack-compute
+    if ! gem list | grep openstack-compute.*1.0.0 &> /dev/null; then
+        gem install openstack-compute -v 1.0.0
     fi
     if ! gem list | grep test-unit-ext &> /dev/null; then
         gem install test-unit-ext -v 0.5.0
