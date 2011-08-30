@@ -199,21 +199,30 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
         ./setup.py develop
     fi
     source /home/stacker/novarc
-    IMG_ID=$(nova image-list | grep ACTIVE | tail -n 1 | sed -e "s|\\| \\([0-9]*\\)  .*|\\1|")
+    #FIXME: novaclient doesn't work with keystone yet but the EC2 API does.
+    dpkg -l euca2ools &> /dev/null || apt-get install -q -y euca2ools &> /dev/null
+    #IMG_ID=$(nova image-list | grep ACTIVE | tail -n 1 | sed -e "s|\\| \\([0-9]*\\)  .*|\\1|")
+    IMG_ID=$(euca-describe-images | wc -l)
+    if cat /home/stacker/novarc | grep token &> /dev/null; then
+      AUTH_BASE_PATH="v2.0/tokens"
+    else
+      AUTH_BASE_PATH="v1.0"
+    end
     cat > /etc/stacktester.cfg <<EOF_CAT
 [nova]
 host=127.0.0.1
 port=8774
 user=admin
-base_url=v1.1/
+auth_base_path=$AUTH_BASE_PATH
 api_key=$NOVA_API_KEY
 ssh_timeout=300
+service_name=nova
 
 [environment]
 image_ref=$IMG_ID
 image_ref_alt=$IMG_ID
-flavor_ref=$IMG_ID
-flavor_ref_alt=$IMG_ID
+flavor_ref=1
+flavor_ref_alt=2
 multi_node=false
 EOF_CAT
 
