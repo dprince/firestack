@@ -15,12 +15,10 @@ namespace :nova do
         out=%x{
 cd #{src_dir}
 [ -f nova/flags.py ] || { echo "Please specify a top level nova project dir."; exit 1; }
-scp #{SSH_OPTS} ./etc/nova/api-paste.ini root@#{gw_ip}:/tmp/api-paste.ini
 MY_TMP="#{mktempdir}"
 tar czf $MY_TMP/nova.tar.gz ./nova
 scp #{SSH_OPTS} $MY_TMP/nova.tar.gz root@#{gw_ip}:/tmp/nova.tar.gz
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
-scp /tmp/api-paste.ini #{server_name}:/etc/nova/api-paste.ini
 scp /tmp/nova.tar.gz #{server_name}:/tmp
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 cd /usr/share/pyshared
