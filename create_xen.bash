@@ -19,6 +19,14 @@ function create_group {
 }
 
 function chef_install {
+    # NOTE: we build packages right now because the PPA won't work on
+    # Cloud Servers. There are a couple show stoppers:
+    #
+    # - libvirt 0.8.8 doesn't quite: https://bugs.launchpad.net/bugs/790837
+    # - Additionally the init script for nova-compute modprobes 'nbd'
+    #
+    # Until we fix these issues building packages is required.
+
     rake nova:build_packages SOURCE_DIR=$NOVA DEB_PACKAGER_URL=$DEB_PACKAGER_URL
     rake nova:build_rpms SOURCE_DIR=$NOVA
     rake glance:build_packages SOURCE_DIR=$GLANCE
@@ -43,6 +51,10 @@ function compute1_bootstrap {
 EOF_BASH
 
     rake chef:install SERVER_NAME=compute1
+
+    # NOTE: use full hostname here because nova-agent sets hostname as
+    # hostname.domain (will talk to Chris to see if we want to add this as
+    # an agent feature)
     rake chef:poll_clients SERVER_NAME=compute1.vpc
 }
 
