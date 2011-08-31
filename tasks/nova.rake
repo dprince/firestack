@@ -207,7 +207,7 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
       AUTH_BASE_PATH="v2.0/tokens"
     else
       AUTH_BASE_PATH="v1.0"
-    end
+    fi
     cat > /etc/stacktester.cfg <<EOF_CAT
 [nova]
 host=127.0.0.1
