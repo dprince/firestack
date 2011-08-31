@@ -19,7 +19,7 @@ module Helper
 
   def self.get_connection
 
-    OpenStack::Compute::Connection.new(:username => USERNAME, :api_key => API_KEY, :api_url => API_URL)
+    OpenStack::Compute::Connection.new(:username => USERNAME, :api_key => API_KEY, :auth_url => API_URL)
 
   end
 
