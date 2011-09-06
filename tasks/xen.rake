@@ -137,9 +137,16 @@ ssh #{SSH_OPTS} root@#{xenserver_ip} bash <<-"EOF_BASH"
 cat > /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL <<-"EOF_RPM_GPG_KEY"
 #{IO.read(File.join(File.dirname(__FILE__), "RPM-GPG-KEY-EPEL"))}
 EOF_RPM_GPG_KEY
+
+if wget -T 1 -t 1 http://mirror.rackspace.com/ -O - &> /dev/null; then
+rpm -q epel-release &> /dev/null && rpm -e epel-release
 cat > /etc/yum.repos.d/epel.repo <<-"EOF_EPEL"
 #{IO.read(File.join(File.dirname(__FILE__), "epel.repo"))}
 EOF_EPEL
+else
+rm /etc/yum.repos.d/epel.repo
+rpm -q epel-release &> /dev/null || rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
+fi
 
 rpm -qi openvpn &> /dev/null || yum install -y -q openvpn ntp
 service openvpn stop
