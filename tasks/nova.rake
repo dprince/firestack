@@ -69,8 +69,8 @@ rm -Rf "$MY_TMP"
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 scp /tmp/ruby-tests.tar.gz #{server_name}:/tmp
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
-    if ! gem list | grep openstack-compute.*1.0.1 &> /dev/null; then
-        gem install openstack-compute -v 1.0.1
+    if ! gem list | grep openstack-compute.*1.0.2 &> /dev/null; then
+        gem install openstack-compute -v 1.0.2
     fi
     if ! gem list | grep test-unit-ext &> /dev/null; then
         gem install test-unit-ext -v 0.5.0
@@ -201,8 +201,8 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
     dpkg -l euca2ools &> /dev/null || apt-get install -q -y euca2ools &> /dev/null
     #IMG_ID=$(nova image-list | grep ACTIVE | tail -n 1 | sed -e "s|\\| \\([0-9]*\\)  .*|\\1|")
     IMG_ID=$(euca-describe-images | wc -l)
-    if grep token /home/stacker/novarc &> /dev/null; then
-      AUTH_BASE_PATH="v2.0/tokens"
+    if grep v2.0 /home/stacker/novarc &> /dev/null; then
+      AUTH_BASE_PATH="v2.0"
     else
       AUTH_BASE_PATH="v1.0"
     fi
