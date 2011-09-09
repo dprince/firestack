@@ -15,14 +15,14 @@ namespace :glance do
         out=%x{
 cd #{src_dir}
 MY_TMP="#{mktempdir}"
-tar czf $MY_TMP/glance.tar.gz ./glance
+tar czf $MY_TMP/glance.tar.gz ./glance 2> /dev/null || { echo "Failed to create glance source tar."; exit 1; }
 scp #{SSH_OPTS} $MY_TMP/glance.tar.gz root@#{gw_ip}:/tmp/glance.tar.gz
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 scp /tmp/glance.tar.gz #{server_name}:/tmp
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 cd /usr/share/pyshared
 rm -Rf glance
-tar xf /tmp/glance.tar.gz
+tar xf /tmp/glance.tar.gz 2> /dev/null || { echo "Failed to extract glance source tar."; exit 1; }
 for FILE in $(find glance -name '*.py'); do
     DIR=$(dirname /usr/lib/pymodules/python2.6/$FILE)
     [ -d $DIR ] || mkdir -p $DIR
@@ -59,7 +59,7 @@ exit $RETVAL
 cd #{src_dir}
 [ -f glance/version.py ] || { echo "Please specify a top level glance project dir."; exit 1; }
 MY_TMP="#{mktempdir}"
-tar czf $MY_TMP/glance.tar.gz .
+tar czf $MY_TMP/glance.tar.gz . 2> /dev/null || { echo "Failed to create glance tar."; exit 1; }
 scp #{SSH_OPTS} $MY_TMP/glance.tar.gz root@#{gw_ip}:/tmp/glance.tar.gz
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 
@@ -68,7 +68,7 @@ aptitude -y -q install dpkg-dev bzr git quilt debhelper python-m2crypto python-a
 BUILD_TMP=$(mktemp -d)
 cd "$BUILD_TMP"
 mkdir glance && cd glance
-tar xzf /tmp/glance.tar.gz
+tar xzf /tmp/glance.tar.gz 2> /dev/null || { echo "Falied to extract glance source tar."; exit 1; }
 rm -rf .bzr
 rm -rf .git
 cd ..
