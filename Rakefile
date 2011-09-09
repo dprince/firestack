@@ -47,7 +47,7 @@ def get_revision(source_dir)
 		else
 		  bzr revno --tree
 		fi
-	}.chomp
+	}.strip
 end
 
 Dir[File.join("#{ChefVPCToolkit::Version::CHEF_VPC_TOOLKIT_ROOT}/rake", '*.rake')].each do  |rakefile|

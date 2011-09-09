@@ -39,7 +39,7 @@ bzr checkout --lightweight #{deb_packager_url} keystone
 rm -rf keystone/.bzr
 rm -rf keystone/.git
 cd keystone
-echo "keystone (9999.1-bzr#{keystone_revision}) maverick; urgency=high" > debian/changelog
+echo "keystone (9999.1-vpc#{keystone_revision}) maverick; urgency=high" > debian/changelog
 echo " -- Dev Null <dev@null.com>  $(date +\"%a, %e %b %Y %T %z\")" >> debian/changelog
 #QUILT_PATCHES=debian/patches quilt push -a || \ { echo "Failed to patch keystone."; exit 1; }
 DEB_BUILD_OPTIONS=nocheck,nodocs dpkg-buildpackage -rfakeroot -b -uc -us -d \

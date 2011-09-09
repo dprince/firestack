@@ -293,7 +293,7 @@ bzr checkout --lightweight #{deb_packager_url} nova
 rm -rf nova/.bzr
 rm -rf nova/.git
 cd nova
-echo "nova (9999.1-bzr#{nova_revision}) maverick; urgency=high" > debian/changelog
+echo "nova (9999.1-vpc#{nova_revision}) maverick; urgency=high" > debian/changelog
 echo " -- Dev Null <dev@null.com>  $(date +\"%a, %e %b %Y %T %z\")" >> debian/changelog
 QUILT_PATCHES=debian/patches quilt push -a || \
  { echo "Failed to patch nova."; exit 1; }

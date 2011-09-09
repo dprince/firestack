@@ -76,7 +76,7 @@ bzr checkout --lightweight #{deb_packager_url} glance
 rm -rf glance/.bzr
 rm -rf glance/.git
 cd glance
-echo "glance (9999.1-bzr#{glance_revision}) maverick; urgency=high" > debian/changelog
+echo "glance (9999.1-vpc#{glance_revision}) maverick; urgency=high" > debian/changelog
 echo " -- Dev Null <dev@null.com>  $(date +\"%a, %e %b %Y %T %z\")" >> debian/changelog
 QUILT_PATCHES=debian/patches quilt push -a || \ { echo "Failed to patch glance."; exit 1; }
 DEB_BUILD_OPTIONS=nocheck,nodocs dpkg-buildpackage -rfakeroot -b -uc -us -d \
