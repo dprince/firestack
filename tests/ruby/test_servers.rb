@@ -121,8 +121,7 @@ class TestServers < Test::Unit::TestCase
 
       #snapshot the image
       image = create_image(server, "My Backup")
-      # QUESTION: Should status be QUEUED or SAVING
-      assert_equal('QUEUED', image.status)
+      assert_equal('SAVING', image.status)
       assert_equal('My Backup', image.name)
       assert_equal(0, image.progress)
       assert_equal(server.id, image.serverId)
