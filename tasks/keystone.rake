@@ -22,7 +22,7 @@ namespace :keystone do
 cd #{src_dir}
 [ -f keystone/__init__.py ] || { echo "Please specify a top level keystone project dir."; exit 1; }
 MY_TMP="#{mktempdir}"
-tar czf $MY_TMP/keystone.tar.gz .
+tar czf $MY_TMP/keystone.tar.gz . 2> /dev/null || { echo "Failed to create keystone source tar."; exit 1; }
 scp #{SSH_OPTS} $MY_TMP/keystone.tar.gz root@#{gw_ip}:/tmp/keystone.tar.gz
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 
@@ -31,7 +31,7 @@ aptitude -y -q install dpkg-dev bzr git quilt debhelper python-m2crypto python-a
 BUILD_TMP=$(mktemp -d)
 cd "$BUILD_TMP"
 mkdir keystone && cd keystone
-tar xzf /tmp/keystone.tar.gz
+tar xzf /tmp/keystone.tar.gz 2> /dev/null || { echo "Failed to extract keystone source tar."; exit 1; }
 rm -rf .bzr
 rm -rf .git
 cd ..

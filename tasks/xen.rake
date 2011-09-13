@@ -64,13 +64,13 @@ cd #{src_dir}
 [ -f nova/flags.py ] || { echo "Please specify a top level nova project dir."; exit 1; }
 cd plugins/xenserver/xenapi
 MY_TMP="#{mktempdir}"
-tar czf $MY_TMP/plugins.tar.gz ./etc
+tar czf $MY_TMP/plugins.tar.gz ./etc 2> /dev/null || { echo "Failed to create plugins source tar."; exit 1; }
 scp #{SSH_OPTS} $MY_TMP/plugins.tar.gz root@#{gw_ip}:/tmp/plugins.tar.gz
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 scp /tmp/plugins.tar.gz #{server_name}:/tmp
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 cd /
-tar xf /tmp/plugins.tar.gz
+tar xf /tmp/plugins.tar.gz 2> /dev/null || { echo "Failed to extract plunigs tar."; exit 1; }
 chmod a+x /etc/xapi.d/plugins/*
 sed -i -e "s/enabled=0/enabled=1/" /etc/yum.repos.d/CentOS-Base.repo
 rpm -q parted &> /dev/null || yum install -y -q parted
@@ -223,7 +223,7 @@ CHEF_RPM_DIR=$(mktemp -d)
 wget http://c2521002.r2.cf0.rackcdn.com/chef-client-0.9.8-centos5.5-i386.tar.gz -O $CHEF_RPM_DIR/chef.tar.gz &> /dev/null \
         || { echo "Failed to download Chef RPM tarball."; exit 1; }
 cd $CHEF_RPM_DIR
-tar xzf chef.tar.gz || { echo "Failed to extract Chef tarball."; exit 1; }
+tar xzf chef.tar.gz 2> /dev/null || { echo "Failed to extract Chef tarball."; exit 1; }
 rm chef.tar.gz
 cd chef*
 yum install -q -y --nogpgcheck */*.rpm

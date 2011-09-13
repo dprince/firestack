@@ -16,14 +16,14 @@ namespace :nova do
 cd #{src_dir}
 [ -f nova/flags.py ] || { echo "Please specify a top level nova project dir."; exit 1; }
 MY_TMP="#{mktempdir}"
-tar czf $MY_TMP/nova.tar.gz ./nova
+tar czf $MY_TMP/nova.tar.gz ./nova 2> /dev/null || { echo "Failed to create nova source tar."; exit 1; }
 scp #{SSH_OPTS} $MY_TMP/nova.tar.gz root@#{gw_ip}:/tmp/nova.tar.gz
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 scp /tmp/nova.tar.gz #{server_name}:/tmp
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 cd /usr/share/pyshared
 rm -Rf nova
-tar xf /tmp/nova.tar.gz
+tar xf /tmp/nova.tar.gz 2> /dev/null || { echo "Failed to extract nova source tar."; exit 1; }
 for FILE in $(find nova -name '*.py' -o -name '*.template'); do
     DIR=$(dirname /usr/lib/pymodules/python2.6/$FILE)
     [ -d $DIR ] || mkdir -p $DIR
@@ -63,7 +63,7 @@ exit $RETVAL
         out=%x{
 MY_TMP="#{mktempdir}"
 cd tests/ruby
-tar czf $MY_TMP/ruby-tests.tar.gz *
+tar czf $MY_TMP/ruby-tests.tar.gz * 2> /dev/null || { echo "Failed to create nova tar."; exit 1; }
 scp #{SSH_OPTS} $MY_TMP/ruby-tests.tar.gz root@#{gw_ip}:/tmp/ruby-tests.tar.gz
 rm -Rf "$MY_TMP"
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
@@ -77,7 +77,7 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
     fi
     [ -d ~/ruby-tests ] || mkdir ~/ruby-tests
     cd ruby-tests
-    tar xzf /tmp/ruby-tests.tar.gz
+    tar xzf /tmp/ruby-tests.tar.gz 2> /dev/null || { echo "Failed to excract ruby tests tar."; exit 1; }
     source /home/stacker/novarc
     if [ ! -f ~/.ssh/id_rsa ]; then
            [ -d ~/.ssh ] || mkdir ~/.ssh
@@ -135,7 +135,7 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 if [ ! -d /root/nova_source ]; then
   if [ -f /tmp/nova.tar.gz ]; then
     mkdir nova_source && cd nova_source
-    tar xzf /tmp/nova.tar.gz
+    tar xzf /tmp/nova.tar.gz 2> /dev/null || { echo "Failed to extract nova source tar."; exit 1; }
     rm -rf .bzr
     rm -rf .git
     cd ..
@@ -249,7 +249,7 @@ BASH_EOF
             BUILD_TMP=$(mktemp -d)
             cd "$BUILD_TMP"
             mkdir nova && cd nova
-            tar xzf /tmp/nova.tar.gz > /dev/null
+            tar xzf /tmp/nova.tar.gz &> /dev/null || { echo "Failed to extract nova source tar."; exit 1; }
             cd plugins/xenserver/xenapi/contrib
             chown -R root:root .
             perl -i -pe 's/^(Release:\s+).*/${1}#{nova_revision}/' rpmbuild/SPECS/openstack-xen-plugins.spec
@@ -285,7 +285,7 @@ aptitude -y -q install dpkg-dev bzr git quilt debhelper python-m2crypto python-a
 BUILD_TMP=$(mktemp -d)
 cd "$BUILD_TMP"
 mkdir nova && cd nova
-tar xzf /tmp/nova.tar.gz
+tar xzf /tmp/nova.tar.gz 2> /dev/null || { echo "Failed to extract nova source tar."; exit 1; }
 rm -rf .bzr
 rm -rf .git
 cd ..
@@ -354,7 +354,7 @@ BASH_EOF
             [ -f nova/flags.py ] \
                 || { echo "Please specify a valid nova project dir."; exit 1; }
             MY_TMP="#{mktempdir}"
-            tar czf $MY_TMP/nova.tar.gz .
+            tar czf $MY_TMP/nova.tar.gz . 2> /dev/null || { echo "Failed to create nova source tar."; exit 1; }
             scp #{SSH_OPTS} $MY_TMP/nova.tar.gz root@#{gw_ip}:/tmp
             rm -rf "$MY_TMP"
         } do |ok, res|
