@@ -280,7 +280,9 @@ BASH_EOF
         out=%x{
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 
-aptitude -y -q install dpkg-dev bzr git quilt debhelper python-m2crypto python-all python-setuptools python-sphinx python-distutils-extra python-twisted-web python-gflags python-mox python-carrot python-boto python-amqplib python-ipy python-sqlalchemy-ext  python-eventlet python-routes python-webob python-cheetah python-nose python-paste python-pastedeploy python-tempita python-migrate python-netaddr python-glance python-novaclient python-lockfile pep8 python-sphinx &> /dev/null || { echo "Failed to install prereq packages."; exit 1; }
+if ! /usr/bin/dpkg -l python-novaclient &> /dev/null; then
+aptitude -y -q install dpkg-dev bzr git quilt debhelper python-m2crypto python-all python-setuptools python-sphinx python-distutils-extra python-twisted-web python-gflags python-mox python-carrot python-boto python-amqplib python-ipy python-sqlalchemy-ext  python-eventlet python-routes python-webob python-cheetah python-nose python-paste python-pastedeploy python-tempita python-migrate python-netaddr python-novaclient python-lockfile pep8 python-sphinx &> /dev/null || { echo "Failed to install prereq packages."; exit 1; }
+fi
 
 BUILD_TMP=$(mktemp -d)
 cd "$BUILD_TMP"
@@ -293,6 +295,7 @@ bzr checkout --lightweight #{deb_packager_url} nova
 rm -rf nova/.bzr
 rm -rf nova/.git
 cd nova
+sed -e 's|^nova-compute-deps.*|nova-compute-deps=adduser|' -i debian/ubuntu_control_vars
 echo "nova (9999.1-vpc#{nova_revision}) maverick; urgency=high" > debian/changelog
 echo " -- Dev Null <dev@null.com>  $(date +\"%a, %e %b %Y %T %z\")" >> debian/changelog
 QUILT_PATCHES=debian/patches quilt push -a || \
