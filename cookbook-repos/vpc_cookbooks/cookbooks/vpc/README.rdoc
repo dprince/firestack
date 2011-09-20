@@ -1,0 +1,9 @@
+= DESCRIPTION:
+Misc cookbooks to help setup VPC type environments.
+
+= REQUIREMENTS:
+
+= ATTRIBUTES: 
+
+= USAGE:
+
