@@ -1,7 +1,7 @@
 # Options for the Chef Installer.
 
 # Public cookbook repo. (Full URL)
-chef_cookbook_repos: https://github.com/dprince/openstack_cookbooks/tarball/master
+chef_cookbook_repos: https://github.com/openstack/openstack-chef/tarball/master
 
 # Shared Chef cookbook repository hosted in Rackspace Cloud Files.
 #chef_cookbook_repos: CookbookRepos/cookbook-repo1.tar.gz
