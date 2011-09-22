@@ -7,9 +7,21 @@
 	"nova1": {
 		"nova": {
 			"public_interface": "tap0",
-			"flat_interface": "tap0"
+			"flat_interface": "tap0",
+			"libvirt_type": "qemu",
+			"network_manager": "nova.network.manager.FlatDHCPManager",
+			"glance_api_servers": "glance1:9292",
+			"flat_network_bridge": "br100",
+			"flat_network_dhcp_start": "192.168.0.2",
+			"fixed_range": "192.168.0.0/24",
+			"floating_range": "172.20.0.0/24",
+			"network": "192.168.0.0/24 1 254",
+			"public_network_gateway_ip": "192.168.0.1/24"
 		},
 		"run_list": [
+			"recipe[vpc::apt_config]",
+			"recipe[apt::noauth]",
+			"recipe[vpc::my_ip]",
 			"role[ruby]",
 			"role[nova-mysql-server]",
 			"role[nova-rabbitmq-server]",
@@ -19,6 +31,7 @@
 			"role[nova-scheduler]",
 			"role[nova-network]",
 			"role[nova-objectstore]",
+            "recipe[vpc::libvirt]",
 			"role[nova-compute]",
 			"recipe[nova::creds]"
 		]
@@ -30,6 +43,8 @@
 			"tty_linux_image": "http://c3226372.r72.cf0.rackcdn.com/tty_linux.tar.gz"
 		},
 		"run_list": [
+			"recipe[vpc::apt_config]",
+			"recipe[apt::noauth]",
 			"role[glance-api]",
 			"role[glance-registry]",
 			"recipe[glance::load_images]"

@@ -3,6 +3,7 @@
 		"run_list": [
 			"role[apt-repo]",
 			"recipe[vpc::apt_config]",
+			"recipe[apt::noauth]",
 			"recipe[keystone::api]",
 			"recipe[keystone::setup]"
 		]
@@ -15,9 +16,22 @@
 			"keystone_service_host": "login",
 			"keystone_auth_host": "login",
 			"keystone_auth_uri": "http://login:5000/",
-			"keystone_ec2_url": "http://login:5000/v2.0/ec2tokens"
+			"keystone_ec2_url": "http://login:5000/v2.0/ec2tokens",
+            "flat_interface": "tap0",
+            "libvirt_type": "qemu",
+            "network_manager": "nova.network.manager.FlatDHCPManager",
+            "glance_api_servers": "glance1:9292",
+            "flat_network_bridge": "br100",
+            "flat_network_dhcp_start": "192.168.0.2",
+            "fixed_range": "192.168.0.0/24",
+            "floating_range": "172.20.0.0/24",
+            "network": "192.168.0.0/24 1 254",
+            "public_network_gateway_ip": "192.168.0.1/24"
 		},
 		"run_list": [
+            "recipe[vpc::apt_config]",
+            "recipe[apt::noauth]",
+            "recipe[vpc::my_ip]",
 			"role[ruby]",
 			"role[nova-mysql-server]",
 			"role[nova-rabbitmq-server]",
@@ -27,8 +41,10 @@
 			"role[nova-scheduler]",
 			"role[nova-network]",
 			"role[nova-objectstore]",
+			"recipe[vpc::libvirt]",
 			"role[nova-compute]",
-			"recipe[nova::creds]"
+			"recipe[nova::creds]",
+			"recipe[keystone::creds]"
 		]
 	},
 	"glance1": {
@@ -42,6 +58,8 @@
 			"tty_linux_image": "http://c3226372.r72.cf0.rackcdn.com/tty_linux.tar.gz"
 		},
 		"run_list": [
+            "recipe[vpc::apt_config]",
+            "recipe[apt::noauth]",
 			"recipe[keystone::creds]",
 			"role[glance-api]",
 			"role[glance-registry]",
