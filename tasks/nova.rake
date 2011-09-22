@@ -78,7 +78,7 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
     [ -d ~/ruby-tests ] || mkdir ~/ruby-tests
     cd ruby-tests
     tar xzf /tmp/ruby-tests.tar.gz 2> /dev/null || { echo "Failed to excract ruby tests tar."; exit 1; }
-    source /home/stacker/novarc
+    source /root/novarc
     if [ ! -f ~/.ssh/id_rsa ]; then
            [ -d ~/.ssh ] || mkdir ~/.ssh
            ssh-keygen -q -t rsa -f ~/.ssh/id_rsa -N "" || \
@@ -160,7 +160,7 @@ if grep -c "VolumeTests" /root/nova_source/smoketests/test_sysadmin.py &> /dev/n
   mv tmp_test_sysadmin.py /root/nova_source/smoketests/test_sysadmin.py
 fi
 cd /root/nova_source/smoketests
-source /home/stacker/novarc
+source /root/novarc
 IMG_ID=$(euca-describe-images | grep ami | tail -n 1 | cut -f 2)
 python run_tests.py --test_image=$IMG_ID
 
@@ -196,12 +196,12 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
         cd stacktester
         ./setup.py develop
     fi
-    source /home/stacker/novarc
+    source /root/novarc
     #FIXME: novaclient doesn't work with keystone yet but the EC2 API does.
     dpkg -l euca2ools &> /dev/null || apt-get install -q -y euca2ools &> /dev/null
     #IMG_ID=$(nova image-list | grep ACTIVE | tail -n 1 | sed -e "s|\\| \\([0-9]*\\)  .*|\\1|")
     IMG_ID=$(euca-describe-images | wc -l)
-    if grep v2.0 /home/stacker/novarc &> /dev/null; then
+    if grep v2.0 /root/novarc &> /dev/null; then
       AUTH_BASE_PATH="v2.0"
     else
       AUTH_BASE_PATH="v1.0"
