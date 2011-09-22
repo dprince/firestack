@@ -70,6 +70,7 @@
 	},
 	"compute1": {
 		"nova": {
+            "glance_api_servers": "glance1:9292",
             "network_manager": "nova.network.manager.FlatManager",
 			"flat_network_bridge": "xenbr0",
 			"connection_type": "xenapi",
