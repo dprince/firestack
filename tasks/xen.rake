@@ -117,9 +117,13 @@ BASH_EOF
 ssh #{SSH_OPTS} root@#{xenserver_ip} bash <<-"EOF_BASH"
 [ -d .ssh ] || mkdir .ssh
 chmod 700 .ssh
+if [ ! -f /root/.ssh/authorized_keys.clean ]; then
+cat > /root/.ssh/authorized_keys.clean <<-"EOF_KEYS_CLEAN"
+#{Util.load_public_key}
+EOF_KEYS_CLEAN
+fi
 cat > /root/.ssh/authorized_keys <<-"EOF_SSH_KEYS"
 #{root_ssh_pub_key}
-#{Util.load_public_key}
 EOF_SSH_KEYS
 cat /root/.ssh/authorized_keys.clean >> /root/.ssh/authorized_keys || { echo "Please create a .ssh/authorized_keys.clean file."; }
 chmod 600 /root/.ssh/authorized_keys
