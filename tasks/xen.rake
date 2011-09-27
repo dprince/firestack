@@ -117,7 +117,9 @@ BASH_EOF
 ssh #{SSH_OPTS} root@#{xenserver_ip} bash <<-"EOF_BASH"
 [ -d .ssh ] || mkdir .ssh
 chmod 700 .ssh
-cat > /root/.ssh/authorized_keys <<-"EOF_SSH_KEYS"
+cp /root/.ssh/authorized_keys.clean /root/.ssh/authorized_keys || \
+  { echo "Please create a .ssh/authorized_keys.clean file." }
+cat >> /root/.ssh/authorized_keys <<-"EOF_SSH_KEYS"
 #{root_ssh_pub_key}
 #{Util.load_public_key}
 EOF_SSH_KEYS
@@ -284,6 +286,7 @@ service chef-client stop &> /dev/null
 [ -f /etc/chef/client.pem ] && rm /etc/chef/client.pem
 rm -Rf /var/log/chef/*
 rm -Rf /var/log/nova/*
+rm -Rf /root/.ssh/known_hosts
 
 rpm -ev openstack-xen-plugins &> /dev/null
 yum clean all &> /dev/null
