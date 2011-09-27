@@ -19,7 +19,7 @@
             "floating_range": "172.20.0.0/24",
             "network": "192.168.0.0/24 1 254",
             "public_network_gateway_ip": "192.168.0.1/24",
-			"auth_type": "keystone",
+			"auth_type": "noauth",
 			"keystone_service_host": "login",
 			"keystone_auth_host": "login",
 			"keystone_auth_uri": "http://login:5000/",
@@ -38,13 +38,12 @@
 			"role[nova-scheduler]",
 			"role[nova-network]",
 			"role[nova-objectstore]",
-			"recipe[nova::creds]",
-			"recipe[keystone::creds]"
+			"recipe[nova::creds]"
 		]
 	},
 	"glance1": {
 		"glance": {
-			"auth_type": "keystone",
+			"auth_type": "noauth",
             "keystone_service_host": "login",
             "keystone_auth_host": "login",
             "keystone_auth_uri": "http://login:5000/",
@@ -62,7 +61,6 @@
 		"run_list": [
             "recipe[vpc::apt_config]",
 			"recipe[apt::noauth]",
-			"recipe[keystone::creds]",
 			"role[glance-api]",
 			"role[glance-registry]",
 			"recipe[glance::load_images]"
