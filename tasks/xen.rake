@@ -21,10 +21,10 @@ def move_xenbr_ip_to_eth0(xenserver_ip, vpn_gw_ip, client_vpn_ip)
 
     return false if ifconfig_xenbr0.nil? or ifconfig_xenbr0.empty?
 
-    def_gw=def_route_xenbr0.scan(/default via ([0-9.]*)/).to_s
-    ip_addr=ifconfig_xenbr0.scan(/inet addr:([0-9.]*)/).to_s
-    bcast=ifconfig_xenbr0.scan(/Bcast:([0-9.]*)/).to_s
-    mask=ifconfig_xenbr0.scan(/Mask:([0-9.]*)/).to_s
+    def_gw=def_route_xenbr0.scan(/default via ([0-9.]*)/).flatten[0].to_s
+    ip_addr=ifconfig_xenbr0.scan(/inet addr:([0-9.]*)/).flatten[0].to_s
+    bcast=ifconfig_xenbr0.scan(/Bcast:([0-9.]*)/).flatten[0].to_s
+    mask=ifconfig_xenbr0.scan(/Mask:([0-9.]*)/).flatten[0].to_s
     cidr=mask_to_cidr(mask)
 
     return false if ip_addr == client_vpn_ip
