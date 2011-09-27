@@ -11,7 +11,6 @@ XENSERVER_IP="$1"
 NOVA="$2"
 KEYSTONE="$3"
 GLANCE="$4"
-DEB_PACKAGER_URL="lp:~rackspace-titan/nova/ubuntu-nova-vpc"
 XENSERVER_NAME="xen1"
 
 rake group:create
@@ -24,7 +23,7 @@ rake group:poll
 # - Additionally the init script for nova-compute modprobes 'nbd'
 #
 # Until we fix these issues building packages is required.
-rake nova:build_packages SOURCE_DIR=$NOVA DEB_PACKAGER_URL=$DEB_PACKAGER_URL
+rake nova:build_packages SOURCE_DIR=$NOVA
 
 rake nova:build_rpms SOURCE_DIR=$NOVA
 
