@@ -93,6 +93,7 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
         echo "export SERVER_BUILD_TIMEOUT='420'" >> test.env
         echo "export TEST_SNAPSHOT_IMAGE='true'" >> test.env
         echo "export TEST_REBUILD_INSTANCE='true'" >> test.env
+        echo "export TEST_RESIZE_INSTANCE='true'" >> test.env
     else
         echo "Invalid mode specified."
     fi
