@@ -3,7 +3,7 @@ include ChefVPCToolkit::CloudServersVPC
 namespace :keystone do
 
     desc "Build packages from a local keystone source directory."
-    task :build_packages do
+    task :build_packages => :tarball do
 
         sg=ServerGroup.fetch(:source => "cache")
         gw_ip=sg.vpn_gateway_ip
@@ -20,10 +20,6 @@ namespace :keystone do
 
         out=%x{
 cd #{src_dir}
-[ -f keystone/__init__.py ] || { echo "Please specify a top level keystone project dir."; exit 1; }
-MY_TMP="#{mktempdir}"
-tar czf $MY_TMP/keystone.tar.gz . 2> /dev/null || { echo "Failed to create keystone source tar."; exit 1; }
-scp #{SSH_OPTS} $MY_TMP/keystone.tar.gz root@#{gw_ip}:/tmp/keystone.tar.gz
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 
 aptitude -y -q install dpkg-dev bzr git quilt debhelper python-m2crypto python-all python-setuptools python-sphinx python-distutils-extra python-twisted-web python-gflags python-mox python-carrot python-boto python-amqplib python-ipy python-sqlalchemy-ext  python-eventlet python-routes python-webob python-cheetah python-nose python-paste python-pastedeploy python-tempita python-migrate python-netaddr python-lockfile pep8 python-sphinx &> /dev/null || { echo "Failed to install prereq packages."; exit 1; }
@@ -51,7 +47,6 @@ cp $BUILD_TMP/*.deb /root/openstack-packages
 rm -Rf "$BUILD_TMP"
 BASH_EOF
 RETVAL=$?
-rm -Rf "$MY_TMP"
 exit $RETVAL
         }
         retval=$?
@@ -60,6 +55,30 @@ exit $RETVAL
             fail "Build packages failed!"
         end
 
+    end
+
+    task :tarball do
+        gw_ip = ServerGroup.fetch(:source => "cache").vpn_gateway_ip
+        src_dir = ENV['SOURCE_DIR'] or raise "Please specify a SOURCE_DIR."
+        keystone_revision = get_revision(src_dir)
+        raise "Failed to get keystone revision." if keystone_revision.empty?
+
+        shh %{
+            set -e
+            cd #{src_dir}
+            [ -f keystone/__init__.py ] \
+                || { echo "Please specify a valid keystone project dir."; exit 1; }
+            MY_TMP="#{mktempdir}"
+            cp -r "#{src_dir}" $MY_TMP/src
+            cd $MY_TMP/src
+            [ -d ".git" ] && rm -Rf .git
+            [ -d ".bzr" ] && rm -Rf .bzr
+            tar czf $MY_TMP/keystone.tar.gz . 2> /dev/null || { echo "Failed to create keystone source tar."; exit 1; }
+            scp #{SSH_OPTS} $MY_TMP/keystone.tar.gz root@#{gw_ip}:/tmp
+            rm -rf "$MY_TMP"
+        } do |ok, res|
+            fail "Unable to create keystone tarball! \n #{res}" unless ok
+        end
     end
 
 end

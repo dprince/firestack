@@ -3,7 +3,7 @@ include ChefVPCToolkit::CloudServersVPC
 namespace :glance do
 
     desc "Push source into a glance installation."
-    task :install_source do
+    task :install_source => :tarball do
 
         sg=ServerGroup.fetch(:source => "cache")
         gw_ip=sg.vpn_gateway_ip
@@ -14,9 +14,6 @@ namespace :glance do
         pwd=Dir.pwd
         out=%x{
 cd #{src_dir}
-MY_TMP="#{mktempdir}"
-tar czf $MY_TMP/glance.tar.gz ./glance 2> /dev/null || { echo "Failed to create glance source tar."; exit 1; }
-scp #{SSH_OPTS} $MY_TMP/glance.tar.gz root@#{gw_ip}:/tmp/glance.tar.gz
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 scp /tmp/glance.tar.gz #{server_name}:/tmp
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
@@ -33,7 +30,6 @@ done
 EOF_SERVER_NAME
 BASH_EOF
 RETVAL=$?
-rm -Rf "$MY_TMP"
 exit $RETVAL
         }
         puts out
@@ -41,7 +37,7 @@ exit $RETVAL
     end
 
     desc "Build packages from a local glance source directory."
-    task :build_packages do
+    task :build_packages => :tarball do
 
         sg=ServerGroup.fetch(:source => "cache")
         gw_ip=sg.vpn_gateway_ip
@@ -57,10 +53,6 @@ exit $RETVAL
 
         out=%x{
 cd #{src_dir}
-[ -f glance/version.py ] || { echo "Please specify a top level glance project dir."; exit 1; }
-MY_TMP="#{mktempdir}"
-tar czf $MY_TMP/glance.tar.gz . 2> /dev/null || { echo "Failed to create glance tar."; exit 1; }
-scp #{SSH_OPTS} $MY_TMP/glance.tar.gz root@#{gw_ip}:/tmp/glance.tar.gz
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 
 aptitude -y -q install dpkg-dev bzr git quilt debhelper python-m2crypto python-all python-setuptools python-sphinx python-distutils-extra python-twisted-web python-gflags python-mox python-carrot python-boto python-amqplib python-ipy python-sqlalchemy-ext  python-eventlet python-routes python-webob python-cheetah python-nose python-paste python-pastedeploy python-tempita python-migrate python-netaddr python-glance python-lockfile pep8 python-sphinx &> /dev/null || { echo "Failed to install prereq packages."; exit 1; }
@@ -88,7 +80,6 @@ cp $BUILD_TMP/*.deb /root/openstack-packages
 rm -Rf "$BUILD_TMP"
 BASH_EOF
 RETVAL=$?
-rm -Rf "$MY_TMP"
 exit $RETVAL
         }
         retval=$?
@@ -97,6 +88,30 @@ exit $RETVAL
             fail "Build packages failed!"
         end
 
+    end
+
+    task :tarball do
+        gw_ip = ServerGroup.fetch(:source => "cache").vpn_gateway_ip
+        src_dir = ENV['SOURCE_DIR'] or raise "Please specify a SOURCE_DIR."
+        glance_revision = get_revision(src_dir)
+        raise "Failed to get glance revision." if glance_revision.empty?
+
+        shh %{
+            set -e
+            cd #{src_dir}
+            [ -f glance/version.py ] \
+                || { echo "Please specify a valid glance project dir."; exit 1; }
+            MY_TMP="#{mktempdir}"
+            cp -r "#{src_dir}" $MY_TMP/src
+            cd $MY_TMP/src
+            [ -d ".git" ] && rm -Rf .git
+            [ -d ".bzr" ] && rm -Rf .bzr
+            tar czf $MY_TMP/glance.tar.gz . 2> /dev/null || { echo "Failed to create glance source tar."; exit 1; }
+            scp #{SSH_OPTS} $MY_TMP/glance.tar.gz root@#{gw_ip}:/tmp
+            rm -rf "$MY_TMP"
+        } do |ok, res|
+            fail "Unable to create glance tarball! \n #{res}" unless ok
+        end
     end
 
 end

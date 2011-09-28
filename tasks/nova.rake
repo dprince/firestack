@@ -3,7 +3,7 @@ include ChefVPCToolkit::CloudServersVPC
 namespace :nova do
 
     desc "Push source into a nova installation."
-    task :install_source do
+    task :install_source => :tarball do
 
         sg=ServerGroup.fetch(:source => "cache")
         gw_ip=sg.vpn_gateway_ip
@@ -14,10 +14,6 @@ namespace :nova do
         server_name = "nova1" if server_name.nil?
         out=%x{
 cd #{src_dir}
-[ -f nova/flags.py ] || { echo "Please specify a top level nova project dir."; exit 1; }
-MY_TMP="#{mktempdir}"
-tar czf $MY_TMP/nova.tar.gz ./nova 2> /dev/null || { echo "Failed to create nova source tar."; exit 1; }
-scp #{SSH_OPTS} $MY_TMP/nova.tar.gz root@#{gw_ip}:/tmp/nova.tar.gz
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 scp /tmp/nova.tar.gz #{server_name}:/tmp
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
@@ -37,7 +33,6 @@ done
 EOF_SERVER_NAME
 BASH_EOF
 RETVAL=$?
-rm -Rf "$MY_TMP"
 exit $RETVAL
         }
         retval=$?
@@ -136,12 +131,10 @@ if [ ! -d /root/nova_source ]; then
   if [ -f /tmp/nova.tar.gz ]; then
     mkdir nova_source && cd nova_source
     tar xzf /tmp/nova.tar.gz 2> /dev/null || { echo "Failed to extract nova source tar."; exit 1; }
-    rm -rf .bzr
-    rm -rf .git
     cd ..
   else
-    dpkg -l bzr &> /dev/null || apt-get -y -q install bzr &> /dev/null
-    bzr checkout --lightweight lp:nova /root/nova_source
+    dpkg -l git &> /dev/null || apt-get -y -q install git &> /dev/null
+    git clone https://github.com/openstack/nova.git /root/nova_source
   fi
 fi
 
@@ -288,12 +281,8 @@ BUILD_TMP=$(mktemp -d)
 cd "$BUILD_TMP"
 mkdir nova && cd nova
 tar xzf /tmp/nova.tar.gz 2> /dev/null || { echo "Failed to extract nova source tar."; exit 1; }
-rm -rf .bzr
-rm -rf .git
 cd ..
 bzr checkout --lightweight #{deb_packager_url} nova
-rm -rf nova/.bzr
-rm -rf nova/.git
 cd nova
 sed -e 's|^nova-compute-deps.*|nova-compute-deps=adduser|' -i debian/ubuntu_control_vars
 echo "nova (9999.1-vpc#{nova_revision}) maverick; urgency=high" > debian/changelog
@@ -357,6 +346,10 @@ BASH_EOF
             [ -f nova/flags.py ] \
                 || { echo "Please specify a valid nova project dir."; exit 1; }
             MY_TMP="#{mktempdir}"
+            cp -r "#{src_dir}" $MY_TMP/src
+            cd $MY_TMP/src
+            [ -d ".git" ] && rm -Rf .git
+            [ -d ".bzr" ] && rm -Rf .bzr
             tar czf $MY_TMP/nova.tar.gz . 2> /dev/null || { echo "Failed to create nova source tar."; exit 1; }
             scp #{SSH_OPTS} $MY_TMP/nova.tar.gz root@#{gw_ip}:/tmp
             rm -rf "$MY_TMP"
@@ -366,5 +359,3 @@ BASH_EOF
     end
 
 end
-
-
