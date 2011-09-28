@@ -76,7 +76,8 @@
 			"xenapi_connection_url": "http://xen1",
 			"xenapi_connection_username": "root",
 			"xenapi_connection_password": "openstack",
-			"rescue_timeout": "86400"
+			"rescue_timeout": "86400",
+			"allow_resize_to_same_host": "True"
 		},
 		"run_list": [
             "recipe[vpc::apt_config]",
