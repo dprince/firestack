@@ -1,6 +1,6 @@
 #!/bin/bash
 
-USAGE="usage: $0 xenserver_ip nova_path glance_path <nova_packager_url>'"
+USAGE="usage: $0 xenserver_ip nova_path keystone_path glance_path <nova_packager_url>'"
 
 if [ $# -ne 4 ]; then
     echo $USAGE;
