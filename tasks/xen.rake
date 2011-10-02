@@ -300,6 +300,11 @@ xe vm-shutdown uuid=$UUID
 xe vm-destroy uuid=$UUID
 done
 
+for UUID in $(xe vdi-list | grep "^uuid" | sed -e 's|.*: ||'); do
+echo "Destroying VDI uuid: $UUID"
+xe vdi-destroy uuid=$UUID
+done
+
 TMP_SHUTDOWN=$(mktemp)
 echo 'sleep 2 && service openvpn stop' > $TMP_SHUTDOWN
 bash $TMP_SHUTDOWN </dev/null &> /dev/null &
