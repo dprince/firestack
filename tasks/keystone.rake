@@ -22,7 +22,7 @@ namespace :keystone do
 cd #{src_dir}
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 
-aptitude -y -q install dpkg-dev bzr git quilt debhelper python-m2crypto python-all python-setuptools python-sphinx python-distutils-extra python-twisted-web python-gflags python-mox python-carrot python-boto python-amqplib python-ipy python-sqlalchemy-ext  python-eventlet python-routes python-webob python-cheetah python-nose python-paste python-pastedeploy python-tempita python-migrate python-netaddr python-lockfile pep8 python-sphinx &> /dev/null || { echo "Failed to install prereq packages."; exit 1; }
+apt-get -y -q install dpkg-dev bzr git quilt debhelper python-m2crypto python-all python-setuptools python-sphinx python-distutils-extra python-twisted-web python-gflags python-mox python-carrot python-boto python-amqplib python-ipy python-sqlalchemy-ext  python-eventlet python-routes python-webob python-cheetah python-nose python-paste python-pastedeploy python-tempita python-migrate python-netaddr python-lockfile pep8 python-sphinx &> /dev/null || { echo "Failed to install prereq packages."; exit 1; }
 
 BUILD_TMP=$(mktemp -d)
 cd "$BUILD_TMP"
@@ -35,7 +35,7 @@ bzr checkout --lightweight #{deb_packager_url} keystone
 rm -rf keystone/.bzr
 rm -rf keystone/.git
 cd keystone
-echo "keystone (9999.1-vpc#{keystone_revision}) maverick; urgency=high" > debian/changelog
+echo "keystone (9999.1-vpc#{keystone_revision}) natty; urgency=high" > debian/changelog
 echo " -- Dev Null <dev@null.com>  $(date +\"%a, %e %b %Y %T %z\")" >> debian/changelog
 #QUILT_PATCHES=debian/patches quilt push -a || \ { echo "Failed to patch keystone."; exit 1; }
 DEB_BUILD_OPTIONS=nocheck,nodocs dpkg-buildpackage -rfakeroot -b -uc -us -d \

@@ -1,1 +1,1 @@
-default[:vpc][:libvirt][:version] = "0.8.3-1ubuntu14"
+default[:vpc][:libvirt][:version] = "0.8.8-1ubuntu6"

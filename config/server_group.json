@@ -6,16 +6,16 @@
 	"vpn_proto": "udp",
 	"servers": {
 		"login": {
-			"image_id": "69",
-			"flavor_id": "3",
+			"image_id": "76",
+			"flavor_id": "4",
 			"openvpn_server": "true"
 		},
 		"nova1": {
-			"image_id": "69",
+			"image_id": "76",
 			"flavor_id": "4"
 		},
 		"glance1": {
-			"image_id": "69",
+			"image_id": "76",
 			"flavor_id": "3"
 		}
 	}
