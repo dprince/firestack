@@ -124,7 +124,7 @@ class TestServers < Test::Unit::TestCase
       image = create_image(server, "My Backup")
       assert_equal('SAVING', image.status)
       assert_equal('My Backup', image.name)
-      assert_equal(0, image.progress)
+      assert_equal(25, image.progress)
       assert_equal(server.id, image.serverId)
       assert_not_nil(image.created)
       assert_not_nil(image.id)
