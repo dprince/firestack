@@ -1,6 +1,6 @@
 require 'rubygems'
 require 'test/unit'
-gem 'openstack-compute', '=1.1.0'
+gem 'openstack-compute', '=1.1.0.pre0'
 require 'openstack/compute'
 
 SSH_TIMEOUT=(ENV['SSH_TIMEOUT'] || 30).to_i
