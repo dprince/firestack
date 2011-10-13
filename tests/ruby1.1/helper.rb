@@ -1,6 +1,6 @@
 require 'rubygems'
 require 'test/unit'
-gem 'openstack-compute', '=1.0.2'
+gem 'openstack-compute', '=1.1.0'
 require 'openstack/compute'
 
 SSH_TIMEOUT=(ENV['SSH_TIMEOUT'] || 30).to_i
@@ -9,9 +9,8 @@ SERVER_BUILD_TIMEOUT=(ENV['SERVER_BUILD_TIMEOUT'] || 60).to_i
 SSH_PRIVATE_KEY=ENV['SSH_PRIVATE_KEY'] || ENV['HOME'] + "/.ssh/id_rsa"
 SSH_PUBLIC_KEY=ENV['SSH_PUBLIC_KEY'] || ENV['HOME'] + "/.ssh/id_rsa.pub"
 TEST_SNAPSHOT_IMAGE=ENV['TEST_SNAPSHOT_IMAGE'] || "false"
-TEST_REBUILD_INSTANCE=ENV['TEST_REBUILD_INSTANCE'] || "false"
-TEST_RESIZE_INSTANCE=ENV['TEST_RESIZE_INSTANCE'] || "false"
 KEYPAIR=ENV['KEYPAIR']
+KEYNAME=ENV['KEYNAME']
 
 USERNAME=ENV['NOVA_USERNAME']
 API_KEY=ENV['NOVA_API_KEY']
@@ -21,7 +20,7 @@ module Helper
 
   def self.get_connection
 
-    OpenStack::Compute::Connection.new(:username => USERNAME, :api_key => API_KEY, :auth_url => API_URL)
+    OpenStack::Compute::Connection.new(:username => USERNAME, :api_key => API_KEY, :api_url => API_URL)
 
   end
 
