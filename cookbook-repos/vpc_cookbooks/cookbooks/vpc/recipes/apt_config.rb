@@ -70,7 +70,7 @@ apt_repository "glance_ppa" do
 end
 
 if node[:vpc][:apt][:ubuntu_mirror] then
-  execute "sed -e 's|archive.ubuntu.com|#{node[:vpc][:apt][:ubuntu_mirror]}|g' -i /etc/apt/sources.list" do
+  execute "sed -e 's|archive.ubuntu.com|#{node[:vpc][:apt][:ubuntu_mirror]}|g' -i /etc/apt/sources.list && apt-get update" do
     user 'root'
     not_if "grep #{node[:vpc][:apt][:ubuntu_mirror]} /etc/apt/sources.list"
   end
