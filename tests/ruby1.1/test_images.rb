@@ -4,7 +4,7 @@ class TestImages < Test::Unit::TestCase
 
   def setup
     @conn=Helper::get_connection
-    @image_id = Helper::get_last_image_id(@conn)
+    @image_id = Helper::get_last_image_ref(@conn)
   end
 
   def test_list

@@ -131,7 +131,8 @@ puts server.inspect
       assert_equal('SAVING', image.status)
       assert_equal('My Backup', image.name)
       assert_equal(25, image.progress)
-      assert_equal(server.id, image.server['id'])
+      #FIXME: server id should be a uuid string
+      assert_equal(server.id.to_s, image.server['id'])
       assert_not_nil(image.created)
       assert_not_nil(image.id)
 
@@ -152,7 +153,7 @@ puts server.inspect
 
     if TEST_REBUILD_INSTANCE == "true" then
       # make sure our snapshot boots
-      server.rebuild!(image_ref)
+      server.rebuild!(:imageRef => image_ref)
       server = @conn.server(server.id)
       sleep 15 # sleep a couple seconds until rebuild starts
       check_server(server, image_ref, 2)
