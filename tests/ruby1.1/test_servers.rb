@@ -5,7 +5,7 @@ class TestServers < Test::Unit::TestCase
 
   def setup
     @conn=Helper::get_connection
-    @image_id = Helper::get_last_image_id(@conn)
+    @image_ref = Helper::get_last_image_ref(@conn)
     @servers = []
     @images = []
   end
@@ -26,7 +26,7 @@ class TestServers < Test::Unit::TestCase
         while(1) do
           ssh_identity=SSH_PRIVATE_KEY
           if KEYPAIR and not KEYPAIR.empty? then
-              ssh_identity=ENV['KEYPAIR']
+              ssh_identity=KEYPAIR
           end
           if system("ssh -o StrictHostKeyChecking=no -i #{ssh_identity} root@#{ip_addr} /bin/true > /dev/null 2>&1") then
             return true
@@ -73,33 +73,19 @@ class TestServers < Test::Unit::TestCase
     image
   end
 
-  def boot_and_check_server(image_id)
+  def check_server(server, image_ref, flavor_ref, check_status="ACTIVE")
 
-    # test data file to file inject into the server
-    #tmp_file=Tempfile.new "server_tests"
-    #tmp_file.write("yo")
-    #tmp_file.flush
+puts server.inspect
 
-    # NOTE: When using AMI style images we rely on keypairs for SSH access
-    #personalities={SSH_PUBLIC_KEY => "/root/.ssh/authorized_keys", tmp_file.path => "/tmp/foo/bar"}
-    # NOTE: injecting two or more files doesn't work for now
-    personalities={SSH_PUBLIC_KEY => "/root/.ssh/authorized_keys"}
-    options={:name => "test1", :imageRef => image_id, :flavorRef => 2, :personality => personalities}
-    if KEYNAME and not KEYNAME.empty? then
-      options[:key_name] = KEYNAME
-    end
-    server = create_server(options)
-
-    assert_not_nil(server.adminPass)
     assert_not_nil(server.hostId)
-    assert_equal('2', server.flavorId)
-    assert_equal(image_id, server.imageId.to_s)
+    assert_equal(flavor_ref.to_s, server.flavor['id'])
+    assert_equal(image_ref.to_s, server.image['id'])
     assert_equal('test1', server.name)
     server = @conn.server(server.id)
 
     begin
       timeout(SERVER_BUILD_TIMEOUT) do
-        until server.status == 'ACTIVE' do
+        until server.status == check_status do
           server = @conn.server(server.id)
           sleep 1
         end
@@ -117,19 +103,35 @@ class TestServers < Test::Unit::TestCase
 
   def test_create_server
 
-    #boot an instance and check it
-    server = boot_and_check_server(@image_id)
+    # test data file to file inject into the server
+    #tmp_file=Tempfile.new "server_tests"
+    #tmp_file.write("yo")
+    #tmp_file.flush
 
-    if ENV['TEST_SNAPSHOT_IMAGE'] == "true" then
+    # NOTE: When using AMI style images we rely on keypairs for SSH access
+    #personalities={SSH_PUBLIC_KEY => "/root/.ssh/authorized_keys", tmp_file.path => "/tmp/foo/bar"}
+    # NOTE: injecting two or more files doesn't work for now
+    personalities={SSH_PUBLIC_KEY => "/root/.ssh/authorized_keys"}
+    metadata={ "key1" => "value1", "key2" => "value2" }
+    options = {:name => "test1", :imageRef => @image_ref, :flavorRef => 2, :personality => personalities, :metadata => metadata}
+    if KEYNAME and not KEYNAME.empty? then
+      options[:key_name] = KEYNAME
+    end
+    server = create_server(options)
+    assert_not_nil(server.adminPass)
+
+    #boot an instance and check it
+    check_server(server, @image_ref, 2)
+
+    image_ref = @image_ref
+    if TEST_SNAPSHOT_IMAGE == "true" then
 
       #snapshot the image
       image = create_image(server, "My Backup")
-      # QUESTION: Should status be QUEUED or SAVING
-      assert_equal('QUEUED', image.status)
+      assert_equal('SAVING', image.status)
       assert_equal('My Backup', image.name)
-      # FIXME: progress isn't set on images (LP ticket #819970)
-      #assert_equal(0, image.progress)
-      assert_equal(server.id, image.serverId)
+      assert_equal(25, image.progress)
+      assert_equal(server.id, image.server['id'])
       assert_not_nil(image.created)
       assert_not_nil(image.id)
 
@@ -144,24 +146,43 @@ class TestServers < Test::Unit::TestCase
         fail('Timeout creating image snapshot.')
       end
 
-      # make sure our snapshot boots
-      server = boot_and_check_server(image.id.to_s)
+      image_ref = image.id.to_s
 
     end
 
-  end
+    if TEST_REBUILD_INSTANCE == "true" then
+      # make sure our snapshot boots
+      server.rebuild!(image_ref)
+      server = @conn.server(server.id)
+      sleep 15 # sleep a couple seconds until rebuild starts
+      check_server(server, image_ref, 2)
+    end
 
-  def test_create_server_with_metadata
+    if TEST_RESIZE_INSTANCE == "true" then
+      # make sure our snapshot boots
+      server.resize!(3)
+      server = @conn.server(server.id)
+      assert_equal('RESIZE', server.status)
 
-    metadata={ "key1" => "value1", "key2" => "value2" }
-    server = create_server(:name => "test1", :imageRef => @image_id, :flavorRef => 1, :metadata => metadata)
-    assert_not_nil(server.adminPass)
-    assert_equal('1', server.flavorId)
-    assert_equal(@image_id, server.imageId.to_s)
-    assert_equal('test1', server.name)
-    assert_not_nil(server.hostId)
-    metadata.each_pair do |key, value|
-      assert_equal(value, server.metadata.get_item(key))
+      begin
+        timeout(SERVER_BUILD_TIMEOUT) do
+          until server.status == 'VERIFY_RESIZE' do
+            server = @conn.server(server.id)
+            sleep 1
+          end
+        end
+      rescue Timeout::Error => te
+        fail('Timeout resizing server.')
+      end
+ 
+      check_server(server, image_ref, 3, 'VERIFY_RESIZE')
+
+      server.confirm_resize!
+      server = @conn.server(server.id)
+      assert_equal('ACTIVE', server.status)
+
+      check_server(server, image_ref, 3)
+
     end
 
   end
