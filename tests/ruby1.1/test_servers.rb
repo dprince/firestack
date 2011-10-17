@@ -75,8 +75,6 @@ class TestServers < Test::Unit::TestCase
 
   def check_server(server, image_ref, flavor_ref, check_status="ACTIVE")
 
-puts server.inspect
-
     assert_not_nil(server.hostId)
     assert_equal(flavor_ref.to_s, server.flavor['id'])
     assert_equal(image_ref.to_s, server.image['id'])
