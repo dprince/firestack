@@ -72,7 +72,6 @@
             "network_manager": "nova.network.manager.FlatManager",
 			"flat_network_bridge": "xenbr0",
 			"connection_type": "xenapi",
-            "flat_injected": "false",
 			"xenapi_connection_url": "http://xen1",
 			"xenapi_connection_username": "root",
 			"xenapi_connection_password": "openstack",
