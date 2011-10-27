@@ -215,6 +215,7 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
         chmod 600 /root/test.pem
         echo "export KEYPAIR='$KEYPAIR'" > test.env
         echo "export KEYNAME='$KEYNAME'" >> test.env
+        echo "export IMAGE_NAME='ami-tty'" >> test.env
     elif [[ "#{mode}" == "xen" ]]; then
         echo "export SSH_TIMEOUT='60'" > test.env
         echo "export PING_TIMEOUT='60'" >> test.env
