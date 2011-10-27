@@ -10,7 +10,7 @@ class TestImages < Test::Unit::TestCase
   def test_list
 
     @conn.images.each do |image|
-      assert_not_equal(0, image[:id].to_i)
+      assert_not_nil(image[:id])
       assert_not_nil(image[:name])
       assert_equal("ACTIVE", image[:status])
     end

@@ -9,7 +9,7 @@ class TestFlavors < Test::Unit::TestCase
   def test_list
 
     @conn.flavors.each do |flavor|
-      assert_not_equal(0, flavor[:id].to_i)
+      assert_not_nil(flavor[:id])
       assert_not_nil(flavor[:name])
       assert_not_nil(flavor[:ram])
       assert_not_nil(flavor[:disk])
@@ -20,7 +20,7 @@ class TestFlavors < Test::Unit::TestCase
   def test_get
 
     flavor = @conn.flavor(1)
-    assert_not_equal(0, flavor.id.to_i)
+    assert_not_nil(flavor.id)
     assert_not_nil(flavor.name)
     assert_not_nil(flavor.ram)
     assert_not_nil(flavor.disk)
