@@ -26,14 +26,23 @@ module Helper
 
   end
 
-  def self.get_last_image_ref(conn)
+  def self.get_image_ref(conn)
 
     image_ref = ENV['IMAGE_REF']
-    #take the last image if IMAGE_REF isn't set
-    if image_ref.nil? or image_ref.empty? then
+    image_name = ENV['IMAGE_NAME']
+
+    if image_name and not image_name.empty? then
+      images = conn.images.each do |image|
+        if image[:name] == image_name then
+          image_ref = image[:id]
+        end
+      end
+    elsif image_ref.nil? or image_ref.empty? then
+      #take the last image if IMAGE_REF and or IMAGE_NAME aren't set
       images = conn.images.sort{|x,y| x[:id] <=> y[:id]}
       image_ref = images.last[:id].to_s
     end
+
     image_ref
 
   end

@@ -5,7 +5,7 @@ class TestServers < Test::Unit::TestCase
 
   def setup
     @conn=Helper::get_connection
-    @image_ref = Helper::get_last_image_ref(@conn)
+    @image_ref = Helper::get_image_ref(@conn)
     @servers = []
     @images = []
   end
