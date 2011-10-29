@@ -42,6 +42,7 @@ elif [[ "#{mode}" == "xen" ]]; then
 	cat > ~/.torpedo.conf <<-EOF_CAT
 		ssh_timeout: 60
 		ping_timeout: 60
+		server_build_timeout: 420
 		test_create_image: true
 		test_rebuild_server: true
 		test_resize_server: true
