@@ -17,7 +17,7 @@ ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 if ! gem list | grep torpedo &> /dev/null; then
 	gem install torpedo
-	ln -s /var/lib/gems/1.8/gems/torpedo-1.0.1/bin/torpedo /usr/bin/torpedo
+	ln -sf /var/lib/gems/1.8/gems/torpedo-*/bin/torpedo /usr/bin/torpedo
 fi
 source /root/novarc
 if [ ! -f ~/.ssh/id_rsa ]; then
