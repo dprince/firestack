@@ -23,7 +23,8 @@
 			"keystone_service_host": "login",
 			"keystone_auth_host": "login",
 			"keystone_auth_uri": "http://login:5000/",
-			"keystone_ec2_url": "http://login:5000/v2.0/ec2tokens"
+			"keystone_ec2_url": "http://login:5000/v2.0/ec2tokens",
+            "allow_ec2_admin_api": "True"
         },
 		"run_list": [
             "recipe[vpc::apt_config]",
