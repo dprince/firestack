@@ -33,7 +33,6 @@
 			"role[nova-scheduler]",
 			"role[nova-network]",
 			"role[nova-objectstore]",
-            "recipe[vpc::libvirt]",
 			"role[nova-compute]",
 			"recipe[nova::creds]"
 		]
