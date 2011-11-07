@@ -27,7 +27,7 @@ ruby_block "block until local APT repo is online" do
         until repo_loaded == true do
 
             begin
-            if Net::HTTP.get_response(URI.parse("#{node[:vpc][:apt][:local_url]}/dists/#{node[:vpc][:apt][:distro]}/Release")).class == Net::HTTPOK
+            if Net::HTTP.get_response(URI.parse("#{node[:vpc][:apt][:local_url]}/dists/#{node[:vpc][:apt][:codename]}/Release")).class == Net::HTTPOK
                 repo_loaded=true
                 Chef::Log.info("APT repo is online.")
             else
@@ -46,16 +46,17 @@ end
 
 apt_repository "local" do
   uri node[:vpc][:apt][:local_url]
-  distribution node[:vpc][:apt][:distro]
+  distribution node[:vpc][:apt][:codename]
   components(["main"])
   action :add
+  options "arch=amd64"
 end
 
 apt_repository "nova_ppa" do
   key "2A2356C9"
   keyserver "keyserver.ubuntu.com"
   uri node[:vpc][:apt][:nova_ppa_url]
-  distribution node[:vpc][:apt][:distro]
+  distribution node[:vpc][:apt][:codename]
   components(["main"])
   action :add
 end
@@ -64,12 +65,12 @@ apt_repository "glance_ppa" do
   key "2085FE8D"
   keyserver "keyserver.ubuntu.com"
   uri node[:vpc][:apt][:glance_ppa_url]
-  distribution node[:vpc][:apt][:distro]
+  distribution node[:vpc][:apt][:codename]
   components(["main"])
   action :add
 end
 
-if node[:vpc][:apt][:ubuntu_mirror] then
+if node[:vpc][:apt][:debian_mirror] then
 
   execute "apt-get update" do
     user 'root'
@@ -80,7 +81,8 @@ if node[:vpc][:apt][:ubuntu_mirror] then
     source "sources.list.erb"
     mode 0644
     variables(
-      :base_url => node[:vpc][:apt][:ubuntu_mirror]
+      :base_url => node[:vpc][:apt][:debian_mirror],
+      :codename => node[:vpc][:apt][:codename]
     )
     notifies :run, "execute[apt-get update]", :immediately
   end
