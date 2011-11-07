@@ -15,7 +15,7 @@ ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 if [ -n "#{server_name}" ]; then
   SERVER_NAMES="#{server_name}"
 else
-  SERVER_NAMES="$(knife node list | grep \\" | sed -e 's|\\"\\([^\\"]*\\).*|\\1|')"
+  SERVER_NAMES="$(knife node list)"
 fi
 for SERVER_NAME in $SERVER_NAMES; do
 if [ "$(hostname -f)" = "$SERVER_NAME" ]; then
