@@ -7,7 +7,7 @@ task :tail_logs do
     gw_ip=sg.vpn_gateway_ip
     server_name=ENV['SERVER_NAME']
     line_count=ENV['LINE_COUNT']
-    line_count = 50 if line_count.nil?
+    line_count = 250 if line_count.nil?
 
     out=%x{
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
