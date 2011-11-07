@@ -143,6 +143,9 @@ dpkg -l euca2ools &> /dev/null || apt-get -y -q install euca2ools &> /dev/null
 dpkg -l python-pip &> /dev/null || apt-get -y -q install python-pip &> /dev/null
 pip install nova-adminclient > /dev/null
 
+# FIXME: need to update nova-adminclient so it doesn't pip install boto 1.9
+[[ "$(lsb_release -sc)" == "oneiric" ]] && rm -Rf /usr/local/lib/python2.7/dist-packages/boto*
+
 if [ -n "#{xunit_output}" ]; then
 pip install nosexunit > /dev/null
 export NOSE_WITH_NOSEXUNIT=true
@@ -351,7 +354,7 @@ ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 
 if ! /usr/bin/dpkg -l add-apt-key &> /dev/null; then
   cat > /etc/apt/sources.list.d/nova_ppa-source.list <<-EOF_CAT
-deb http://ppa.launchpad.net/nova-core/trunk/ubuntu maverick main
+deb http://ppa.launchpad.net/nova-core/trunk/ubuntu $(lsb_release -sc) main
 EOF_CAT
   apt-get -y -q install add-apt-key &> /dev/null || { echo "Failed to install add-apt-key."; exit 1; }
   add-apt-key 2A2356C9 &> /dev/null || { echo "Failed to add apt key for PPA."; exit 1; }
@@ -359,7 +362,7 @@ EOF_CAT
 fi
 
 if ! /usr/bin/dpkg -l python-novaclient &> /dev/null; then
-aptitude -y -q install dpkg-dev bzr git quilt debhelper python-m2crypto python-all python-setuptools python-sphinx python-distutils-extra python-twisted-web python-gflags python-mox python-carrot python-boto python-amqplib python-ipy python-sqlalchemy-ext  python-eventlet python-routes python-webob python-cheetah python-nose python-paste python-pastedeploy python-tempita python-migrate python-netaddr python-novaclient python-lockfile pep8 python-sphinx &> /dev/null || { echo "Failed to install prereq packages."; exit 1; }
+apt-get -y -q install dpkg-dev bzr git quilt debhelper python-m2crypto python-all python-setuptools python-sphinx python-distutils-extra python-twisted-web python-gflags python-mox python-carrot python-boto python-amqplib python-ipy python-sqlalchemy-ext  python-eventlet python-routes python-webob python-cheetah python-nose python-paste python-pastedeploy python-tempita python-migrate python-netaddr python-novaclient python-lockfile pep8 python-sphinx &> /dev/null || { echo "Failed to install prereq packages."; exit 1; }
 fi
 
 BUILD_TMP=$(mktemp -d)
@@ -370,7 +373,7 @@ cd ..
 bzr checkout --lightweight #{deb_packager_url} nova
 cd nova
 sed -e 's|^nova-compute-deps.*|nova-compute-deps=adduser|' -i debian/ubuntu_control_vars
-echo "nova (9999.1-vpc#{nova_revision}) maverick; urgency=high" > debian/changelog
+echo "nova (9999.1-vpc#{nova_revision}) $(lsb_release -sc); urgency=high" > debian/changelog
 echo " -- Dev Null <dev@null.com>  $(date +\"%a, %e %b %Y %T %z\")" >> debian/changelog
 QUILT_PATCHES=debian/patches quilt push -a || \
  { echo "Failed to patch nova."; exit 1; }
