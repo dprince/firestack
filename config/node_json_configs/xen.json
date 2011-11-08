@@ -53,7 +53,7 @@
 			"image_list": [
 				{
 					"name": "squeeze",
-					"url": "http://c3324746.r46.cf0.rackcdn.com/squeeze-agent-0.0.1.28.ova",
+					"url": "http://c3324746.r46.cf0.rackcdn.com/squeeze-agent-0.0.1.31.ova",
 					"disk_format": "vhd",
 					"container_format": "ovf"
 				}
