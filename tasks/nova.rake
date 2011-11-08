@@ -315,7 +315,7 @@ BASH_EOF
         shh %{
             ssh #{SSH_OPTS} root@#{gw_ip} bash <<'BASH_EOF'
             set -e
-            apt-get -y -q install rpm createrepo > /dev/null
+            DEBIAN_FRONTEND=noninteractive apt-get -y -q install rpm createrepo > /dev/null
             mkdir -p /root/openstack-rpms
             BUILD_TMP=$(mktemp -d)
             cd "$BUILD_TMP"
