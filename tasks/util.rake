@@ -1,7 +1,7 @@
 include ChefVPCToolkit::CloudServersVPC
 
 desc "Tail nova, glance, keystone logs."
-task :tail_logs do
+task :tail_logs => "chef:tail_logs" do
 
     sg=ServerGroup.fetch(:source => "cache")
     gw_ip=sg.vpn_gateway_ip
