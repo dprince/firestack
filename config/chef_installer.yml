@@ -18,3 +18,6 @@ chef_json_file: config/nodes.json
 
 # Chef server name
 chef_server_name: login
+
+# Chef client interval
+chef_interval: 400
