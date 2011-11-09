@@ -59,6 +59,7 @@ apt_repository "nova_ppa" do
   distribution node[:vpc][:apt][:codename]
   components(["main"])
   action :add
+  options "arch=amd64"
 end
 
 apt_repository "glance_ppa" do
@@ -68,6 +69,7 @@ apt_repository "glance_ppa" do
   distribution node[:vpc][:apt][:codename]
   components(["main"])
   action :add
+  options "arch=amd64"
 end
 
 if node[:vpc][:apt][:debian_mirror] then
