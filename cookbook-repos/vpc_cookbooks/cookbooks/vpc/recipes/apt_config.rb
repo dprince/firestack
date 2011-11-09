@@ -17,6 +17,8 @@
 # limitations under the License.
 #
 
+execute "dpkg --configure -a"
+
 include_recipe 'apt'
 
 ruby_block "block until local APT repo is online" do
