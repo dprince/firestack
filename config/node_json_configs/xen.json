@@ -14,17 +14,17 @@
 			"public_interface": "tap0",
 			"flat_network_bridge": "xenbr0",
 			"network_manager": "nova.network.manager.FlatManager",
-            "glance_api_servers": "glance1:9292",
-            "fixed_range": "192.168.0.0/24",
-            "floating_range": "172.20.0.0/24",
-            "network": "192.168.0.0/24 1 254",
-            "public_network_gateway_ip": "192.168.0.1/24",
+			"glance_api_servers": "glance1:9292",
+			"fixed_range": "192.168.0.0/24",
+			"floating_range": "172.20.0.0/24",
+			"network": "192.168.0.0/24 1 254",
+			"public_network_gateway_ip": "192.168.0.1/24",
 			"auth_type": "noauth",
 			"keystone_service_host": "login",
 			"keystone_auth_host": "login",
 			"keystone_auth_uri": "http://login:5000/",
 			"keystone_ec2_url": "http://login:5000/v2.0/ec2tokens",
-            "allow_ec2_admin_api": "True"
+			"allow_ec2_admin_api": "True"
         },
 		"run_list": [
             "recipe[vpc::apt_config]",
@@ -45,9 +45,9 @@
 	"glance1": {
 		"glance": {
 			"auth_type": "noauth",
-            "keystone_service_host": "login",
-            "keystone_auth_host": "login",
-            "keystone_auth_uri": "http://login:5000/",
+			"keystone_service_host": "login",
+			"keystone_auth_host": "login",
+			"keystone_auth_uri": "http://login:5000/",
 			"verbose": "true",
 			"debug": "true",
 			"image_list": [
@@ -60,17 +60,18 @@
 			]
 		},
 		"run_list": [
-            "recipe[vpc::apt_config]",
+			"recipe[vpc::apt_config]",
 			"recipe[apt::noauth]",
-			"role[glance-api]",
+			"role[glance-mysql-server]",
 			"role[glance-registry]",
+			"role[glance-api]",
 			"recipe[glance::load_images]"
 		]
 	},
 	"compute1": {
 		"nova": {
-            "glance_api_servers": "glance1:9292",
-            "network_manager": "nova.network.manager.FlatManager",
+			"glance_api_servers": "glance1:9292",
+			"network_manager": "nova.network.manager.FlatManager",
 			"flat_network_bridge": "xenbr0",
 			"connection_type": "xenapi",
 			"xenapi_connection_url": "http://xen1",

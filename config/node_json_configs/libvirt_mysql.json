@@ -45,8 +45,9 @@
 		"run_list": [
 			"recipe[vpc::apt_config]",
 			"recipe[apt::noauth]",
-			"role[glance-api]",
+			"role[glance-mysql-server]",
 			"role[glance-registry]",
+			"role[glance-api]",
 			"recipe[glance::load_images]"
 		]
 	}
