@@ -157,7 +157,13 @@ if grep -c "VolumeTests" /root/nova_source/smoketests/test_sysadmin.py &> /dev/n
   mv tmp_test_sysadmin.py /root/nova_source/smoketests/test_sysadmin.py
 fi
 cd /root/nova_source/smoketests
-source /root/novarc
+[ -f /root/novarc ] && source /root/novarc
+if [ -f /root/openstackrc ]; then
+	if ! grep EC2_SECRET_KEY /root/openstackrc &> /dev/null; then
+        echo "export EC2_SECRET_KEY=\"admin\"" >> /root/openstackrc
+    fi
+    source /root/openstackrc
+fi
 IMG_ID=$(euca-describe-images | grep ami | tail -n 1 | cut -f 2)
 python run_tests.py --test_image=$IMG_ID
 
@@ -267,7 +273,8 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
         cd stacktester
         ./setup.py develop
     fi
-    source /root/novarc
+    [ -f /root/novarc ] && source /root/novarc
+    [ -f /root/openstackrc ] && source /root/openstackrc
     #FIXME: novaclient doesn't work with keystone yet but the EC2 API does.
     dpkg -l euca2ools &> /dev/null || apt-get install -q -y euca2ools &> /dev/null
     #IMG_ID=$(nova image-list | grep ACTIVE | tail -n 1 | sed -e "s|\\| \\([0-9]*\\)  .*|\\1|")

@@ -19,7 +19,13 @@ if ! gem list | grep torpedo &> /dev/null; then
 	gem install torpedo
 	ln -sf /var/lib/gems/1.8/gems/torpedo-*/bin/torpedo /usr/bin/torpedo
 fi
-source /root/novarc
+[ -f /root/novarc ] && source /root/novarc
+if [ -f /root/openstackrc ]; then
+	if ! grep EC2_SECRET_KEY /root/openstackrc &> /dev/null; then
+		echo "export EC2_SECRET_KEY=\"admin\"" >> /root/openstackrc
+	fi
+	source /root/openstackrc
+fi
 if [ ! -f ~/.ssh/id_rsa ]; then
 	   [ -d ~/.ssh ] || mkdir ~/.ssh
 	   ssh-keygen -q -t rsa -f ~/.ssh/id_rsa -N "" || \
