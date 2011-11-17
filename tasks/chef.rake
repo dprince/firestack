@@ -10,7 +10,6 @@ ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 COUNT=0
 for NAME in $(knife node list); do
   COUNT=$(( $COUNT + 1 ))
-  grep "$NAME" /etc/hosts &> /dev/null || { echo "fail"; exit 1; }
 done
 [ $COUNT -gt 0 ] || { echo "fail"; exit 1; }
 BASH_EOF
