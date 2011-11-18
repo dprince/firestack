@@ -17,6 +17,8 @@ namespace :keystone do
         keystone_revision=get_revision(src_dir)
         raise "Failed to get keystone revision." if keystone_revision.empty?
 
+        puts "Building keystone packages using: #{deb_packager_url}"
+
         out=%x{
 cd #{src_dir}
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
@@ -30,7 +32,7 @@ tar xzf /tmp/keystone.tar.gz 2> /dev/null || { echo "Failed to extract keystone 
 rm -rf .bzr
 rm -rf .git
 cd ..
-bzr checkout --lightweight #{deb_packager_url} keystone
+bzr checkout --lightweight #{deb_packager_url} keystone &> /tmp/bzrkeystone.log || { echo "Failed checkout keystone builder: #{deb_packager_url}."; cat /tmp/bzrkeystone.log; exit 1; }
 rm -rf keystone/.bzr
 rm -rf keystone/.git
 cd keystone

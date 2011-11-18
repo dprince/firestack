@@ -51,6 +51,8 @@ exit $RETVAL
         glance_revision=get_revision(src_dir)
         raise "Failed to get glance revision." if glance_revision.empty?
 
+        puts "Building glance packages using: #{deb_packager_url}"
+
         out=%x{
 cd #{src_dir}
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
@@ -64,7 +66,7 @@ tar xzf /tmp/glance.tar.gz 2> /dev/null || { echo "Falied to extract glance sour
 rm -rf .bzr
 rm -rf .git
 cd ..
-bzr checkout --lightweight #{deb_packager_url} glance
+bzr checkout --lightweight #{deb_packager_url} glance &> /tmp/bzrglance.log || { echo "Failed checkout glance builder: #{deb_packager_url}."; cat /tmp/bzrglance.log; exit 1; }
 rm -rf glance/.bzr
 rm -rf glance/.git
 cd glance
