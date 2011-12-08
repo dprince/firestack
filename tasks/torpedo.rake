@@ -16,7 +16,7 @@ task :torpedo do
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 if ! gem list | grep torpedo &> /dev/null; then
-	gem install torpedo
+	gem install --no-rdoc --no-ri torpedo
 	ln -sf /var/lib/gems/1.8/gems/torpedo-*/bin/torpedo /usr/bin/torpedo
 fi
 [ -f /root/novarc ] && source /root/novarc
