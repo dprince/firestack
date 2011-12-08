@@ -19,6 +19,27 @@
 
 execute "dpkg --configure -a"
 
+if node[:vpc][:apt][:debian_mirror] then
+
+  execute "apt-get update" do
+    user 'root'
+    action :nothing
+  end
+
+  t = template "/etc/apt/sources.list" do
+    source "sources.list.erb"
+    mode 0644
+    variables(
+      :base_url => node[:vpc][:apt][:debian_mirror],
+      :codename => node[:vpc][:apt][:codename]
+    )
+    notifies :run, "execute[apt-get update]", :immediately
+  end
+
+  t.run_action(:create)
+
+end
+
 include_recipe 'apt'
 
 ruby_block "block until local APT repo is online" do
@@ -72,23 +93,4 @@ apt_repository "glance_ppa" do
   components(["main"])
   action :add
   options "arch=amd64"
-end
-
-if node[:vpc][:apt][:debian_mirror] then
-
-  execute "apt-get update" do
-    user 'root'
-    action :nothing
-  end
-
-  template "/etc/apt/sources.list" do
-    source "sources.list.erb"
-    mode 0644
-    variables(
-      :base_url => node[:vpc][:apt][:debian_mirror],
-      :codename => node[:vpc][:apt][:codename]
-    )
-    notifies :run, "execute[apt-get update]", :immediately
-  end
-
 end
