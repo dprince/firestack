@@ -12,6 +12,7 @@ NOVA="$2"
 KEYSTONE="$3"
 GLANCE="$4"
 XENSERVER_NAME="xen1"
+CONFIG="config/node_json_configs/xen.json"
 
 rake group:create
 rake group:poll
@@ -32,13 +33,13 @@ rake keystone:build_packages SOURCE_DIR=$KEYSTONE
 rake glance:build_packages SOURCE_DIR=$GLANCE
 
 rake chef:push_repos
-rake chef:install
+rake chef:install CONFIG=$CONFIG
 
 rake xen:bootstrap XENSERVER_IP=$XENSERVER_IP SERVER_NAME=$XENSERVER_NAME
 
 sleep 10
 
-rake chef:install SERVER_NAME=$XENSERVER_NAME
+rake chef:install SERVER_NAME=$XENSERVER_NAME CONFIG=$CONFIG
 
 rake chef:poll_clients SERVER_NAME=$XENSERVER_NAME
 
@@ -48,7 +49,7 @@ echo "172.19.0.101     compute1.vpc compute1" >> /etc/hosts
 fi
 EOF_BASH
 
-rake chef:install SERVER_NAME=compute1
+rake chef:install SERVER_NAME=compute1 CONFIG=$CONFIG
 
 # NOTE: use full hostname here because nova-agent sets hostname as
 # hostname.domain (will talk to Chris to see if we want to add this as
