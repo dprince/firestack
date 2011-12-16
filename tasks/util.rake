@@ -18,7 +18,7 @@ else
   SERVER_NAMES="$(knife node list)"
 fi
 for SERVER_NAME in $SERVER_NAMES; do
-if [ "$(hostname -f)" = "$SERVER_NAME" ]; then
+if [[ "$(hostname -f)" == "$SERVER_NAME" ]]; then
 if [ -d /var/log/nova ] || [ -d /var/log/glance ] || [ -d /var/log/keystone ]; then
 echo "BEGIN logs for: $HOSTNAME"
 [ -d /var/log/nova ] && tail -n #{line_count} /var/log/nova/nova-* || true
