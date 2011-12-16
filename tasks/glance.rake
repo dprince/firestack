@@ -109,6 +109,8 @@ exit $RETVAL
             cd $MY_TMP/src
             [ -d ".git" ] && rm -Rf .git
             [ -d ".bzr" ] && rm -Rf .bzr
+            [ -d ".glance-venv" ] && rm -Rf .glance-venv
+            [ -d ".venv" ] && rm -Rf .venv
             tar czf $MY_TMP/glance.tar.gz . 2> /dev/null || { echo "Failed to create glance source tar."; exit 1; }
             scp #{SSH_OPTS} $MY_TMP/glance.tar.gz root@#{gw_ip}:/tmp
             rm -rf "$MY_TMP"

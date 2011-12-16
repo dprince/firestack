@@ -448,6 +448,8 @@ BASH_EOF
             cd $MY_TMP/src
             [ -d ".git" ] && rm -Rf .git
             [ -d ".bzr" ] && rm -Rf .bzr
+            [ -d ".nova-venv" ] && rm -Rf .nova-venv
+            [ -d ".venv" ] && rm -Rf .venv
             tar czf $MY_TMP/nova.tar.gz . 2> /dev/null || { echo "Failed to create nova source tar."; exit 1; }
             scp #{SSH_OPTS} $MY_TMP/nova.tar.gz root@#{gw_ip}:/tmp
             rm -rf "$MY_TMP"

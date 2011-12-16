@@ -23,7 +23,16 @@ namespace :keystone do
 cd #{src_dir}
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 
-DEBIAN_FRONTEND=noninteractive apt-get -y -q install dpkg-dev bzr git quilt debhelper python-m2crypto python-all python-setuptools python-sphinx python-distutils-extra python-twisted-web python-gflags python-mox python-carrot python-boto python-amqplib python-ipy python-sqlalchemy-ext python-eventlet python-routes python-webob python-cheetah python-nose python-paste python-pastedeploy python-tempita python-migrate python-netaddr python-lockfile pep8 python-sphinx &> /dev/null || { echo "Failed to install prereq packages."; exit 1; }
+if ! /usr/bin/dpkg -l add-apt-key &> /dev/null; then
+  cat > /etc/apt/sources.list.d/nova_ppa-source.list <<-EOF_CAT
+deb http://ppa.launchpad.net/nova-core/trunk/ubuntu $(lsb_release -sc) main
+EOF_CAT
+  apt-get -y -q install add-apt-key &> /dev/null || { echo "Failed to install add-apt-key."; exit 1; }
+  add-apt-key 2A2356C9 &> /dev/null || { echo "Failed to add apt key for PPA."; exit 1; }
+  apt-get -q update &> /dev/null || { echo "Failed to apt-get update."; exit 1; }
+fi
+
+DEBIAN_FRONTEND=noninteractive apt-get -y -q install dpkg-dev bzr git quilt debhelper python-m2crypto python-all python-setuptools python-sphinx python-distutils-extra python-twisted-web python-gflags python-mox python-carrot python-boto python-amqplib python-ipy python-sqlalchemy-ext python-passlib python-eventlet python-routes python-webob python-cheetah python-nose python-paste python-pastedeploy python-tempita python-migrate python-netaddr python-lockfile pep8 python-sphinx &> /dev/null || { echo "Failed to install prereq packages."; exit 1; }
 
 BUILD_TMP=$(mktemp -d)
 cd "$BUILD_TMP"
@@ -75,6 +84,8 @@ exit $RETVAL
             cd $MY_TMP/src
             [ -d ".git" ] && rm -Rf .git
             [ -d ".bzr" ] && rm -Rf .bzr
+            [ -d ".keystone-venv" ] && rm -Rf .keystone-venv
+            [ -d ".venv" ] && rm -Rf .venv
             tar czf $MY_TMP/keystone.tar.gz . 2> /dev/null || { echo "Failed to create keystone source tar."; exit 1; }
             scp #{SSH_OPTS} $MY_TMP/keystone.tar.gz root@#{gw_ip}:/tmp
             rm -rf "$MY_TMP"
