@@ -366,7 +366,9 @@ if ! /usr/bin/dpkg -l add-apt-key &> /dev/null; then
 deb http://ppa.launchpad.net/nova-core/trunk/ubuntu $(lsb_release -sc) main
 EOF_CAT
   apt-get -y -q install add-apt-key &> /dev/null || { echo "Failed to install add-apt-key."; exit 1; }
-  add-apt-key 2A2356C9 &> /dev/null || { echo "Failed to add apt key for PPA."; exit 1; }
+  add-apt-key 2A2356C9 &> /dev/null || \
+  add-apt-key 2A2356C9 -k keyserver.ubuntu.com &> /dev/null || \
+  { echo "Failed to add apt key for PPA."; exit 1; }
   apt-get -q update &> /dev/null || { echo "Failed to apt-get update."; exit 1; }
 fi
 
