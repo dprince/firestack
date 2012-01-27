@@ -44,6 +44,7 @@ if [[ "#{mode}" == "libvirt" ]]; then
 		keypair: $KEYPAIR
 		keyname: $KEYNAME
 		image_name: ami-tty
+		test_rebuild_server: true
 	EOF_CAT
 elif [[ "#{mode}" == "xen" ]]; then
 	cat > ~/.torpedo.conf <<-EOF_CAT
