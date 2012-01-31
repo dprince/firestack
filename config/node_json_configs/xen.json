@@ -19,12 +19,13 @@
 			"floating_range": "172.20.0.0/24",
 			"network": "192.168.0.0/24 1 254",
 			"public_network_gateway_ip": "192.168.0.1/24",
-			"auth_type": "noauth",
+			"auth_type": "keystone",
 			"keystone_service_host": "login",
 			"keystone_auth_host": "login",
 			"keystone_auth_uri": "http://login:5000/",
 			"keystone_ec2_url": "http://login:5000/v2.0/ec2tokens",
-			"allow_ec2_admin_api": "True"
+			"allow_ec2_admin_api": "True",
+            "allow_resize_to_same_host": "True"
         },
 		"run_list": [
             "recipe[vpc::apt_config]",
@@ -37,19 +38,21 @@
 			"recipe[nova::setup]",
 			"role[nova-api]",
 			"role[nova-scheduler]",
+            "role[nova-cert]",
 			"role[nova-network]",
 			"role[nova-objectstore]",
-			"recipe[nova::creds]"
+			"recipe[nova::creds]",
+			"recipe[keystone::creds]"
 		]
 	},
 	"glance1": {
 		"glance": {
-			"auth_type": "noauth",
+			"auth_type": "keystone",
 			"keystone_service_host": "login",
 			"keystone_auth_host": "login",
 			"keystone_auth_uri": "http://login:5000/",
-			"verbose": "true",
-			"debug": "true",
+			"verbose": "false",
+			"debug": "false",
 			"image_list": [
 				{
 					"name": "squeeze",
@@ -62,6 +65,7 @@
 		"run_list": [
 			"recipe[vpc::apt_config]",
 			"recipe[apt::noauth]",
+			"recipe[keystone::creds]",
 			"role[glance-mysql-server]",
 			"role[glance-registry]",
 			"role[glance-api]",
@@ -98,6 +102,48 @@
 			"dns_nameservers": "172.19.0.1",
 			"gateway": "172.19.0.1",
 			"mac": "00:00:00:ab:c1:23",
+			"inject_dom0_authorized_keys": "true"
+			}
+		]
+	   },
+	   "run_list": [
+		 "recipe[yum::client]",
+		 "recipe[xenserver::plugins]",
+		 "recipe[xenserver::xapi]",
+		 "recipe[xenserver::sr_config]",
+		 "recipe[xenserver::create_instances]"
+	   ]
+	},
+	"compute2": {
+		"nova": {
+			"glance_api_servers": "glance1:9292",
+			"network_manager": "nova.network.manager.FlatManager",
+			"flat_network_bridge": "xenbr0",
+			"connection_type": "xenapi",
+			"xenapi_connection_url": "http://xen2",
+			"xenapi_connection_username": "root",
+			"xenapi_connection_password": "openstack",
+			"rescue_timeout": "86400",
+			"allow_resize_to_same_host": "True"
+		},
+		"run_list": [
+            "recipe[vpc::apt_config]",
+			"recipe[apt::noauth]",
+			"recipe[vpc::add_tap]",
+			"role[nova-compute]"
+		]
+	},
+	"xen2": {
+		"xenserver": {
+		  "instances": [
+			{
+			"hostname": "compute2.vpc",
+			"ip_address": "172.19.0.102",
+			"netmask": "255.255.224.0",
+			"broadcast": "172.19.31.255",
+			"dns_nameservers": "172.19.0.1",
+			"gateway": "172.19.0.1",
+			"mac": "00:00:00:ab:c1:24",
 			"inject_dom0_authorized_keys": "true"
 			}
 		]

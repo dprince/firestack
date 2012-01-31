@@ -17,7 +17,8 @@
 			"floating_range": "172.20.0.0/24",
 			"network": "192.168.0.0/24 1 254",
 			"public_network_gateway_ip": "192.168.0.1/24",
-			"allow_ec2_admin_api": "True"
+			"allow_ec2_admin_api": "True",
+            "nouse_cow_images": "True"
 		},
 		"run_list": [
 			"recipe[vpc::apt_config]",
@@ -30,6 +31,7 @@
 			"recipe[nova::setup]",
 			"role[nova-api]",
 			"role[nova-scheduler]",
+            "role[nova-cert]",
 			"role[nova-network]",
 			"role[nova-objectstore]",
 			"role[nova-compute]",
