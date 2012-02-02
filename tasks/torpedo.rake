@@ -55,7 +55,7 @@ elif [[ "#{mode}" == "xen" ]]; then
 		test_create_image: true
 		test_rebuild_server: true
 		test_resize_server: true
-		test_admin_password: false
+		test_admin_password: true
 		test_soft_reboot_server: true
 		test_hard_reboot_server: true
 	EOF_CAT
