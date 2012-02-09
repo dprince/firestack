@@ -387,8 +387,6 @@ sed -e 's|^nova-compute-deps.*|nova-compute-deps=adduser|' -i debian/ubuntu_cont
 sed -e 's|.*modprobe nbd.*||' -i debian/nova-compute.upstart.in
 echo "nova (9999.1-vpc#{nova_revision}) $(lsb_release -sc); urgency=high" > debian/changelog
 echo " -- Dev Null <dev@null.com>  $(date +\"%a, %e %b %Y %T %z\")" >> debian/changelog
-QUILT_PATCHES=debian/patches quilt push -a || \
- { echo "Failed to patch nova."; exit 1; }
 BUILD_LOG=$(mktemp)
 DEB_BUILD_OPTIONS=nocheck,nodocs dpkg-buildpackage -rfakeroot -b -uc -us -d \
  &> $BUILD_LOG || { echo "Failed to build nova packages."; cat $BUILD_LOG; exit 1; }

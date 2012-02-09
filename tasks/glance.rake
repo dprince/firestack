@@ -72,7 +72,6 @@ rm -rf glance/.git
 cd glance
 echo "glance (9999.1-vpc#{glance_revision}) $(lsb_release -sc); urgency=high" > debian/changelog
 echo " -- Dev Null <dev@null.com>  $(date +\"%a, %e %b %Y %T %z\")" >> debian/changelog
-QUILT_PATCHES=debian/patches quilt push -a || \ { echo "Failed to patch glance."; exit 1; }
 BUILD_LOG=$(mktemp)
 DEB_BUILD_OPTIONS=nocheck,nodocs dpkg-buildpackage -rfakeroot -b -uc -us -d \
  &> $BUILD_LOG || { echo "Failed to build packages."; cat $BUILD_LOG; exit 1; }
