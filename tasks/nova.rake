@@ -385,6 +385,7 @@ bzr checkout --lightweight #{deb_packager_url} nova &> /tmp/bzrnova.log || { ech
 cd nova
 sed -e 's|^nova-compute-deps.*|nova-compute-deps=adduser|' -i debian/ubuntu_control_vars
 sed -e 's|.*modprobe nbd.*||' -i debian/nova-compute.upstart.in
+sed -e 's| --flagfile=\/etc\/nova\/nova-compute.conf' -i debian/nova-compute.upstart.in
 echo "nova (9999.1-vpc#{nova_revision}) $(lsb_release -sc); urgency=high" > debian/changelog
 echo " -- Dev Null <dev@null.com>  $(date +\"%a, %e %b %Y %T %z\")" >> debian/changelog
 BUILD_LOG=$(mktemp)
