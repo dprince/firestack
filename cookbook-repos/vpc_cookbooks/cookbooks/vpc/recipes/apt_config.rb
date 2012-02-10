@@ -17,8 +17,6 @@
 # limitations under the License.
 #
 
-execute "dpkg --configure -a"
-
 if node[:vpc][:apt][:debian_mirror] then
 
   execute "apt-get update" do
