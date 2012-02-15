@@ -116,6 +116,80 @@ BASH_EOF
 
     desc "Run the nova smoke tests."
     task :smoke_tests do
+        if ENV['PLATFORM'] == "FEDORA" then
+            Rake::Task["nova:smoke_tests_fedora"].invoke
+        else
+            Rake::Task["nova:smoke_tests_ubuntu"].invoke
+        end
+    end
+
+    task :smoke_tests_fedora do
+        sg=ServerGroup.fetch(:source => "cache")
+        gw_ip=sg.vpn_gateway_ip
+        server_name=ENV['SERVER_NAME']
+        # default to nova1 if SERVER_NAME is unset
+        server_name = "nova1" if server_name.nil?
+        xunit_output=ENV['XUNIT_OUTPUT'] # set if you want Xunit style output
+        out=%x{
+ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
+
+echo rm -rf /tmp/smoketests | ssh #{server_name} 
+scp -r /root/openstack-nova/*/smoketests #{server_name}:/tmp
+
+ssh #{server_name} bash <<-"EOF_SERVER_NAME"
+
+yum install -y python-pip python-nose python-paramiko python-nova-adminclient
+
+if [ -n "#{xunit_output}" ]; then
+pip-python install nosexunit > /dev/null
+export NOSE_WITH_NOSEXUNIT=true
+fi
+
+cd /tmp/smoketests
+
+nova-manage floating create 172.20.0.0/24
+nova-manage project zipfile nova admin
+unzip -o nova.zip
+source novarc
+
+[ -f /root/novacreds/novarc ] && source /root/novacreds/novarc
+if [ -f /root/openstackrc ]; then
+    if ! grep EC2_SECRET_KEY /root/openstackrc &> /dev/null; then
+        echo "export EC2_SECRET_KEY=\"admin\"" >> /root/openstackrc
+    fi
+    source /root/openstackrc
+fi
+
+
+#add images
+if [ ! -f /var/lib/glance/images_loaded ]; then
+    mkdir -p /var/lib/glance/
+    [ -f /root/openstackrc ] && source /root/openstackrc
+    curl http://c3226372.r72.cf0.rackcdn.com/tty_linux.tar.gz | tar xvz -C /tmp/
+    ARI_ID=`glance add name="ari-tty" type="ramdisk" disk_format="ari" container_format="ari" is_public=true < /tmp/tty_linux/ramdisk | sed 's/.*\: //g'`
+    AKI_ID=`glance add name="aki-tty" type="kernel" disk_format="aki" container_format="aki" is_public=true < /tmp/tty_linux/kernel | sed 's/.*\: //g'`
+    if glance add name="ami-tty" type="kernel" disk_format="ami" container_format="ami" ramdisk_id="$ARI_ID" kernel_id="$AKI_ID" is_public=true < /tmp/tty_linux/image; then
+       touch /var/lib/glance/images_loaded
+    fi
+fi
+
+IMG_ID=$(euca-describe-images | grep ami | tail -n 1 | cut -f 2)
+export PYTHONPATH=/tmp
+python run_tests.py --test_image=$IMG_ID
+
+EOF_SERVER_NAME
+BASH_EOF
+        }
+        retval=$?
+        puts out
+        if not retval.success?
+            fail "Test task failed!"
+        end
+
+
+    end
+
+    task :smoke_tests_ubuntu do
 
         sg=ServerGroup.fetch(:source => "cache")
         gw_ip=sg.vpn_gateway_ip
@@ -341,7 +415,78 @@ BASH_EOF
     end
 
     desc "Build packages from a local nova source directory."
-    task :build_packages => :tarball do
+    task :build_packages do
+        if ENV['RPM_PACKAGER_URL'].nil? then
+            Rake::Task["nova:build_ubuntu_packages"].invoke
+        else
+            Rake::Task["nova:build_fedora_packages"].invoke
+        end
+    end
+
+    task :build_fedora_packages do
+        sg=ServerGroup.fetch(:source => "cache")
+        gw_ip=sg.vpn_gateway_ip
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://pkgs.fedoraproject.org/openstack-nova.git")
+        packager_branch= ENV.fetch("RPM_PACKAGER_BRANCH", "master")
+        src_url = ENV["SOURCE_URL"]
+        src_branch = ENV.fetch("SOURCE_BRANCH", "master")
+        raise "Please specify a SOURCE_URL." if src_url.nil?
+
+        puts "Building nova packages using: #{packager_url}:#{packager_branch} #{src_url}:#{src_branch}"
+
+        out=%x{
+ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
+
+yum install -y git fedpkg python-setuptools
+
+BUILD_LOG=$(mktemp)
+
+test -e openstack-nova && rm -rf openstack-nova
+test -e nova_source && rm -rf nova_source
+
+git clone #{src_url} nova_source || { echo "Unable to clone repos : #{src_url}"; exit 1; }
+cd nova_source
+[ #{src_branch} != "master" ] && { git checkout -t -b #{src_branch} origin/#{src_branch} || { echo "Unable to checkout branch :  #{src_branch}"; exit 1; } }
+revision=$(date +%s)_$(git log --format=%h -n 1)
+python setup.py sdist
+
+cd 
+git clone #{packager_url} openstack-nova || { echo "Unable to clone repos : #{packager_url}"; exit 1; }
+cd openstack-nova
+[ #{packager_branch} != "master" ] && { git checkout -t -b #{packager_branch} origin/#{packager_branch} || { echo "Unable to checkout branch :  #{packager_branch}"; exit 1; } }
+cp ~/nova_source/dist/*.tar.gz .
+sed -i.bk -e "s/\\(Release:.*\\.\\).*/\\1$revision/g" openstack-nova.spec
+sed -i.bk -e "s/Source0:.*/Source0:      $(ls *.tar.gz)/g" openstack-nova.spec
+md5sum *.tar.gz > sources 
+
+# tmp workaround
+sed -i.bk openstack-nova.spec -e 's/.*dnsmasq-utils.*//g'
+sed -i.bk -e "s/%patch0002.*//g" openstack-nova.spec
+
+# install dependencies
+fedpkg srpm
+yum-builddep -y *.src.rpm
+
+# build rpm's
+fedpkg local >> $BUILD_LOG || { echo "Failed to build nova packages."; cat $BUILD_LOG; exit 1; }
+mkdir -p ~/rpms
+find . -name "*rpm" -exec cp {} ~/rpms \\;
+
+exit 0
+
+BASH_EOF
+RETVAL=$?
+exit $RETVAL
+        }
+        retval=$?
+        puts out
+        if not retval.success?
+            fail "Build packages failed!"
+        end
+    end
+
+    task :build_ubuntu_packages => :tarball do
 
         sg=ServerGroup.fetch(:source => "cache")
         gw_ip=sg.vpn_gateway_ip

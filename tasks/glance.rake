@@ -35,9 +35,64 @@ exit $RETVAL
         puts out
 
     end
-
     desc "Build packages from a local glance source directory."
-    task :build_packages => :tarball do
+    task :build_packages do
+        if ENV['RPM_PACKAGER_URL'].nil? then
+            Rake::Task["glance:build_ubuntu_packages"].invoke
+        else
+            Rake::Task["glance:build_fedora_packages"].invoke
+        end
+    end
+
+    task :build_fedora_packages do
+        sg=ServerGroup.fetch(:source => "cache")
+        gw_ip=sg.vpn_gateway_ip
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://pkgs.fedoraproject.org/openstack-glance.git")
+        packager_branch= ENV.fetch("RPM_PACKAGER_BRANCH", "master")
+        src_url = ENV["SOURCE_URL"]
+        src_branch = ENV.fetch("SOURCE_BRANCH", "master")
+        raise "Please specify a SOURCE_URL." if src_url.nil?
+
+        puts "Building glance packages using: #{packager_url}:#{packager_branch}"
+
+        out=%x{
+ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
+
+yum install -y git fedpkg
+
+BUILD_LOG=$(mktemp)
+
+test -e openstack-glance && rm -rf openstack-glance
+git clone #{packager_url} openstack-glance || { echo "Unable to clone repos : #{packager_url}"; exit 1; }
+cd openstack-glance
+[ #{packager_branch} != "master" ] && { git checkout -t -b #{packager_branch} origin/#{packager_branch} || { echo "Unable to checkout branch :  #{packager_branch}"; exit 1; } }
+
+# install dependencies
+fedpkg srpm
+yum-builddep -y *.src.rpm
+
+# build rpm's
+fedpkg local >> $BUILD_LOG || { echo "Failed to build glance packages."; cat $BUILD_LOG; exit 1; }
+mkdir -p ~/rpms
+find . -name "*rpm" -exec cp {} ~/rpms \\;
+
+exit 0
+
+BASH_EOF
+RETVAL=$?
+exit $RETVAL
+
+exit 0
+        }
+        retval=$?
+        puts out
+        if not retval.success?
+            fail "Build packages failed!"
+        end
+    end
+
+    task :build_ubuntu_packages => :tarball do
 
         sg=ServerGroup.fetch(:source => "cache")
         gw_ip=sg.vpn_gateway_ip
