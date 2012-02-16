@@ -11,13 +11,14 @@ namespace :puppet do
         raise "Please specify a puppet url." if puppet_url.nil?
 
         puppetclients = ""
-        for i in 1..(sg.servers.size - 1)
-            puppetclients +=  sg.servers[i].name + " "
+        #FIXME: we need a config file to drive this...
+        # For now run puppet on all servers in the group except login
+        sg.servers.each do |client|
+            puppetclients +=  client.name + " " if not client.name == "login"
         end
 
         out=%x{
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
-
 yum -y install httpd yum-plugin-priorities
 
 mkdir -p /var/www/html/repos/
@@ -59,3 +60,7 @@ BASH_EOF
         end
     end
 end
+
+#FIXME: Need to update the puppet:install task to support a single server
+desc "Rebuild and Re-run puppet the specified server."
+task :repuppet => [ "server:rebuild", "group:poll", "puppet:install" ]
