@@ -431,6 +431,7 @@ BASH_EOF
         packager_branch= ENV.fetch("RPM_PACKAGER_BRANCH", "master")
         src_url = ENV["SOURCE_URL"]
         src_branch = ENV.fetch("SOURCE_BRANCH", "master")
+        build_docs = ENV.fetch("BUILD_DOCS", "")
         raise "Please specify a SOURCE_URL." if src_url.nil?
 
         puts "Building nova packages using: #{packager_url}:#{packager_branch} #{src_url}:#{src_branch}"
@@ -458,6 +459,7 @@ cd openstack-nova
 cp ~/nova_source/dist/*.tar.gz .
 sed -i.bk -e "s/\\(Release:.*\\.\\).*/\\1$revision/g" openstack-nova.spec
 sed -i.bk -e "s/Source0:.*/Source0:      $(ls *.tar.gz)/g" openstack-nova.spec
+[ -z "#{build_docs}" ] && sed -i -e 's/%global with_doc .*/%global with_doc 0/g' openstack-nova.spec
 md5sum *.tar.gz > sources 
 
 # tmp workaround
