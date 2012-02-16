@@ -462,7 +462,6 @@ md5sum *.tar.gz > sources
 
 # tmp workaround
 sed -i.bk openstack-nova.spec -e 's/.*dnsmasq-utils.*//g'
-sed -i.bk -e "s/%patch0002.*//g" openstack-nova.spec
 
 # install dependencies
 fedpkg srpm
