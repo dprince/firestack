@@ -428,6 +428,9 @@ BASH_EOF
 
         packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://pkgs.fedoraproject.org/openstack-nova.git")
         packager_branch= ENV.fetch("RPM_PACKAGER_BRANCH", "master")
+        git_master = ENV.fetch("GIT_MASTER", "git://github.com/openstack/nova.git")
+        merge_master = ENV.fetch("MERGE_MASTER", "")
+        git_revision = ENV.fetch("REVISION", "")
         src_url = ENV["SOURCE_URL"]
         src_branch = ENV.fetch("SOURCE_BRANCH", "master")
         build_docs = ENV.fetch("BUILD_DOCS", "")
@@ -445,18 +448,36 @@ BUILD_LOG=$(mktemp)
 test -e openstack-nova && rm -rf openstack-nova
 test -e nova_source && rm -rf nova_source
 
-git clone #{src_url} nova_source || { echo "Unable to clone repos : #{src_url}"; exit 1; }
+#{BASH_GIT_CLONE}
+
+git_clone_with_retry "#{git_master}" "nova_source"
 cd nova_source
-[ #{src_branch} != "master" ] && { git checkout -t -b #{src_branch} origin/#{src_branch} || { echo "Unable to checkout branch :  #{src_branch}"; exit 1; } }
-revision=$(date +%s)_$(git log --format=%h -n 1)
+git fetch "#{src_url}" "#{src_branch}" || fail "Failed to git fetch branch $NOVA_BRANCH."
+git checkout -q FETCH_HEAD || fail "Failed to git checkout FETCH_HEAD."
+NOVA_REVISION=#{git_revision}
+if [ -n "$NOVA_REVISION" ]; then
+	git checkout $NOVA_REVISION || \
+		fail "Failed to checkout revision $NOVA_REVISION."
+else
+	NOVA_REVISION=$(git rev-parse --short HEAD)
+	[ -z "$NOVA_REVISION" ] && \
+		fail "Failed to obtain nova revision from git."
+fi
+echo "NOVA_REVISION=$NOVA_REVISION"
+
+if [ -z "#{merge_master}" ]; then
+	git merge master || fail "Failed to rebase master."
+fi
+
+PACKAGE_REVISION=$(date +%s)_$(git log --format=%h -n 1)
 python setup.py sdist
 
 cd 
-git clone #{packager_url} openstack-nova || { echo "Unable to clone repos : #{packager_url}"; exit 1; }
+git_clone_with_retry "#{packager_url}" "openstack-nova" || { echo "Unable to clone repos : #{packager_url}"; exit 1; }
 cd openstack-nova
 [ #{packager_branch} != "master" ] && { git checkout -t -b #{packager_branch} origin/#{packager_branch} || { echo "Unable to checkout branch :  #{packager_branch}"; exit 1; } }
 cp ~/nova_source/dist/*.tar.gz .
-sed -i.bk -e "s/\\(Release:.*\\.\\).*/\\1$revision/g" openstack-nova.spec
+sed -i.bk -e "s/\\(Release:.*\\.\\).*/\\1$PACKAGE_REVISION/g" openstack-nova.spec
 sed -i.bk -e "s/Source0:.*/Source0:      $(ls *.tar.gz)/g" openstack-nova.spec
 [ -z "#{build_docs}" ] && sed -i -e 's/%global with_doc .*/%global with_doc 0/g' openstack-nova.spec
 md5sum *.tar.gz > sources 
@@ -466,10 +487,10 @@ sed -i.bk openstack-nova.spec -e 's/.*dnsmasq-utils.*//g'
 
 # install dependencies
 fedpkg srpm
-yum-builddep -y *.src.rpm
+yum-builddep -y *.src.rpm &> $BUILD_LOG || { echo "Failed to yum-builddep."; cat $BUILD_LOG; exit 1; }
 
 # build rpm's
-fedpkg local >> $BUILD_LOG || { echo "Failed to build nova packages."; cat $BUILD_LOG; exit 1; }
+fedpkg local &> $BUILD_LOG || { echo "Failed to build nova packages."; cat $BUILD_LOG; exit 1; }
 mkdir -p ~/rpms
 find . -name "*rpm" -exec cp {} ~/rpms \\;
 

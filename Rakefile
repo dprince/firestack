@@ -59,3 +59,17 @@ if File.exist?(File.join(CHEF_VPC_PROJECT, 'tasks')) then
     import(rakefile)
   end
 end
+
+#git clone w/ retry
+BASH_GIT_CLONE=%{
+function git_clone_with_retry {
+        local URL=${1:?"Please specify a URL."}
+        local DIR=${2:?"Please specify a DIR."}
+        local COUNT=1
+        until GIT_ASKPASS=echo git clone "$URL" "$DIR"; do
+                [ "$COUNT" -eq "3" ] && { echo"Failed to clone: $URL"; exit 1; }
+                sleep $(( $COUNT * 5 ))
+                COUNT=$(( $COUNT + 1 ))
+        done
+}
+}
