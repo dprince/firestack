@@ -486,7 +486,7 @@ md5sum *.tar.gz > sources
 sed -i.bk openstack-nova.spec -e 's/.*dnsmasq-utils.*//g'
 
 # install dependencies
-fedpkg srpm
+fedpkg srpm &> $BUILD_LOG || { echo "Failed to build srpm."; cat $BUILD_LOG; exit 1; }
 yum-builddep -y *.src.rpm &> $BUILD_LOG || { echo "Failed to yum-builddep."; cat $BUILD_LOG; exit 1; }
 
 # build rpm's
