@@ -44,36 +44,76 @@ exit $RETVAL
         end
     end
 
+    # FIXME : this looks very similar to nova:build_fedora_packages, reuse some of it
     task :build_fedora_packages do
         sg=ServerGroup.fetch(:source => "cache")
         gw_ip=sg.vpn_gateway_ip
 
         packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://pkgs.fedoraproject.org/openstack-glance.git")
         packager_branch= ENV.fetch("RPM_PACKAGER_BRANCH", "master")
+        git_master = ENV.fetch("GIT_MASTER", "git://github.com/openstack/glance.git")
+        merge_master = ENV.fetch("MERGE_MASTER", "")
+        git_revision = ENV.fetch("REVISION", "")
         src_url = ENV["SOURCE_URL"]
         src_branch = ENV.fetch("SOURCE_BRANCH", "master")
+        build_docs = ENV.fetch("BUILD_DOCS", "")
         raise "Please specify a SOURCE_URL." if src_url.nil?
 
-        puts "Building glance packages using: #{packager_url}:#{packager_branch}"
+        puts "Building glance packages using: #{packager_url}:#{packager_branch} #{src_url}:#{src_branch}"
 
         out=%x{
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 
-yum install -y git fedpkg
+yum install -y git fedpkg python-setuptools
 
 BUILD_LOG=$(mktemp)
 
 test -e openstack-glance && rm -rf openstack-glance
-git clone #{packager_url} openstack-glance || { echo "Unable to clone repos : #{packager_url}"; exit 1; }
+test -e glance_source && rm -rf glance_source
+
+#{BASH_GIT_CLONE}
+
+git_clone_with_retry "#{git_master}" "glance_source"
+cd glance_source
+git fetch "#{src_url}" "#{src_branch}" || fail "Failed to git fetch branch $GLANCE_BRANCH."
+git checkout -q FETCH_HEAD || fail "Failed to git checkout FETCH_HEAD."
+GLANCE_REVISION=#{git_revision}
+if [ -n "$GLANCE_REVISION" ]; then
+	git checkout $GLANCE_REVISION || \
+		fail "Failed to checkout revision $GLANCE_REVISION."
+else
+	GLANCE_REVISION=$(git rev-parse --short HEAD)
+	[ -z "$GLANCE_REVISION" ] && \
+		fail "Failed to obtain glance revision from git."
+fi
+echo "GLANCE_REVISION=$GLANCE_REVISION"
+
+if [ -z "#{merge_master}" ]; then
+	git merge master || fail "Failed to rebase master."
+fi
+
+PACKAGE_REVISION=$(date +%s)_$(git log --format=%h -n 1)
+python setup.py sdist
+
+cd 
+git_clone_with_retry "#{packager_url}" "openstack-glance" || { echo "Unable to clone repos : #{packager_url}"; exit 1; }
 cd openstack-glance
 [ #{packager_branch} != "master" ] && { git checkout -t -b #{packager_branch} origin/#{packager_branch} || { echo "Unable to checkout branch :  #{packager_branch}"; exit 1; } }
+cp ~/glance_source/dist/*.tar.gz .
+sed -i.bk -e "s/\\(Release:.*\\.\\).*/\\1$PACKAGE_REVISION/g" openstack-glance.spec
+sed -i.bk -e "s/Source0:.*/Source0:      $(ls *.tar.gz)/g" openstack-glance.spec
+[ -z "#{build_docs}" ] && sed -i -e 's/%global with_doc .*/%global with_doc 0/g' openstack-glance.spec
+md5sum *.tar.gz > sources 
+
+# tmp workaround
+sed -i.bk openstack-glance.spec -e 's/.*dnsmasq-utils.*//g'
 
 # install dependencies
 fedpkg srpm
-yum-builddep -y *.src.rpm
+yum-builddep -y *.src.rpm &> $BUILD_LOG || { echo "Failed to yum-builddep."; cat $BUILD_LOG; exit 1; }
 
 # build rpm's
-fedpkg local >> $BUILD_LOG || { echo "Failed to build glance packages."; cat $BUILD_LOG; exit 1; }
+fedpkg local &> $BUILD_LOG || { echo "Failed to build glance packages."; cat $BUILD_LOG; exit 1; }
 mkdir -p ~/rpms
 find . -name "*rpm" -exec cp {} ~/rpms \\;
 
@@ -82,8 +122,6 @@ exit 0
 BASH_EOF
 RETVAL=$?
 exit $RETVAL
-
-exit 0
         }
         retval=$?
         puts out
