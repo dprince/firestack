@@ -25,23 +25,23 @@ mkdir -p /var/www/html/repos/
 rm -rf /var/www/html/repos/*
 find ~/rpms -name "*rpm" -exec cp {} /var/www/html/repos/ \\;
 
-rm -rf puppetlabs-openstack
+rm -rf puppet-modules
 echo Getting Puppet modules from #{puppet_url}
-git clone --recurse #{puppet_url}
+git clone --recurse #{puppet_url} puppet-modules
 
 createrepo /var/www/html/repos
 /etc/init.d/httpd restart
 
 for client in #{puppetclients}; do 
-    scp -r puppetlabs-openstack $client:
+    scp -r puppet-modules $client:
     echo Running puppet client on : $client
     ssh $client bash <<- "SSH_EOF"
 echo -e "[puppetserverrepos]\\nname=puppet server repository\\nbaseurl=http://login/repos\\nenabled=1\\ngpgcheck=0\\npriority=1" > /etc/yum.repos.d/puppetserverrepos.repo
 yum -y install puppet
 
 mkdir -p /etc/puppet/modules
-cp -R ~/puppetlabs-openstack/modules/* /etc/puppet/modules/
-puppet apply --verbose ~/puppetlabs-openstack/manifests/fedora.pp
+cp -R ~/puppet-modules/modules/* /etc/puppet/modules/
+puppet apply --verbose ~/puppet-modules/manifests/fedora.pp
 SSH_EOF
 
 RETVAL=$? # return value from puppet agent
