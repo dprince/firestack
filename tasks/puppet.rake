@@ -8,7 +8,7 @@ namespace :puppet do
         gw_ip=sg.vpn_gateway_ip
 
         puppet_url=ENV['PUPPETMODULES_URL']
-        raise "Please specify a puppet url." if puppet_url.nil?
+        raise "Please specify a PUPPETMODULES_URL." if puppet_url.nil?
 
         puppetclients = ""
         #FIXME: we need a config file to drive this...
@@ -56,7 +56,7 @@ BASH_EOF
         retval=$?
         puts out
         if not retval.success?
-            fail "Puppet Client/Server setup is invalid!"
+            fail "Puppet errors occurred!"
         end
     end
 end
