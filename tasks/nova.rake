@@ -147,7 +147,6 @@ fi
 
 cd /tmp/smoketests
 
-nova-manage floating create 172.20.0.0/24
 nova-manage project zipfile nova admin
 unzip -o nova.zip
 source novarc
