@@ -173,4 +173,40 @@ exit $RETVAL
         end
     end
 
+    task :load_images do
+        sg=ServerGroup.fetch(:source => "cache")
+        gw_ip=sg.vpn_gateway_ip
+        server_name=ENV['SERVER_NAME']
+        # default to nova1 if SERVER_NAME is unset
+        server_name = "nova1" if server_name.nil?
+        xunit_output=ENV['XUNIT_OUTPUT'] # set if you want Xunit style output
+        out=%x{
+ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
+
+ssh #{server_name} bash <<-"EOF_SERVER_NAME"
+
+#add images
+if [ ! -f /var/lib/glance/images_loaded ]; then
+    mkdir -p /var/lib/glance/
+    [ -f /root/openstackrc ] && source /root/openstackrc
+    curl http://c3226372.r72.cf0.rackcdn.com/tty_linux.tar.gz | tar xvz -C /tmp/
+    ARI_ID=`glance add name="ari-tty" type="ramdisk" disk_format="ari" container_format="ari" is_public=true < /tmp/tty_linux/ramdisk | sed 's/.*\: //g'`
+    AKI_ID=`glance add name="aki-tty" type="kernel" disk_format="aki" container_format="aki" is_public=true < /tmp/tty_linux/kernel | sed 's/.*\: //g'`
+    if glance add name="ami-tty" type="kernel" disk_format="ami" container_format="ami" ramdisk_id="$ARI_ID" kernel_id="$AKI_ID" is_public=true < /tmp/tty_linux/image; then
+       touch /var/lib/glance/images_loaded
+    fi
+fi
+
+EOF_SERVER_NAME
+BASH_EOF
+        }
+        retval=$?
+        puts out
+        if not retval.success?
+            fail "Test task failed!"
+        end
+
+
+    end
+
 end
