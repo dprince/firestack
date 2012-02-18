@@ -588,7 +588,7 @@ exit $RETVAL
         out=%x{
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
-tail -n #{line_count} /var/log/nova/nova-*
+tail -n #{line_count} /var/log/nova/*
 EOF_SERVER_NAME
 BASH_EOF
         }
