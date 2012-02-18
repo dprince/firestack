@@ -138,7 +138,7 @@ scp -r /root/openstack-nova/*/smoketests #{server_name}:/tmp
 
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 
-yum install -y python-pip python-nose python-paramiko python-nova-adminclient
+yum install -q -y python-pip python-nose python-paramiko python-nova-adminclient
 
 if [ -n "#{xunit_output}" ]; then
 pip-python install nosexunit > /dev/null
