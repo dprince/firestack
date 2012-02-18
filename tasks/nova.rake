@@ -441,7 +441,7 @@ BASH_EOF
         out=%x{
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 
-yum install -y git fedpkg python-setuptools
+yum install -q -y git fedpkg python-setuptools
 
 BUILD_LOG=$(mktemp)
 
@@ -470,7 +470,7 @@ if [ -z "#{merge_master}" ]; then
 fi
 
 PACKAGE_REVISION=$(date +%s)_$(git log --format=%h -n 1)
-python setup.py sdist
+python setup.py sdist &> $BUILD_LOG || { echo "Failed to run sdist."; cat $BUILD_LOG; exit 1; }
 
 cd 
 git_clone_with_retry "#{packager_url}" "openstack-nova" || { echo "Unable to clone repos : #{packager_url}"; exit 1; }
