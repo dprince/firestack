@@ -71,7 +71,7 @@ BUILD_LOG=$(mktemp)
 test -e openstack-glance && rm -rf openstack-glance
 test -e glance_source && rm -rf glance_source
 
-#{BASH_GIT_CLONE}
+#{BASH_COMMON}
 
 git_clone_with_retry "#{git_master}" "glance_source"
 cd glance_source
@@ -88,8 +88,8 @@ else
 fi
 echo "GLANCE_REVISION=$GLANCE_REVISION"
 
-if [ -z "#{merge_master}" ]; then
-	git merge master || fail "Failed to rebase master."
+if [ -n "#{merge_master}" ]; then
+	git merge master || fail "Failed to merge master."
 fi
 
 PACKAGE_REVISION=$(date +%s)_$(git log --format=%h -n 1)

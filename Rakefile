@@ -40,14 +40,14 @@ def shh(script)
 end
 
 def get_revision(source_dir)
-	%x{
-		cd #{source_dir}
-		if [ -d ".git" ]; then
-		  git log --oneline | wc -l
-		else
-		  bzr revno --tree
-		fi
-	}.strip
+    %x{
+        cd #{source_dir}
+        if [ -d ".git" ]; then
+          git log --oneline | wc -l
+        else
+          bzr revno --tree
+        fi
+    }.strip
 end
 
 Dir[File.join("#{ChefVPCToolkit::Version::CHEF_VPC_TOOLKIT_ROOT}/rake", '*.rake')].each do  |rakefile|
@@ -61,15 +61,21 @@ if File.exist?(File.join(CHEF_VPC_PROJECT, 'tasks')) then
 end
 
 #git clone w/ retry
-BASH_GIT_CLONE=%{
+BASH_COMMON=%{
+function fail {
+    local MSG=$1
+    echo "FAILURE_MSG=$MSG"
+    exit 1
+}
+
 function git_clone_with_retry {
-        local URL=${1:?"Please specify a URL."}
-        local DIR=${2:?"Please specify a DIR."}
-        local COUNT=1
-        until GIT_ASKPASS=echo git clone "$URL" "$DIR"; do
-                [ "$COUNT" -eq "3" ] && { echo"Failed to clone: $URL"; exit 1; }
-                sleep $(( $COUNT * 5 ))
-                COUNT=$(( $COUNT + 1 ))
-        done
+    local URL=${1:?"Please specify a URL."}
+    local DIR=${2:?"Please specify a DIR."}
+    local COUNT=1
+    until GIT_ASKPASS=echo git clone "$URL" "$DIR"; do
+        [ "$COUNT" -eq "3" ] && { echo"Failed to clone: $URL"; exit 1; }
+        sleep $(( $COUNT * 5 ))
+        COUNT=$(( $COUNT + 1 ))
+    done
 }
 }

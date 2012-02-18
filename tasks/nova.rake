@@ -448,7 +448,7 @@ BUILD_LOG=$(mktemp)
 test -e openstack-nova && rm -rf openstack-nova
 test -e nova_source && rm -rf nova_source
 
-#{BASH_GIT_CLONE}
+#{BASH_COMMON}
 
 git_clone_with_retry "#{git_master}" "nova_source"
 cd nova_source
@@ -465,8 +465,8 @@ else
 fi
 echo "NOVA_REVISION=$NOVA_REVISION"
 
-if [ -z "#{merge_master}" ]; then
-	git merge master || fail "Failed to rebase master."
+if [ -n "#{merge_master}" ]; then
+	git merge master || fail "Failed to merge master."
 fi
 
 PACKAGE_REVISION=$(date +%s)_$(git log --format=%h -n 1)
