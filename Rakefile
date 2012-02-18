@@ -11,9 +11,7 @@ elsif File.exists?(version_file)
   toolkit_version=IO.read(version_file)
 end
 
-puts "Chef VPC Toolkit Version: #{toolkit_version}"
-
-gem 'chef-vpc-toolkit', "= #{toolkit_version}" if toolkit_version
+gem 'chef-vpc-toolkit', "~>#{toolkit_version}" if toolkit_version
 
 require 'chef-vpc-toolkit'
 
