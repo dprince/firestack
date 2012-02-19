@@ -130,6 +130,7 @@ BASH_EOF
         # default to nova1 if SERVER_NAME is unset
         server_name = "nova1" if server_name.nil?
         xunit_output=ENV['XUNIT_OUTPUT'] # set if you want Xunit style output
+        no_volume_tests=ENV['NO_VOLUME'] # set if you want disable Volume tests
         out=%x{
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 
@@ -170,6 +171,15 @@ if [ ! -f /var/lib/glance/images_loaded ]; then
     if glance add name="ami-tty" type="kernel" disk_format="ami" container_format="ami" ramdisk_id="$ARI_ID" kernel_id="$AKI_ID" is_public=true < /tmp/tty_linux/image; then
        touch /var/lib/glance/images_loaded
     fi
+fi
+
+#DISABLE_VOLUME_TESTS
+if [ -n "#{no_volume_tests}" ]; then
+  if grep -c "VolumeTests" test_sysadmin.py &> /dev/null; then
+    sed -e '/class Volume/q' test_sysadmin.py \
+     | sed -e 's/^class VolumeTests.*//g' > tmp_test_sysadmin.py
+    mv tmp_test_sysadmin.py test_sysadmin.py
+  fi
 fi
 
 IMG_ID=$(euca-describe-images | grep ami | tail -n 1 | cut -f 2)
