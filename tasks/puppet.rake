@@ -19,7 +19,7 @@ namespace :puppet do
 
         out=%x{
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
-yum -q -y install httpd yum-plugin-priorities
+yum -q -y install httpd
 
 mkdir -p /var/www/html/repos/
 rm -rf /var/www/html/repos/*
@@ -36,8 +36,8 @@ for client in #{puppetclients}; do
     scp -r puppet-modules $client:
     echo Running puppet client on : $client
     ssh $client bash <<- "SSH_EOF"
+yum -q -y install puppet yum-plugin-priorities
 echo -e "[puppetserverrepos]\\nname=puppet server repository\\nbaseurl=http://login/repos\\nenabled=1\\ngpgcheck=0\\npriority=1" > /etc/yum.repos.d/puppetserverrepos.repo
-yum -q -y install puppet
 
 mkdir -p /etc/puppet/modules
 cp -R ~/puppet-modules/modules/* /etc/puppet/modules/
