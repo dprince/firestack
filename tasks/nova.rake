@@ -433,88 +433,17 @@ BASH_EOF
     end
 
     task :build_fedora_packages do
-        sg=ServerGroup.fetch(:source => "cache")
-        gw_ip=sg.vpn_gateway_ip
 
         packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://pkgs.fedoraproject.org/openstack-nova.git")
-        packager_branch= ENV.fetch("RPM_PACKAGER_BRANCH", "master")
-        git_master = ENV.fetch("GIT_MASTER", "git://github.com/openstack/nova.git")
-        merge_master = ENV.fetch("MERGE_MASTER", "")
-        git_revision = ENV.fetch("REVISION", "")
-        src_url = ENV["SOURCE_URL"]
-        src_branch = ENV.fetch("SOURCE_BRANCH", "master")
-        build_docs = ENV.fetch("BUILD_DOCS", "")
-        raise "Please specify a SOURCE_URL." if src_url.nil?
-
-        puts "Building nova packages using: #{packager_url}:#{packager_branch} #{src_url}:#{src_branch}"
-
-        out=%x{
-ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
-
-yum install -q -y git fedpkg python-setuptools
-
-BUILD_LOG=$(mktemp)
-
-test -e openstack-nova && rm -rf openstack-nova
-test -e nova_source && rm -rf nova_source
-
-#{BASH_COMMON}
-
-git_clone_with_retry "#{git_master}" "nova_source"
-cd nova_source
-git fetch "#{src_url}" "#{src_branch}" || fail "Failed to git fetch branch $NOVA_BRANCH."
-git checkout -q FETCH_HEAD || fail "Failed to git checkout FETCH_HEAD."
-NOVA_REVISION=#{git_revision}
-if [ -n "$NOVA_REVISION" ]; then
-	git checkout $NOVA_REVISION || \
-		fail "Failed to checkout revision $NOVA_REVISION."
-else
-	NOVA_REVISION=$(git rev-parse --short HEAD)
-	[ -z "$NOVA_REVISION" ] && \
-		fail "Failed to obtain nova revision from git."
-fi
-echo "NOVA_REVISION=$NOVA_REVISION"
-
-if [ -n "#{merge_master}" ]; then
-	git merge master || fail "Failed to merge master."
-fi
-
-PACKAGE_REVISION=$(date +%s)_$(git log --format=%h -n 1)
-python setup.py sdist &> $BUILD_LOG || { echo "Failed to run sdist."; cat $BUILD_LOG; exit 1; }
-
-cd 
-git_clone_with_retry "#{packager_url}" "openstack-nova" || { echo "Unable to clone repos : #{packager_url}"; exit 1; }
-cd openstack-nova
-[ #{packager_branch} != "master" ] && { git checkout -t -b #{packager_branch} origin/#{packager_branch} || { echo "Unable to checkout branch :  #{packager_branch}"; exit 1; } }
-cp ~/nova_source/dist/*.tar.gz .
-sed -i.bk -e "s/\\(Release:.*\\.\\).*/\\1$PACKAGE_REVISION/g" openstack-nova.spec
-sed -i.bk -e "s/Source0:.*/Source0:      $(ls *.tar.gz)/g" openstack-nova.spec
-[ -z "#{build_docs}" ] && sed -i -e 's/%global with_doc .*/%global with_doc 0/g' openstack-nova.spec
-md5sum *.tar.gz > sources 
-
-# tmp workaround
-sed -i.bk openstack-nova.spec -e 's/.*dnsmasq-utils.*//g'
-
-# install dependencies
-fedpkg srpm &> $BUILD_LOG || { echo "Failed to build srpm."; cat $BUILD_LOG; exit 1; }
-yum-builddep -y *.src.rpm &> $BUILD_LOG || { echo "Failed to yum-builddep."; cat $BUILD_LOG; exit 1; }
-
-# build rpm's
-fedpkg local &> $BUILD_LOG || { echo "Failed to build nova packages."; cat $BUILD_LOG; exit 1; }
-mkdir -p ~/rpms
-find . -name "*rpm" -exec cp {} ~/rpms \\;
-
-exit 0
-
-BASH_EOF
-RETVAL=$?
-exit $RETVAL
-        }
-        retval=$?
-        puts out
-        if not retval.success?
-            fail "Build packages failed!"
+        if ENV["RPM_PACKAGER_URL"].nil?
+            ENV["RPM_PACKAGER_URL"] = "git://pkgs.fedoraproject.org/openstack-nova.git"
         end
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/openstack/nova.git"
+        end
+        ENV["PROJECT_NAME"] = "nova"
+        Rake::Task["fedora:build_packages"].invoke
+
     end
 
     task :build_ubuntu_packages => :tarball do
