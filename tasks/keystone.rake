@@ -3,7 +3,7 @@ include ChefVPCToolkit::CloudServersVPC
 namespace :keystone do
 
     desc "Build packages from a local keystone source directory."
-    task :build_packages => :tarball do
+    task :build_ubuntu_packages => :tarball do
 
         sg=ServerGroup.fetch(:source => "cache")
         gw_ip=sg.vpn_gateway_ip
@@ -67,6 +67,20 @@ exit $RETVAL
 
     end
 
+    task :build_fedora_packages do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://pkgs.fedoraproject.org/openstack-keystone.git")
+        if ENV["RPM_PACKAGER_URL"].nil?
+            ENV["RPM_PACKAGER_URL"] = "git://pkgs.fedoraproject.org/openstack-keystone.git"
+        end
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/openstack/keystone.git"
+        end
+        ENV["PROJECT_NAME"] = "keystone"
+        Rake::Task["fedora:build_packages"].invoke
+
+    end
+
     task :tarball do
         gw_ip = ServerGroup.fetch(:source => "cache").vpn_gateway_ip
         src_dir = ENV['SOURCE_DIR'] or raise "Please specify a SOURCE_DIR."
@@ -90,6 +104,15 @@ exit $RETVAL
             rm -rf "$MY_TMP"
         } do |ok, res|
             fail "Unable to create keystone tarball! \n #{res}" unless ok
+        end
+    end
+
+    desc "Build keystone packages."
+    task :build_packages do
+        if ENV['RPM_PACKAGER_URL'].nil? then
+            Rake::Task["keystone:build_ubuntu_packages"].invoke
+        else
+            Rake::Task["keystone:build_fedora_packages"].invoke
         end
     end
 
