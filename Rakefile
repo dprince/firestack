@@ -76,4 +76,36 @@ function git_clone_with_retry {
         COUNT=$(( $COUNT + 1 ))
     done
 }
+
+# Test if the rpms we require are in the cache allready
+# If present this function downloads them to ~/rpms
+function download_cached_rpm {
+    local PROJECT="$1"
+    local SRC_URL="$2"
+    local SRC_BRANCH="$3"
+    local PKG_URL="$4"
+    local PKG_BRANCH="$5"
+    
+    SRCUUID=$(git ls-remote "$SRC_URL" "$SRC_BRANCH" | cut -f 1)
+    SPECUUID=$(git ls-remote "$PKG_URL" "$PKG_BRANCH" | cut -f 1)
+
+    FILESFROMCACHE=$(curl $CACHEURL/rpmcache/$SPECUUID/$SRCUUID 2> /dev/null)
+
+    mkdir -p "${PROJECT}_cached_rpms"
+    echo $FILESFROMCACHE
+    for file in $FILESFROMCACHE ; do
+        HADFILE=1
+        filename="${PROJECT}_cached_rpms/$(echo $file | sed -e 's/.*\\///g')"
+        echo Downloading $CACHEURL/$file -\\> $filename
+        curl $CACHEURL/$file 2> /dev/null > "$filename" || HADERROR=1
+    done
+
+    if [ -z "$HADERROR" -a -n "$HADFILE" ] ; then
+        mkdir -p rpms
+        cp "${PROJECT}_cached_rpms"/* rpms 
+        return 0
+    fi
+    return 1
+}
+
 }

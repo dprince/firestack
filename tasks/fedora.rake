@@ -25,6 +25,8 @@ namespace :fedora do
         build_docs = ENV.fetch("BUILD_DOCS", "")
         raise "Please specify a SOURCE_URL." if src_url.nil?
 
+        cacheurl=ENV["CACHEURL"]
+
         puts "Building #{project} packages using: #{packager_url}:#{packager_branch} #{src_url}:#{src_branch}"
 
         out=%x{
@@ -35,10 +37,17 @@ yum install -q -y git fedpkg python-setuptools
 BUILD_LOG=$(mktemp)
 SRC_DIR="#{project}_source"
 
+#{BASH_COMMON}
+
+CACHEURL="#{cacheurl}"
+if [ -n $CACHEURL ] ; then
+    download_cached_rpm #{project} "#{src_url}" "#{src_branch}" "#{packager_url}" "#{packager_branch}" 
+    test $? -eq 0 && { echo "Retrieved rpm's from cache" ; exit 0 ; }
+fi
+
 test -e openstack-#{project} && rm -rf openstack-#{project}
 test -e $SRC_DIR && rm -rf $SRC_DIR
 
-#{BASH_COMMON}
 
 git_clone_with_retry "#{git_master}" "$SRC_DIR"
 cd "$SRC_DIR"
@@ -108,6 +117,8 @@ exit $RETVAL
 
         out=%x{
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
+
+ls -d *_source || { echo "No RPMS to upload"; exit 0; }
 
 for SRCDIR in $(ls -d *_source) ; do
     PROJECT=$(echo $SRCDIR | cut -d _ -f 1)
