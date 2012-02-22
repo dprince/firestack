@@ -1,0 +1,82 @@
+#!/usr/bin/python
+
+import os, cgi, sqlite3, time, re, tempfile, shutil
+
+storagedir = "/var/www/rpmcache"
+if not os.path.exists(storagedir):
+    os.makedirs(storagedir)
+
+conn = sqlite3.connect(os.path.join(storagedir, "data.db"))
+c = conn.cursor()
+c.execute("create table IF NOT EXISTS rpmfiles (dt long, uuid_spec text, uuid_src text, filename text)")
+conn.commit()
+
+form = cgi.FieldStorage()
+
+re_uuids = re.compile("^/([0-9a-f]{40})/([0-9a-f]{40})$")
+def do_post():
+    print "Content-Type: text/html\n"
+    m = re_uuids.match(os.environ.get("PATH_INFO", ""))
+    if not m:
+        print "One of uuid_spec or uuid_src is the wronge format"
+        return
+
+    # We are going to require 1 input
+    # file : should be multipart/form-data of type file
+    if not form.has_key("file"):
+        print "Missing file"
+        return
+
+    if not form["file"].filename:
+        print "file not uploaded correctly"
+        return
+
+    uuid_spec = m.group(1)
+    uuid_src =m.group(2)
+
+    fp = form["file"].file
+    filename = form["file"].filename
+
+    # strip out any "/"
+    relativefilename = os.path.join(uuid_src[:2], filename.split("/")[-1])
+    absolutefilename = os.path.join(storagedir, relativefilename)
+
+    if not os.path.exists(os.path.split(absolutefilename)[0]):
+        os.makedirs(os.path.split(absolutefilename)[0])
+  
+    fpout = tempfile.NamedTemporaryFile(delete=False) 
+    for x in range(100): # ~ 20MB limit
+        data = fp.read(262144) # 256k
+        if data == "": break
+        fpout.write(data)
+    fpout.close()
+    shutil.move(fpout.name, absolutefilename,)
+
+    c.execute("insert into rpmfiles (dt, uuid_spec, uuid_src, filename) values (%d, '%s', '%s', '%s')"%(time.time(), uuid_spec, uuid_src, relativefilename))
+
+def do_get():
+    print "Content-Type: text/html\n"
+
+    m = re_uuids.match(os.environ.get("PATH_INFO", ""))
+    if not m:
+        print "One of uuid_spec or uuid_src is the wronge format"
+        return
+
+    uuid_spec = m.group(1)
+    uuid_src =m.group(2)
+
+    filenameswehad = []
+    for dt, uuid_spec, uuid_src, filename in c.execute("select * from rpmfiles where uuid_spec = '%s' and uuid_src = '%s' ORDER BY dt DESC"%(uuid_spec, uuid_src)):
+        if filename in filenameswehad: continue
+        filenameswehad.append(filename)
+        print filename
+
+if __name__ == "__main__":
+    try:
+        if os.environ.get("REQUEST_METHOD", "GET") == "POST":
+            do_post()
+        elif os.environ.get("REQUEST_METHOD", "GET") == "GET":
+            do_get()
+    finally:
+        conn.commit()
+        c.close()

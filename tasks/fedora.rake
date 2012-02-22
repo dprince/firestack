@@ -98,4 +98,47 @@ exit $RETVAL
         end
     end
 
+    # uploader to rpm cache
+    task :fill_cache do
+        sg=ServerGroup.fetch(:source => "cache")
+        gw_ip=sg.vpn_gateway_ip
+
+        CACHEURL=ENV["CACHEURL"]
+        raise "Please specify a CACHEURL" if CACHEURL.nil?
+
+        out=%x{
+ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
+
+for SRCDIR in $(ls -d *_source) ; do
+    PROJECT=$(echo $SRCDIR | cut -d _ -f 1)
+    echo Checking $PROJECT
+
+    cd ~/$SRCDIR
+    SRCUUID=$(git log -n 1 --pretty=format:%H)
+
+    cd ~/openstack-$PROJECT
+    SPECUUID=$(git log -n 1 --pretty=format:%H)
+
+    URL=#{CACHEURL}/$SPECUUID/$SRCUUID
+    echo Cache URL : $URL
+
+    FILESWEHAVE=$(curl $URL 2> /dev/null)
+    for file in $(find . -name "*rpm") ; do
+        if [[ ! "$FILESWEHAVE" == *$(echo $file | sed -e 's/.*\\///g')* ]] ; then
+            echo POSTING $file to $URL
+            curl -X POST $URL -Ffile=@$file 2> /dev/null || { echo ERROR POSTING FILE ; exit 1 ; }
+        fi
+    done
+done
+
+BASH_EOF
+RETVAL=$?
+exit $RETVAL
+        }
+        retval=$?
+        puts out
+        if not retval.success?
+            fail "Cache of packages failed!"
+        end
+    end
 end
