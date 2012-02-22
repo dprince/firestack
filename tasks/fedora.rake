@@ -103,8 +103,8 @@ exit $RETVAL
         sg=ServerGroup.fetch(:source => "cache")
         gw_ip=sg.vpn_gateway_ip
 
-        CACHEURL=ENV["CACHEURL"]
-        raise "Please specify a CACHEURL" if CACHEURL.nil?
+        cacheurl=ENV["CACHEURL"]
+        raise "Please specify a CACHEURL" if cacheurl.nil?
 
         out=%x{
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
@@ -115,11 +115,15 @@ for SRCDIR in $(ls -d *_source) ; do
 
     cd ~/$SRCDIR
     SRCUUID=$(git log -n 1 --pretty=format:%H)
+    # If we're not at the head of master then we wont be caching
+    [ $SRCUUID != $(cat .git/refs/heads/master) ] && break
 
     cd ~/openstack-$PROJECT
     SPECUUID=$(git log -n 1 --pretty=format:%H)
+    # If we're not at the head of master then we wont be caching
+    [ $SPECUUID != $(cat .git/refs/heads/master) ] && break
 
-    URL=#{CACHEURL}/$SPECUUID/$SRCUUID
+    URL=#{cacheurl}/rpmcache/$SPECUUID/$SRCUUID
     echo Cache URL : $URL
 
     FILESWEHAVE=$(curl $URL 2> /dev/null)
