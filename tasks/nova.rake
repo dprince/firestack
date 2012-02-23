@@ -433,17 +433,24 @@ BASH_EOF
     end
 
     task :build_fedora_packages do
-
         packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://pkgs.fedoraproject.org/openstack-nova.git")
-        if ENV["RPM_PACKAGER_URL"].nil?
-            ENV["RPM_PACKAGER_URL"] = "git://pkgs.fedoraproject.org/openstack-nova.git"
-        end
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/nova.git"
         end
         ENV["PROJECT_NAME"] = "nova"
         Rake::Task["fedora:build_packages"].invoke
+    end
 
+    task :build_python_novaclient do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://pkgs.fedoraproject.org/python-novaclient.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/openstack/python-novaclient.git"
+        end
+        ENV["PROJECT_NAME"] = "python-novaclient"
+        Rake::Task["fedora:build_packages"].invoke
     end
 
     task :build_ubuntu_packages => :tarball do

@@ -34,7 +34,6 @@ yum install -q -y git fedpkg python-setuptools
 
 BUILD_LOG=$(mktemp)
 SRC_DIR="#{project}_source"
-SPEC_FILE_NAME="openstack-#{project}.spec"
 
 test -e openstack-#{project} && rm -rf openstack-#{project}
 test -e $SRC_DIR && rm -rf $SRC_DIR
@@ -66,6 +65,7 @@ python setup.py sdist &> $BUILD_LOG || { echo "Failed to run sdist."; cat $BUILD
 cd 
 git_clone_with_retry "#{packager_url}" "openstack-#{project}" || { echo "Unable to clone repos : #{packager_url}"; exit 1; }
 cd openstack-#{project}
+SPEC_FILE_NAME=$(ls *.spec | head -n 1)
 [ #{packager_branch} != "master" ] && { git checkout -t -b #{packager_branch} origin/#{packager_branch} || { echo "Unable to checkout branch :  #{packager_branch}"; exit 1; } }
 cp ~/$SRC_DIR/dist/*.tar.gz .
 sed -i.bk -e "s/\\(Release:.*\\.\\).*/\\1$PACKAGE_REVISION/g" "$SPEC_FILE_NAME"
