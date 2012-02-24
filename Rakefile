@@ -90,13 +90,14 @@ function download_cached_rpm {
     SPECUUID=$(git ls-remote "$PKG_URL" "$PKG_BRANCH" | cut -f 1)
 
     FILESFROMCACHE=$(curl $CACHEURL/rpmcache/$SPECUUID/$SRCUUID 2> /dev/null)
+    echo Checking cache For $SPECUUID $SRCUUID
 
     mkdir -p "${PROJECT}_cached_rpms"
     echo $FILESFROMCACHE
     for file in $FILESFROMCACHE ; do
         HADFILE=1
         filename="${PROJECT}_cached_rpms/$(echo $file | sed -e 's/.*\\///g')"
-        echo Downloading $CACHEURL/$file -\\> $filename
+        echo Downloading $file -\\> $filename
         curl $CACHEURL/$file 2> /dev/null > "$filename" || HADERROR=1
     done
 
