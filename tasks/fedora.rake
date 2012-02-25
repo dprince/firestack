@@ -127,20 +127,20 @@ for SRCDIR in $(ls -d *_source) ; do
     cd ~/$SRCDIR
     SRCUUID=$(git log -n 1 --pretty=format:%H)
     # If we're not at the head of master then we wont be caching
-    [ $SRCUUID != $(cat .git/refs/heads/master) ] && break
+    [ $SRCUUID != $(cat .git/refs/heads/master) ] && continue
 
     cd ~/openstack-$PROJECT
     SPECUUID=$(git log -n 1 --pretty=format:%H)
     # If we're not at the head of master then we wont be caching
-    [ $SPECUUID != $(cat .git/refs/heads/master) ] && break
+    [ $SPECUUID != $(cat .git/refs/heads/master) ] && continue
 
     URL=#{cacheurl}/rpmcache/$SPECUUID/$SRCUUID
-    echo Cache URL : $URL
+    echo Cache : $SPECUUID $SRCUUID
 
     FILESWEHAVE=$(curl $URL 2> /dev/null)
     for file in $(find . -name "*rpm") ; do
         if [[ ! "$FILESWEHAVE" == *$(echo $file | sed -e 's/.*\\///g')* ]] ; then
-            echo POSTING $file to $URL
+            echo POSTING $file to $SPECUUID $SRCUUID
             curl -X POST $URL -Ffile=@$file 2> /dev/null || { echo ERROR POSTING FILE ; exit 1 ; }
         fi
     done
