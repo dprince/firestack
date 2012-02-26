@@ -83,10 +83,14 @@ function download_cached_rpm {
     local PROJECT="$1"
     local SRC_URL="$2"
     local SRC_BRANCH="$3"
-    local PKG_URL="$4"
-    local PKG_BRANCH="$5"
-    
-    SRCUUID=$(git ls-remote "$SRC_URL" "$SRC_BRANCH" | cut -f 1)
+    local SRC_REVISION="$4"
+    local PKG_URL="$5"
+    local PKG_BRANCH="$6"
+   
+    SRCUUID=$SRC_REVISION
+    if [ -z $SRCUUID ] ; then
+        SRCUUID=$(git ls-remote "$SRC_URL" "$SRC_BRANCH" | cut -f 1)
+    fi
     SPECUUID=$(git ls-remote "$PKG_URL" "$PKG_BRANCH" | cut -f 1)
 
     FILESFROMCACHE=$(curl $CACHEURL/rpmcache/$SPECUUID/$SRCUUID 2> /dev/null)
