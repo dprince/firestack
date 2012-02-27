@@ -7,8 +7,10 @@ namespace :puppet do
 
         gw_ip=sg.vpn_gateway_ip
 
-        puppet_url=ENV['PUPPETMODULES_URL']
-        raise "Please specify a PUPPETMODULES_URL." if puppet_url.nil?
+        source_url=ENV['SOURCE_URL']
+        raise "Please specify a SOURCE_URL." if source_url.nil?
+        source_branch=ENV['SOURCE_BRANCH']
+        source_branch = "master" if source_branch.nil?
 
         puppetclients = ""
         #FIXME: we need a config file to drive this...
@@ -19,6 +21,7 @@ namespace :puppet do
 
         out=%x{
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
+#{BASH_COMMON}
 yum -q -y install httpd
 
 mkdir -p /var/www/html/repos/
@@ -26,8 +29,11 @@ rm -rf /var/www/html/repos/*
 find ~/rpms -name "*rpm" -exec cp {} /var/www/html/repos/ \\;
 
 rm -rf puppet-modules
-echo Getting Puppet modules from #{puppet_url}
-git clone --recurse #{puppet_url} puppet-modules
+echo Getting Puppet modules from #{source_url}
+git_clone_with_retry "#{source_url}" puppet-modules
+pushd puppet-modules
+git checkout #{source_branch}
+popd
 
 createrepo /var/www/html/repos
 /etc/init.d/httpd restart
@@ -41,7 +47,7 @@ echo -e "[puppetserverrepos]\\nname=puppet server repository\\nbaseurl=http://lo
 
 mkdir -p /etc/puppet/modules
 cp -R ~/puppet-modules/modules/* /etc/puppet/modules/
-puppet apply --verbose ~/puppet-modules/manifests/fedora.pp | tee /var/log/puppet.out 2>&1
+puppet apply --verbose ~/puppet-modules/manifests/fedora_keystone.pp | tee /var/log/puppet.out 2>&1
 exit ${PIPESTATUS[0]} # exit with the exit code of puppet not tee
 SSH_EOF
 
