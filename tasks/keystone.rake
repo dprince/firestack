@@ -124,4 +124,35 @@ exit $RETVAL
         end
     end
 
+    desc "Configure keystone"
+    task :configure do
+
+        sg=ServerGroup.fetch(:source => "cache")
+        gw_ip=sg.vpn_gateway_ip
+        server_name=ENV['SERVER_NAME']
+        server_name = "nova1" if server_name.nil?
+        keystone_data_file = File.join(File.dirname(__FILE__), '..', 'scripts','keystone_data.sh')
+        script = IO.read(keystone_data_file)
+        out=%x{
+#scp #{keystone_data_file} #{server_name}:/tmp
+ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
+#scp /tmp/keystone_data.sh #{server_name}:
+ssh #{server_name} bash <<-"EOF_SERVER_NAME"
+SERVICE_TOKEN=ADMIN
+SERVICE_ENDPOINT=http://localhost:35357/v2.0
+AUTH_ENDPOINT=http://localhost:5000/v2.0
+#{script}
+EOF_SERVER_NAME
+BASH_EOF
+RETVAL=$?
+exit $RETVAL
+        }
+        retval=$?
+        puts out
+        if not retval.success?
+            fail "Keystone configuration failed!"
+        end
+
+    end
+
 end
