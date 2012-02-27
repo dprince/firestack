@@ -150,32 +150,16 @@ pip-python install nosexunit > /dev/null
 export NOSE_WITH_NOSEXUNIT=true
 fi
 
+if [ -f /root/novarc ]; then
+    source /root/novarc
+else
+    nova-manage project zipfile nova admin
+    unzip -o nova.zip
+    source novarc
+fi
+
+[ -f /root/openstackrc ] && source /root/openstackrc
 cd /tmp/smoketests
-
-nova-manage project zipfile nova admin
-unzip -o nova.zip
-source novarc
-
-[ -f /root/novacreds/novarc ] && source /root/novacreds/novarc
-if [ -f /root/openstackrc ]; then
-    if ! grep EC2_SECRET_KEY /root/openstackrc &> /dev/null; then
-        echo "export EC2_SECRET_KEY=\"admin\"" >> /root/openstackrc
-    fi
-    source /root/openstackrc
-fi
-
-
-#add images
-if [ ! -f /var/lib/glance/images_loaded ]; then
-    mkdir -p /var/lib/glance/
-    [ -f /root/openstackrc ] && source /root/openstackrc
-    curl http://c3226372.r72.cf0.rackcdn.com/tty_linux.tar.gz | tar xvz -C /tmp/
-    ARI_ID=`glance add name="ari-tty" type="ramdisk" disk_format="ari" container_format="ari" is_public=true < /tmp/tty_linux/ramdisk | sed 's/.*\: //g'`
-    AKI_ID=`glance add name="aki-tty" type="kernel" disk_format="aki" container_format="aki" is_public=true < /tmp/tty_linux/kernel | sed 's/.*\: //g'`
-    if glance add name="ami-tty" type="kernel" disk_format="ami" container_format="ami" ramdisk_id="$ARI_ID" kernel_id="$AKI_ID" is_public=true < /tmp/tty_linux/image; then
-       touch /var/lib/glance/images_loaded
-    fi
-fi
 
 #DISABLE_VOLUME_TESTS
 if [ -n "#{no_volume_tests}" ]; then
@@ -245,12 +229,7 @@ if grep -c "VolumeTests" /root/nova_source/smoketests/test_sysadmin.py &> /dev/n
 fi
 cd /root/nova_source/smoketests
 [ -f /root/novarc ] && source /root/novarc
-if [ -f /root/openstackrc ]; then
-	if ! grep EC2_SECRET_KEY /root/openstackrc &> /dev/null; then
-        echo "export EC2_SECRET_KEY=\"admin\"" >> /root/openstackrc
-    fi
-    source /root/openstackrc
-fi
+[ -f /root/openstackrc ] && source /root/openstackrc
 IMG_ID=$(euca-describe-images | grep ami | tail -n 1 | cut -f 2)
 python run_tests.py --test_image=$IMG_ID
 
