@@ -25,6 +25,8 @@ namespace :fedora do
         build_docs = ENV.fetch("BUILD_DOCS", "")
         raise "Please specify a SOURCE_URL." if src_url.nil?
 
+        cacheurl=ENV["CACHEURL"]
+
         puts "Building #{project} packages using: #{packager_url}:#{packager_branch} #{src_url}:#{src_branch}"
 
         out=%x{
@@ -35,10 +37,17 @@ yum install -q -y git fedpkg python-setuptools
 BUILD_LOG=$(mktemp)
 SRC_DIR="#{project}_source"
 
+#{BASH_COMMON}
+
+CACHEURL="#{cacheurl}"
+if [ -n $CACHEURL ] ; then
+    download_cached_rpm #{project} "#{src_url}" "#{src_branch}" "#{git_revision}" "#{packager_url}" "#{packager_branch}" 
+    test $? -eq 0 && { echo "Retrieved rpm's from cache" ; exit 0 ; }
+fi
+
 test -e openstack-#{project} && rm -rf openstack-#{project}
 test -e $SRC_DIR && rm -rf $SRC_DIR
 
-#{BASH_COMMON}
 
 git_clone_with_retry "#{git_master}" "$SRC_DIR"
 cd "$SRC_DIR"
@@ -59,7 +68,6 @@ if [ -n "#{merge_master}" ]; then
 	git merge master || fail "Failed to merge master."
 fi
 
-PACKAGE_REVISION=$(date +%s)_$(git log --format=%h -n 1)
 python setup.py sdist &> $BUILD_LOG || { echo "Failed to run sdist."; cat $BUILD_LOG; exit 1; }
 
 cd 
@@ -68,6 +76,7 @@ cd openstack-#{project}
 SPEC_FILE_NAME=$(ls *.spec | head -n 1)
 [ #{packager_branch} != "master" ] && { git checkout -t -b #{packager_branch} origin/#{packager_branch} || { echo "Unable to checkout branch :  #{packager_branch}"; exit 1; } }
 cp ~/$SRC_DIR/dist/*.tar.gz .
+PACKAGE_REVISION=$(git rev-parse --short HEAD)_${GIT_REVISION:0:7} # GIT_REVISION may have been a full hash
 sed -i.bk -e "s/\\(Release:.*\\.\\).*/\\1$PACKAGE_REVISION/g" "$SPEC_FILE_NAME"
 sed -i.bk -e "s/Source0:.*/Source0:      $(ls *.tar.gz)/g" "$SPEC_FILE_NAME"
 [ -z "#{build_docs}" ] && sed -i -e 's/%global with_doc .*/%global with_doc 0/g' "$SPEC_FILE_NAME"
@@ -109,6 +118,8 @@ exit $RETVAL
         out=%x{
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 
+ls -d *_source || { echo "No RPMS to upload"; exit 0; }
+
 for SRCDIR in $(ls -d *_source) ; do
     PROJECT=$(echo $SRCDIR | cut -d _ -f 1)
     echo Checking $PROJECT
@@ -116,20 +127,20 @@ for SRCDIR in $(ls -d *_source) ; do
     cd ~/$SRCDIR
     SRCUUID=$(git log -n 1 --pretty=format:%H)
     # If we're not at the head of master then we wont be caching
-    [ $SRCUUID != $(cat .git/refs/heads/master) ] && break
+    [ $SRCUUID != $(cat .git/refs/heads/master) ] && continue
 
     cd ~/openstack-$PROJECT
     SPECUUID=$(git log -n 1 --pretty=format:%H)
     # If we're not at the head of master then we wont be caching
-    [ $SPECUUID != $(cat .git/refs/heads/master) ] && break
+    [ $SPECUUID != $(cat .git/refs/heads/master) ] && continue
 
     URL=#{cacheurl}/rpmcache/$SPECUUID/$SRCUUID
-    echo Cache URL : $URL
+    echo Cache : $SPECUUID $SRCUUID
 
     FILESWEHAVE=$(curl $URL 2> /dev/null)
     for file in $(find . -name "*rpm") ; do
         if [[ ! "$FILESWEHAVE" == *$(echo $file | sed -e 's/.*\\///g')* ]] ; then
-            echo POSTING $file to $URL
+            echo POSTING $file to $SPECUUID $SRCUUID
             curl -X POST $URL -Ffile=@$file 2> /dev/null || { echo ERROR POSTING FILE ; exit 1 ; }
         fi
     done

@@ -135,7 +135,11 @@ BASH_EOF
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 
 echo rm -rf /tmp/smoketests | ssh #{server_name} 
-scp -r /root/openstack-nova/*/smoketests #{server_name}:/tmp
+
+rpm -i rpms/openstack-nova*.src.rpm
+cd /root/rpmbuild/SOURCES/
+tar -xzf nova*.tar.gz
+scp -r /root/rpmbuild/SOURCES/*/smoketests  #{server_name}:/tmp
 
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 

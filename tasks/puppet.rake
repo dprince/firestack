@@ -41,7 +41,8 @@ echo -e "[puppetserverrepos]\\nname=puppet server repository\\nbaseurl=http://lo
 
 mkdir -p /etc/puppet/modules
 cp -R ~/puppet-modules/modules/* /etc/puppet/modules/
-puppet apply --verbose ~/puppet-modules/manifests/fedora.pp
+puppet apply --verbose ~/puppet-modules/manifests/fedora.pp | tee /var/log/puppet.out 2>&1
+exit ${PIPESTATUS[0]} # exit with the exit code of puppet not tee
 SSH_EOF
 
 RETVAL=$? # return value from puppet agent
