@@ -31,17 +31,11 @@ nova-manage project zipfile nova admin
 unzip -o nova.zip
 fi
 source /root/novarc
-if [ -f /root/openstackrc ]; then
-	if ! grep EC2_SECRET_KEY /root/openstackrc &> /dev/null; then
-		echo "export EC2_SECRET_KEY=\"admin\"" >> /root/openstackrc
-	fi
-	source /root/openstackrc
-fi
+[ -f /root/openstackrc ] && source /root/openstackrc
 if [ ! -f ~/.ssh/id_rsa ]; then
 	   [ -d ~/.ssh ] || mkdir ~/.ssh
 	   ssh-keygen -q -t rsa -f ~/.ssh/id_rsa -N "" || \
 			   echo "Failed to create private key."
-
 fi
 if [[ "#{mode}" == "libvirt" ]]; then
 	# When using libvirt we use an AMI style image which require keypairs
