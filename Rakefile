@@ -108,6 +108,7 @@ function download_cached_rpm {
     if [ -z "$HADERROR" -a -n "$HADFILE" ] ; then
         mkdir -p rpms
         cp "${PROJECT}_cached_rpms"/* rpms 
+        echo "$(echo $PROJECT | tr [:lower:] [:upper:])_REVISION=${SRCUUID:0:7}"
         return 0
     fi
     return 1
