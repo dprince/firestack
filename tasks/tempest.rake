@@ -59,12 +59,12 @@ image_ref_alt=$IMG_ID
 flavor_ref=1
 flavor_ref_alt=2
 create_image_enabled=true
-resize_available=true
+resize_available=false
 authentication=keystone_v2
 EOF_CAT
 
 cd /root/tempest
-nosetests tempest
+nosetests tempest -a type=smoke
 
 EOF_SERVER_NAME
 BASH_EOF
