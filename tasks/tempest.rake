@@ -26,17 +26,6 @@ done
 [ -f /root/novarc ] && source /root/novarc
 [ -f /root/openstackrc ] && source /root/openstackrc
 
-#Disable rate limiting middleware
-sed -e 's| ratelimit||g' -i /etc/nova/api-paste.ini
-if [ -e /bin/rpm ]; then
-  service openstack-nova-api stop &> /dev/null
-  service openstack-nova-api start
-else
-  service nova-api stop &> /dev/null
-  service nova-api start
-fi
-sleep 2
-
 IMG_ID=$(nova image-list | grep #{image_name} | tail -n 1 | sed -e "s|\\| \\([^ ]*\\) .*|\\1|")
 [ -z "$IMG_ID" ] && { echo "Failed to set image ID."; exit 1; }
 cat > /root/tempest/etc/tempest.conf <<EOF_CAT
