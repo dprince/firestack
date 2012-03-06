@@ -8,19 +8,21 @@ function get_id () {
     echo `$@ | grep id | awk '{print $4}'`
 }
 
-ADMIN_PASS="AABBCC112233"
+ADMIN_PASSWORD="AABBCC112233"
+SERVICE_PASSWORD="SERVICE_PASSWORD"
 ADMIN_TENANT=`get_id keystone tenant-create --name=admin`
+SERVICE_TENANT=$(get_id keystone tenant-create --name=service)
 DEMO_TENANT=`get_id keystone tenant-create --name=demo`
 INVIS_TENANT=`get_id keystone tenant-create --name=invisible_to_admin`
 
 # Users
 ADMIN_USER=`get_id keystone user-create \
                                  --name=admin \
-                                 --pass="$ADMIN_PASS" \
+                                 --pass="$ADMIN_PASSWORD" \
                                  --email=admin@example.com`
 DEMO_USER=`get_id keystone user-create \
                                  --name=demo \
-                                 --pass="EEFFGG445566" \
+                                 --pass="DDEEFF445566" \
                                  --email=admin@example.com`
 
 # Roles
@@ -60,22 +62,39 @@ keystone user-role-add --user="$ADMIN_USER" \
                        --role="$KEYSTONESERVICE_ROLE" \
                        --tenant_id="$ADMIN_TENANT"
 
-# Services
+# Nova Service
 keystone service-create \
                                  --name=nova \
                                  --type=compute \
                                  --description="Nova Compute Service"
+NOVA_USER=`get_id keystone user-create \
+                                 --name=nova \
+                                 --pass="$SERVICE_PASSWORD" \
+                                 --email=nova@example.com`
+keystone user-role-add --tenant_id $SERVICE_TENANT \
+                       --user $NOVA_USER \
+                       --role $ADMIN_ROLE
 
+# EC2 Service (no user required)
 keystone service-create \
                                  --name=ec2 \
                                  --type=ec2 \
                                  --description="EC2 Compatibility Layer"
 
+# Glance Service
 keystone service-create \
                                  --name=glance \
                                  --type=image \
                                  --description="Glance Image Service"
+GLANCE_USER=`get_id keystone user-create \
+                                 --name=glance \
+                                 --pass="$SERVICE_PASSWORD" \
+                                 --email=glance@example.com`
+keystone user-role-add --tenant_id $SERVICE_TENANT \
+                       --user $GLANCE_USER \
+                       --role $ADMIN_ROLE
 
+# Keystone Service
 keystone service-create \
                                  --name=keystone \
                                  --type=identity \
@@ -85,6 +104,14 @@ if [[ "$ENABLED_SERVICES" =~ "swift" ]]; then
                                  --name=swift \
                                  --type="object-store" \
                                  --description="Swift Service"
+    SWIFT_USER=`get_id keystone user-create \
+                                 --name=swift \
+                                 --pass="$SERVICE_PASSWORD" \
+                                 --email=swift@example.com`
+    keystone user-role-add --tenant_id $SERVICE_TENANT \
+                                 --user $SWIFT_USER \
+                                 --role $ADMIN_ROLE
+
 fi
 
 # create ec2 creds and parse the secret and access key returned
@@ -101,7 +128,7 @@ DEMO_SECRET=`echo "$RESULT" | grep secret | awk '{print $4}'`
 cat > /root/openstackrc <<EOF
 [ -f ~/novarc ] && source ~/novarc
 export OS_USERNAME=admin
-export OS_PASSWORD=$ADMIN_PASS
+export OS_PASSWORD=$ADMIN_PASSWORD
 export OS_TENANT_NAME=admin
 export OS_AUTH_URL=$AUTH_ENDPOINT
 export OS_AUTH_STRATEGY=keystone
