@@ -29,20 +29,22 @@ done
 IMG_ID=$(nova image-list | grep #{image_name} | tail -n 1 | sed -e "s|\\| \\([^ ]*\\) .*|\\1|")
 [ -z "$IMG_ID" ] && { echo "Failed to set image ID."; exit 1; }
 cat > /root/tempest/etc/tempest.conf <<EOF_CAT
-[nova]
+[identity]
+use_ssl=false
 host=127.0.0.1
 port=5000
-apiVer=v2.0
+api_version=v2.0
 path=tokens
 user=admin
-api_key=AABBCC112233
+password=AABBCC112233
 tenant_name=admin
 ssh_timeout=300
 build_interval=10
 build_timeout=600
 catalog_type=compute
+strategy=keystone
 
-[environment]
+[compute]
 image_ref=$IMG_ID
 image_ref_alt=$IMG_ID
 flavor_ref=1
