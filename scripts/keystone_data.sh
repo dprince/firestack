@@ -5,7 +5,7 @@ export SERVICE_ENDPOINT=$SERVICE_ENDPOINT
 export AUTH_ENDPOINT=$AUTH_ENDPOINT
 
 function get_id () {
-    echo `$@ | grep id | awk '{print $4}'`
+    echo `$@ | awk '/ id / { print $4 }'`
 }
 
 ADMIN_PASSWORD="AABBCC112233"
