@@ -32,7 +32,7 @@ namespace :fedora do
         out=%x{
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
 
-yum install -q -y git fedpkg python-setuptools
+rpm -q fedpkg &> /dev/null || yum install -q -y git fedpkg python-setuptools
 
 BUILD_LOG=$(mktemp)
 SRC_DIR="#{project}_source"
@@ -68,12 +68,16 @@ if [ -n "#{merge_master}" ]; then
 	git merge master || fail "Failed to merge master."
 fi
 
+#custom version
+sed -e "s|version *=.*|version='9999.9',|" -i setup.py
+
 python setup.py sdist &> $BUILD_LOG || { echo "Failed to run sdist."; cat $BUILD_LOG; exit 1; }
 
 cd 
 git_clone_with_retry "#{packager_url}" "openstack-#{project}" || { echo "Unable to clone repos : #{packager_url}"; exit 1; }
 cd openstack-#{project}
 SPEC_FILE_NAME=$(ls *.spec | head -n 1)
+RPM_BASE_NAME=${SPEC_FILE_NAME:0:-5}
 [ #{packager_branch} != "master" ] && { git checkout -t -b #{packager_branch} origin/#{packager_branch} || { echo "Unable to checkout branch :  #{packager_branch}"; exit 1; } }
 cp ~/$SRC_DIR/dist/*.tar.gz .
 PACKAGE_REVISION=$(git rev-parse --short HEAD)_${GIT_REVISION:0:7} # GIT_REVISION may have been a full hash
@@ -85,6 +89,9 @@ md5sum *.tar.gz > sources
 # tmp workaround
 sed -i.bk "$SPEC_FILE_NAME" -e 's/.*dnsmasq-utils.*//g'
 
+# custom version
+sed -i.bk "$SPEC_FILE_NAME" -e 's/^Version:.*/Version:          9999.9/g'
+
 # install dependency projects
 fedpkg srpm &> $BUILD_LOG || { echo "Failed to build srpm."; cat $BUILD_LOG; exit 1; }
 yum-builddep -y *.src.rpm &> $BUILD_LOG || { echo "Failed to yum-builddep."; cat $BUILD_LOG; exit 1; }
@@ -94,7 +101,12 @@ fedpkg local &> $BUILD_LOG || { echo "Failed to build #{project} packages."; cat
 mkdir -p ~/rpms
 find . -name "*rpm" -exec cp {} ~/rpms \\;
 
-exit 0
+if ls ~/rpms/${RPM_BASE_NAME}*.noarch.rpm &> /dev/null; then
+  exit 0
+else
+  echo "Failed to build RPM: $RPM_BASE_NAME"
+  exit 1
+fi
 
 BASH_EOF
 RETVAL=$?
@@ -103,7 +115,7 @@ exit $RETVAL
         retval=$?
         puts out
         if not retval.success?
-            fail "Build packages failed!"
+            fail "Failed to build packages for #{project}!"
         end
     end
 
