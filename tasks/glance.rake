@@ -152,9 +152,9 @@ if [ ! -f /var/lib/glance/images_loaded ]; then
     mkdir -p /var/lib/glance/
     [ -f /root/openstackrc ] && source /root/openstackrc
     curl http://c3226372.r72.cf0.rackcdn.com/tty_linux.tar.gz | tar xvz -C /tmp/
-    ARI_ID=`glance add name="ari-tty" type="ramdisk" disk_format="ari" container_format="ari" is_public=true < /tmp/tty_linux/ramdisk | tail -n 1 | sed 's/.*\: //g'`
-    AKI_ID=`glance add name="aki-tty" type="kernel" disk_format="aki" container_format="aki" is_public=true < /tmp/tty_linux/kernel | tail -n 1 | sed 's/.*\: //g'`
-    if glance add name="ami-tty" type="kernel" disk_format="ami" container_format="ami" ramdisk_id="$ARI_ID" kernel_id="$AKI_ID" is_public=true < /tmp/tty_linux/image; then
+    ARI_ID=`glance add name="ari-tty" type="ramdisk" disk_format="ari" container_format="ari" is_public=true --silent-upload < /tmp/tty_linux/ramdisk | tail -n 1 | sed 's/.*\: //g'`
+    AKI_ID=`glance add name="aki-tty" type="kernel" disk_format="aki" container_format="aki" is_public=true --silent-upload < /tmp/tty_linux/kernel | tail -n 1 | sed 's/.*\: //g'`
+    if glance add name="ami-tty" type="kernel" disk_format="ami" container_format="ami" ramdisk_id="$ARI_ID" kernel_id="$AKI_ID" is_public=true --silent-upload < /tmp/tty_linux/image; then
        touch /var/lib/glance/images_loaded
     fi
 fi
