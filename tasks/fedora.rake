@@ -18,6 +18,9 @@ namespace :fedora do
         git_master=ENV['GIT_MASTER']
         raise "Please specify a GIT_MASTER." if git_master.nil?
 
+        #branch that will be merged if 'MERGE_MASTER' is specified
+        merge_master_branch = ENV.fetch("GIT_MERGE_MASTER_BRANCH", "master")
+
         merge_master = ENV.fetch("MERGE_MASTER", "")
         git_revision = ENV.fetch("REVISION", "")
         src_url = ENV["SOURCE_URL"]
@@ -65,7 +68,7 @@ fi
 echo "#{project.upcase}_REVISION=$GIT_REVISION"
 
 if [ -n "#{merge_master}" ]; then
-	git merge master || fail "Failed to merge master."
+	git merge #{merge_master_branch} || fail "Failed to merge #{merge_master_branch}."
 fi
 
 #custom version
