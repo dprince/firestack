@@ -93,8 +93,9 @@ function download_cached_rpm {
     fi
     SPECUUID=$(git ls-remote "$PKG_URL" "$PKG_BRANCH" | cut -f 1)
 
-    FILESFROMCACHE=$(curl $CACHEURL/rpmcache/$SPECUUID/$SRCUUID 2> /dev/null)
     echo Checking cache For $SPECUUID $SRCUUID
+    FILESFROMCACHE=$(curl $CACHEURL/rpmcache/$SPECUUID/$SRCUUID 2> /dev/null) \
+      || { echo "No files in cache."; return 1; }
 
     mkdir -p "${PROJECT}_cached_rpms"
     echo $FILESFROMCACHE
