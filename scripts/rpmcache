@@ -8,30 +8,33 @@ if not os.path.exists(storagedir):
 
 conn = sqlite3.connect(os.path.join(storagedir, "data.db"))
 c = conn.cursor()
-c.execute("create table IF NOT EXISTS rpmfiles (dt long, uuid_spec text, uuid_src text, filename text)")
+c.execute("create table IF NOT EXISTS rpmfiles (dt long, uuid_pkg text, uuid_src text, filename text)")
 conn.commit()
 
 form = cgi.FieldStorage()
 
 re_uuids = re.compile("^/([0-9a-f]{40})/([0-9a-f]{40})$")
 def do_post():
-    print "Content-Type: text/html\n"
     m = re_uuids.match(os.environ.get("PATH_INFO", ""))
     if not m:
-        print "One of uuid_spec or uuid_src is the wronge format"
+        print "Status: 400 Bad Request\r\n\r\n"
+        print "One of uuid_pkg or uuid_src is the wrong format"
         return
 
     # We are going to require 1 input
     # file : should be multipart/form-data of type file
     if not form.has_key("file"):
+        print "Status: 400 Bad Request\r\n\r\n"
         print "Missing file"
         return
 
     if not form["file"].filename:
+        print "Status: 400 Bad Request\r\n\r\n"
         print "file not uploaded correctly"
         return
-
-    uuid_spec = m.group(1)
+    
+    print "Content-Type: text/html\n"
+    uuid_pkg = m.group(1)
     uuid_src =m.group(2)
 
     fp = form["file"].file
@@ -52,21 +55,22 @@ def do_post():
     fpout.close()
     shutil.move(fpout.name, absolutefilename,)
 
-    c.execute("insert into rpmfiles (dt, uuid_spec, uuid_src, filename) values (%d, '%s', '%s', '%s')"%(time.time(), uuid_spec, uuid_src, relativefilename))
+    c.execute("insert into rpmfiles (dt, uuid_pkg, uuid_src, filename) values (%d, '%s', '%s', '%s')"%(time.time(), uuid_pkg, uuid_src, relativefilename))
 
 def do_get():
-    print "Content-Type: text/html\n"
 
     m = re_uuids.match(os.environ.get("PATH_INFO", ""))
     if not m:
-        print "One of uuid_spec or uuid_src is the wronge format"
+        print "Status: 400 Bad Request\r\n\r\n"
+        print "One of uuid_pkg or uuid_src is the wrong format"
         return
 
-    uuid_spec = m.group(1)
+    print "Content-Type: text/html\n"
+    uuid_pkg = m.group(1)
     uuid_src =m.group(2)
 
     filenameswehad = []
-    for dt, uuid_spec, uuid_src, filename in c.execute("select * from rpmfiles where uuid_spec = '%s' and uuid_src = '%s' ORDER BY dt DESC"%(uuid_spec, uuid_src)):
+    for dt, uuid_pkg, uuid_src, filename in c.execute("select * from rpmfiles where uuid_pkg = '%s' and uuid_src = '%s' ORDER BY dt DESC"%(uuid_pkg, uuid_src)):
         if filename in filenameswehad: continue
         filenameswehad.append(filename)
         print filename
