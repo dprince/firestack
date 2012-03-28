@@ -99,11 +99,11 @@ sed -i.bk "$SPEC_FILE_NAME" -e 's/^Version:.*/Version:          9999.9/g'
 sed -i.bk "$SPEC_FILE_NAME" -e 's|^%patch.*||g'
 
 # install dependency projects
-fedpkg srpm &> $BUILD_LOG || { echo "Failed to build srpm."; cat $BUILD_LOG; exit 1; }
+fedpkg --dist master srpm &> $BUILD_LOG || { echo "Failed to build srpm."; cat $BUILD_LOG; exit 1; }
 yum-builddep -y *.src.rpm &> $BUILD_LOG || { echo "Failed to yum-builddep."; cat $BUILD_LOG; exit 1; }
 
 # build rpm's
-fedpkg local &> $BUILD_LOG || { echo "Failed to build #{project} packages."; cat $BUILD_LOG; exit 1; }
+fedpkg --dist master local &> $BUILD_LOG || { echo "Failed to build #{project} packages."; cat $BUILD_LOG; exit 1; }
 mkdir -p ~/rpms
 find . -name "*rpm" -exec cp {} ~/rpms \\;
 
