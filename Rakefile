@@ -90,15 +90,23 @@ function download_cached_rpm {
     SRCUUID=$SRC_REVISION
     if [ -z $SRCUUID ] ; then
         SRCUUID=$(git ls-remote "$SRC_URL" "$SRC_BRANCH" | cut -f 1)
+        if [ -z $SRCUUID ] ; then
+            echo "Invalid source URL:BRANCH $SRC_URL:$SRC_BRANCH"
+            return 1
+        fi
     fi
-    SPECUUID=$(git ls-remote "$PKG_URL" "$PKG_BRANCH" | cut -f 1)
+    PKGUUID=$(git ls-remote "$PKG_URL" "$PKG_BRANCH" | cut -f 1)
+    if [ -z $PKGUUID ] ; then
+        echo "Invalid package URL:BRANCH $SPEC_URL:$SRC_BRANCH"
+        return 1
+    fi
 
-    echo Checking cache For $SPECUUID $SRCUUID
-    FILESFROMCACHE=$(curl $CACHEURL/rpmcache/$SPECUUID/$SRCUUID 2> /dev/null) \
+    echo "Checking cache For $PKGUUID $SRCUUID"
+    FILESFROMCACHE=$(curl $CACHEURL/rpmcache/$PKGUUID/$SRCUUID 2> /dev/null) \
       || { echo "No files in cache."; return 1; }
 
     mkdir -p "${PROJECT}_cached_rpms"
-    echo $FILESFROMCACHE
+    echo "$FILESFROMCACHE"
     for file in $FILESFROMCACHE ; do
         HADFILE=1
         filename="${PROJECT}_cached_rpms/$(echo $file | sed -e 's/.*\\///g')"

@@ -148,17 +148,17 @@ for SRCDIR in $(ls -d *_source) ; do
     [ $SRCUUID != $(cat .git/refs/heads/master) ] && continue
 
     cd ~/openstack-$PROJECT
-    SPECUUID=$(git log -n 1 --pretty=format:%H)
+    PKGUUID=$(git log -n 1 --pretty=format:%H)
     # If we're not at the head of master then we wont be caching
-    [ $SPECUUID != $(cat .git/refs/heads/master) ] && continue
+    [ $PKGUUID != $(cat .git/refs/heads/master) ] && continue
 
-    URL=#{cacheurl}/rpmcache/$SPECUUID/$SRCUUID
-    echo Cache : $SPECUUID $SRCUUID
+    URL=#{cacheurl}/rpmcache/$PKGUUID/$SRCUUID
+    echo Cache : $PKGUUID $SRCUUID
 
     FILESWEHAVE=$(curl $URL 2> /dev/null)
     for file in $(find . -name "*rpm") ; do
         if [[ ! "$FILESWEHAVE" == *$(echo $file | sed -e 's/.*\\///g')* ]] ; then
-            echo POSTING $file to $SPECUUID $SRCUUID
+            echo POSTING $file to $PKGUUID $SRCUUID
             curl -X POST $URL -Ffile=@$file 2> /dev/null || { echo ERROR POSTING FILE ; exit 1 ; }
         fi
     done
