@@ -150,7 +150,6 @@ pip-python install nosexunit > /dev/null
 export NOSE_WITH_NOSEXUNIT=true
 fi
 
-[ -d "/root/tempest" ] || git clone #{git_url} "tempest"
 if [ -f /root/openstackrc ]; then
   source /root/openstackrc
 else
