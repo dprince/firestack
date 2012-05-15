@@ -178,6 +178,9 @@ EOF_CAT
   source ~/novarc
 fi
 
+[ -f "$HOME/cacert.pem" ] || nova x509-get-root-cert "$HOME/cacert.pem"
+[ -f "$HOME/pk.pem" ] || nova x509-create-cert "$HOME/pk.pem" "$HOME/cert.pem"
+
 cd /tmp/smoketests
 
 #DISABLE_VOLUME_TESTS
