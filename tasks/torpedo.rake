@@ -76,7 +76,7 @@ if [[ "#{mode}" == "libvirt" ]]; then
 		keyname: $KEYNAME
 		image_name: ami-tty
 		test_rebuild_server: true
-		test_create_image: true
+		#test_create_image: true
 		test_resize_server: true
 		flavor_ref: 1
 	EOF_CAT
