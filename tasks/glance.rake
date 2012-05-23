@@ -87,6 +87,10 @@ bzr checkout --lightweight #{deb_packager_url} glance &> /tmp/bzrglance.log || {
 rm -rf glance/.bzr
 rm -rf glance/.git
 cd glance
+#No jsonschema packages for Oneiric.... so lets do this for now (HACK!)
+sed -e 's|^import jsonschema||' -i glance/schema.py
+sed -e 's|jsonschema.validate.*|pass|' -i glance/schema.py
+sed -e 's|jsonschema.ValidationError|Exception|' -i glance/schema.py
 echo "glance (9999.1-vpc#{glance_revision}) $(lsb_release -sc); urgency=high" > debian/changelog
 echo " -- Dev Null <dev@null.com>  $(date +\"%a, %e %b %Y %T %z\")" >> debian/changelog
 BUILD_LOG=$(mktemp)
