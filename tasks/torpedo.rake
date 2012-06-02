@@ -69,7 +69,7 @@ if [[ "#{mode}" == "libvirt" ]]; then
 	[ -f "$KEYPAIR" ] || euca-add-keypair "$KEYNAME" > "$KEYPAIR"
 	chmod 600 /root/test.pem
 	cat > ~/.torpedo.conf <<-EOF_CAT
-		server_build_timeout: 150
+		server_build_timeout: 180
 		ssh_timeout: 60
 		ping_timeout: 60
 		keypair: $KEYPAIR
