@@ -47,7 +47,7 @@ yum -q -y install puppet yum-plugin-priorities systemd
 echo -e "[puppetserverrepos]\\nname=puppet server repository\\nbaseurl=http://login/repos\\nenabled=1\\ngpgcheck=0\\npriority=1" > /etc/yum.repos.d/puppetserverrepos.repo
 
 ln -sf /root/puppet-modules/modules /etc/puppet/modules
-puppet apply --verbose ~/puppet-modules/manifests/fedora_keystone_qpid.pp | tee /var/log/puppet.out 2>&1
+#puppet apply --verbose ~/puppet-modules/manifests/fedora_keystone_qpid_postgresql.pp | tee /var/log/puppet.out 2>&1
 exit ${PIPESTATUS[0]} # exit with the exit code of puppet not tee
 SSH_EOF
 
@@ -70,4 +70,8 @@ end
 
 #FIXME: Need to update the puppet:install task to support a single server
 desc "Rebuild and Re-run puppet the specified server."
-task :repuppet => [ "server:rebuild", "group:poll", "puppet:install" ]
+task :repuppet => [ "server:rebuild", "group:poll" ] do
+    sg=ServerGroup.fetch(:source => "cache")
+    system("ssh -o \"StrictHostKeyChecking no\" root@#{sg.vpn_gateway_ip} rm .ssh/known_hosts")
+    Rake::Task['puppet:install'].invoke
+end
