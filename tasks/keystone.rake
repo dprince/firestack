@@ -5,8 +5,6 @@ namespace :keystone do
     desc "Build packages from a local keystone source directory."
     task :build_ubuntu_packages => :tarball do
 
-        sg=ServerGroup.fetch(:source => "cache")
-        gw_ip=sg.vpn_gateway_ip
         src_dir=ENV['SOURCE_DIR']
         raise "Please specify a SOURCE_DIR." if src_dir.nil?
         deb_packager_url=ENV['DEB_PACKAGER_URL']
@@ -19,10 +17,7 @@ namespace :keystone do
 
         puts "Building keystone packages using: #{deb_packager_url}"
 
-        out=%x{
-cd #{src_dir}
-ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
-
+        remote_exec %{
 if ! /usr/bin/dpkg -l add-apt-key &> /dev/null; then
   cat > /etc/apt/sources.list.d/nova_ppa-source.list <<-EOF_CAT
 deb http://ppa.launchpad.net/nova-core/trunk/ubuntu $(lsb_release -sc) main
@@ -56,15 +51,9 @@ rm -f /root/openstack-packages/keystone*
 cp $BUILD_TMP/*.deb /root/openstack-packages
 rm -Rf "$BUILD_TMP"
 BASH_EOF
-RETVAL=$?
-exit $RETVAL
-        }
-        retval=$?
-        puts out
-        if not retval.success?
-            fail "Build packages failed!"
+        } do |ok, out|
+            fail "Build packages failed! \n #{out}" unless ok
         end
-
     end
 
     task :build_fedora_packages do
@@ -127,30 +116,21 @@ exit $RETVAL
     desc "Configure keystone"
     task :configure do
 
-        sg=ServerGroup.fetch(:source => "cache")
-        gw_ip=sg.vpn_gateway_ip
         server_name=ENV['SERVER_NAME']
         server_name = "nova1" if server_name.nil?
         keystone_data_file = File.join(File.dirname(__FILE__), '..', 'scripts','keystone_data.sh')
         script = IO.read(keystone_data_file)
-        out=%x{
-#scp #{keystone_data_file} #{server_name}:/tmp
-ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
-#scp /tmp/keystone_data.sh #{server_name}:
+        remote_exec %{
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 SERVICE_TOKEN=ADMIN
 SERVICE_ENDPOINT=http://localhost:35357/v2.0
 AUTH_ENDPOINT=http://localhost:5000/v2.0
 #{script}
 EOF_SERVER_NAME
-BASH_EOF
 RETVAL=$?
 exit $RETVAL
-        }
-        retval=$?
-        puts out
-        if not retval.success?
-            fail "Keystone configuration failed!"
+        } do |ok, out|
+            fail "Keystone configuration failed! \n #{out}" unless ok
         end
 
     end

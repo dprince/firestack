@@ -4,8 +4,6 @@ namespace :fedora do
 
     #generic package builder to build RPMs for all Openstack projects
     task :build_packages do
-        sg=ServerGroup.fetch(:source => "cache")
-        gw_ip=sg.vpn_gateway_ip
 
         project=ENV['PROJECT_NAME']
         raise "Please specify a PROJECT_NAME." if project.nil?
@@ -32,15 +30,11 @@ namespace :fedora do
 
         puts "Building #{project} packages using: #{packager_url}:#{packager_branch} #{src_url}:#{src_branch}"
 
-        out=%x{
-ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
-
+        remote_exec %{
 rpm -q fedpkg &> /dev/null || yum install -q -y git fedpkg python-setuptools
 
 BUILD_LOG=$(mktemp)
 SRC_DIR="#{project}_source"
-
-#{BASH_COMMON}
 
 CACHEURL="#{cacheurl}"
 if [ -n $CACHEURL ] ; then
@@ -113,29 +107,21 @@ else
   echo "Failed to build RPM: $RPM_BASE_NAME"
   exit 1
 fi
-
-BASH_EOF
 RETVAL=$?
 exit $RETVAL
-        }
-        retval=$?
-        puts out
-        if not retval.success?
-            fail "Failed to build packages for #{project}!"
+        } do |ok, out|
+            fail "Failed to build packages for #{project}! \n #{out}" unless ok
         end
+
     end
 
     # uploader to rpm cache
     task :fill_cache do
-        sg=ServerGroup.fetch(:source => "cache")
-        gw_ip=sg.vpn_gateway_ip
 
         cacheurl=ENV["CACHEURL"]
         raise "Please specify a CACHEURL" if cacheurl.nil?
 
-        out=%x{
-ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
-
+        remote_exec %{
 ls -d *_source || { echo "No RPMS to upload"; exit 0; }
 
 for SRCDIR in $(ls -d *_source) ; do
@@ -163,15 +149,8 @@ for SRCDIR in $(ls -d *_source) ; do
         fi
     done
 done
-
-BASH_EOF
-RETVAL=$?
-exit $RETVAL
-        }
-        retval=$?
-        puts out
-        if not retval.success?
-            fail "Cache of packages failed!"
+        } do |ok, out|
+            fail "Cache of packages failed!" unless ok
         end
     end
 end

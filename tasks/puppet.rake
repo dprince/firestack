@@ -5,8 +5,6 @@ namespace :puppet do
 
         sg=ServerGroup.fetch(:source => "cache")
 
-        gw_ip=sg.vpn_gateway_ip
-
         source_url=ENV['SOURCE_URL']
         raise "Please specify a SOURCE_URL." if source_url.nil?
         source_branch=ENV['SOURCE_BRANCH']
@@ -19,9 +17,7 @@ namespace :puppet do
             puppetclients +=  client.name + " " if not client.name == "login"
         end
 
-        out=%x{
-ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
-#{BASH_COMMON}
+        remote_exec %{
 yum -q -y install httpd
 
 mkdir -p /var/www/html/repos/
@@ -47,23 +43,12 @@ yum -q -y install puppet yum-plugin-priorities systemd
 echo -e "[puppetserverrepos]\\nname=puppet server repository\\nbaseurl=http://login/repos\\nenabled=1\\ngpgcheck=0\\npriority=1" > /etc/yum.repos.d/puppetserverrepos.repo
 
 ln -sf /root/puppet-modules/modules /etc/puppet/modules
-puppet apply --verbose ~/puppet-modules/manifests/fedora_keystone_qpid_postgresql.pp | tee /var/log/puppet.out 2>&1
-exit ${PIPESTATUS[0]} # exit with the exit code of puppet not tee
+puppet apply --verbose ~/puppet-modules/manifests/fedora_keystone_qpid_postgresql.pp &> /var/log/puppet/puppet.log || { cat /var/log/puppet/puppet.log; exit 1; }
 SSH_EOF
 
-RETVAL=$? # return value from puppet agent
-test \\( $RETVAL -ne 0  -a $RETVAL -ne 2 \\) && exit $RETVAL
-
 done
-
-echo COMPLETE
-
-BASH_EOF
-}
-        retval=$?
-        puts out
-        if not retval.success?
-            fail "Puppet errors occurred!"
+        } do |ok, out|
+            fail "Puppet errors occurred! \n #{out}" unless ok
         end
     end
 end
@@ -71,7 +56,6 @@ end
 #FIXME: Need to update the puppet:install task to support a single server
 desc "Rebuild and Re-run puppet the specified server."
 task :repuppet => [ "server:rebuild", "group:poll" ] do
-    sg=ServerGroup.fetch(:source => "cache")
-    system("ssh -o \"StrictHostKeyChecking no\" root@#{sg.vpn_gateway_ip} rm .ssh/known_hosts")
+    remote_exec "rm .ssh/known_hosts"
     Rake::Task['puppet:install'].invoke
 end

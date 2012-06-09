@@ -5,16 +5,12 @@ namespace :nova do
     desc "Push source into a nova installation."
     task :install_source => :tarball do
 
-        sg=ServerGroup.fetch(:source => "cache")
-        gw_ip=sg.vpn_gateway_ip
         src_dir=ENV['SOURCE_DIR']
         raise "Please specify a SOURCE_DIR." if src_dir.nil?
         server_name=ENV['SERVER_NAME']
         # default to nova1 if SERVER_NAME is unset
         server_name = "nova1" if server_name.nil?
-        out=%x{
-cd #{src_dir}
-ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
+        remote_exec %{
 scp /tmp/nova.tar.gz #{server_name}:/tmp
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 cd /usr/share/pyshared
@@ -31,85 +27,10 @@ done
 [ -f /etc/init/nova-scheduler.conf ] && service nova-scheduler restart
 [ -f /etc/init/nova-objectstore.conf ] && service nova-objectstore restart
 EOF_SERVER_NAME
-BASH_EOF
 RETVAL=$?
 exit $RETVAL
-        }
-        retval=$?
-        puts out
-        if not retval.success?
-            fail "Install source failed!"
-        end
-
-    end
-
-    desc "Ruby Openstack API v1.0 tests."
-    task :ruby_osapi_tests do
-
-        sg=ServerGroup.fetch(:source => "cache")
-        gw_ip=sg.vpn_gateway_ip
-        server_name=ENV['SERVER_NAME']
-        # default to nova1 if SERVER_NAME is unset
-        server_name = "nova1" if server_name.nil?
-        mode=ENV['MODE'] # set to 'xen' or 'libvirt'
-        mode = "libvirt" if mode.nil?
-        xunit_output=ENV['XUNIT_OUTPUT'] # set if you want Xunit style output
-
-        out=%x{
-MY_TMP="#{mktempdir}"
-cd tests/ruby
-tar czf $MY_TMP/ruby-tests.tar.gz * 2> /dev/null || { echo "Failed to create nova tar."; exit 1; }
-scp #{SSH_OPTS} $MY_TMP/ruby-tests.tar.gz root@#{gw_ip}:/tmp/ruby-tests.tar.gz
-rm -Rf "$MY_TMP"
-ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
-scp /tmp/ruby-tests.tar.gz #{server_name}:/tmp
-ssh #{server_name} bash <<-"EOF_SERVER_NAME"
-    if ! gem list | grep openstack-compute.*1.0.2 &> /dev/null; then
-        gem install openstack-compute -v 1.0.2
-    fi
-    if ! gem list | grep test-unit-ext &> /dev/null; then
-        gem install test-unit-ext -v 0.5.0
-    fi
-    [ -d ~/ruby-tests ] || mkdir ~/ruby-tests
-    cd ruby-tests
-    tar xzf /tmp/ruby-tests.tar.gz 2> /dev/null || { echo "Failed to excract ruby tests tar."; exit 1; }
-    source /root/novarc
-    if [ ! -f ~/.ssh/id_rsa ]; then
-           [ -d ~/.ssh ] || mkdir ~/.ssh
-           ssh-keygen -q -t rsa -f ~/.ssh/id_rsa -N "" || \
-                   echo "Failed to create private key."
-
-    fi
-    if [[ "#{mode}" == "libvirt" ]]; then
-        # When using libvirt we use an AMI style image which require keypairs
-        export KEYPAIR="/root/test.pem"
-        dpkg -l euca2ools &> /dev/null || apt-get install -q -y euca2ools &> /dev/null
-        [ -f "$KEYPAIR" ] || euca-add-keypair test > "$KEYPAIR"
-        chmod 600 /root/test.pem
-        echo "export KEYPAIR='$KEYPAIR'" > test.env
-    elif [[ "#{mode}" == "xen" ]]; then
-        echo "export SSH_TIMEOUT='60'" > test.env
-        echo "export PING_TIMEOUT='60'" >> test.env
-        echo "export SERVER_BUILD_TIMEOUT='420'" >> test.env
-        echo "export TEST_SNAPSHOT_IMAGE='true'" >> test.env
-        echo "export TEST_REBUILD_INSTANCE='true'" >> test.env
-        echo "export TEST_RESIZE_INSTANCE='true'" >> test.env
-    else
-        echo "Invalid mode specified."
-    fi
-    source test.env
-    if [ -n "#{xunit_output}" ]; then
-        ./run_tests.rb --xml-report=TEST-ruby.xml
-    else
-        ./run_tests.rb
-    fi
-EOF_SERVER_NAME
-BASH_EOF
-        }
-        retval=$?
-        puts out
-        if not retval.success?
-            fail "Test task failed!"
+        } do |ok, out|
+            fail "Install source failed! \n #{out}" unless ok
         end
 
     end
@@ -124,16 +45,12 @@ BASH_EOF
     end
 
     task :smoke_tests_fedora do
-        sg=ServerGroup.fetch(:source => "cache")
-        gw_ip=sg.vpn_gateway_ip
         server_name=ENV['SERVER_NAME']
         # default to nova1 if SERVER_NAME is unset
         server_name = "nova1" if server_name.nil?
         xunit_output=ENV['XUNIT_OUTPUT'] # set if you want Xunit style output
         no_volume_tests=ENV['NO_VOLUME'] # set if you want disable Volume tests
-        out=%x{
-ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
-
+        remote_exec %{
 echo rm -rf /tmp/smoketests | ssh #{server_name} 
 
 rpm -i rpms/openstack-nova*.src.rpm
@@ -197,27 +114,19 @@ export PYTHONPATH=/tmp
 python run_tests.py --test_image=$IMG_ID
 
 EOF_SERVER_NAME
-BASH_EOF
-        }
-        retval=$?
-        puts out
-        if not retval.success?
-            fail "Test task failed!"
+        } do |ok, out|
+            fail "Test task failed! \n #{out}" unless ok
         end
-
 
     end
 
     task :smoke_tests_ubuntu do
 
-        sg=ServerGroup.fetch(:source => "cache")
-        gw_ip=sg.vpn_gateway_ip
         server_name=ENV['SERVER_NAME']
         # default to nova1 if SERVER_NAME is unset
         server_name = "nova1" if server_name.nil?
         xunit_output=ENV['XUNIT_OUTPUT'] # set if you want Xunit style output
-        out=%x{
-ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
+        remote_exec %{
 [ -f /tmp/nova.tar.gz ] && scp /tmp/nova.tar.gz #{server_name}:/tmp
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 
@@ -256,159 +165,19 @@ IMG_ID=$(euca-describe-images | grep ami | tail -n 1 | cut -f 2)
 python run_tests.py --test_image=$IMG_ID
 
 EOF_SERVER_NAME
-BASH_EOF
-        }
-        retval=$?
-        puts out
-        if not retval.success?
-            fail "Test task failed!"
+        } do |ok, out|
+            fail "Test task failed! \n #{out}" unless ok
         end
 
-    end
-
-    desc "Ruby Openstack API v1.1 tests."
-    task :ruby_osapi_v11_tests do
-
-        sg=ServerGroup.fetch(:source => "cache")
-        gw_ip=sg.vpn_gateway_ip
-        server_name=ENV['SERVER_NAME']
-        # default to nova1 if SERVER_NAME is unset
-        server_name = "nova1" if server_name.nil?
-        mode=ENV['MODE'] # set to 'xen' or 'libvirt'
-        mode = "libvirt" if mode.nil?
-        xunit_output=ENV['XUNIT_OUTPUT'] # set if you want Xunit style output
-
-        out=%x{
-MY_TMP="#{mktempdir}"
-cd tests/ruby1.1
-tar czf $MY_TMP/ruby-tests.tar.gz * 2> /dev/null || { echo "Failed to create nova tar."; exit 1; }
-scp #{SSH_OPTS} $MY_TMP/ruby-tests.tar.gz root@#{gw_ip}:/tmp/ruby-tests.tar.gz
-rm -Rf "$MY_TMP"
-ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
-scp /tmp/ruby-tests.tar.gz #{server_name}:/tmp
-ssh #{server_name} bash <<-"EOF_SERVER_NAME"
-    if ! gem list | grep openstack-compute.*1.1.1 &> /dev/null; then
-        gem install openstack-compute -v 1.1.1
-    fi
-    if ! gem list | grep test-unit-ext &> /dev/null; then
-        gem install test-unit-ext -v 0.5.0
-    fi
-    [ -d ~/ruby-tests ] || mkdir ~/ruby-tests
-    cd ruby-tests
-    tar xzf /tmp/ruby-tests.tar.gz 2> /dev/null || { echo "Failed to excract ruby tests tar."; exit 1; }
-    source /root/novarc
-    if [ ! -f ~/.ssh/id_rsa ]; then
-           [ -d ~/.ssh ] || mkdir ~/.ssh
-           ssh-keygen -q -t rsa -f ~/.ssh/id_rsa -N "" || \
-                   echo "Failed to create private key."
-
-    fi
-    if [[ "#{mode}" == "libvirt" ]]; then
-        # When using libvirt we use an AMI style image which require keypairs
-        export KEYPAIR="/root/test.pem"
-        export KEYNAME="test"
-        dpkg -l euca2ools &> /dev/null || apt-get install -q -y euca2ools &> /dev/null
-        [ -f "$KEYPAIR" ] || euca-add-keypair "$KEYNAME" > "$KEYPAIR"
-        chmod 600 /root/test.pem
-        echo "export KEYPAIR='$KEYPAIR'" > test.env
-        echo "export KEYNAME='$KEYNAME'" >> test.env
-        echo "export IMAGE_NAME='ami-tty'" >> test.env
-    elif [[ "#{mode}" == "xen" ]]; then
-        echo "export SSH_TIMEOUT='60'" > test.env
-        echo "export PING_TIMEOUT='60'" >> test.env
-        echo "export SERVER_BUILD_TIMEOUT='420'" >> test.env
-        echo "export TEST_SNAPSHOT_IMAGE='true'" >> test.env
-        echo "export TEST_REBUILD_INSTANCE='true'" >> test.env
-        echo "export TEST_RESIZE_INSTANCE='true'" >> test.env
-    else
-        echo "Invalid mode specified."
-    fi
-    source test.env
-    if [ -n "#{xunit_output}" ]; then
-        ./run_tests.rb --xml-report=TEST-ruby.xml
-    else
-        ./run_tests.rb
-    fi
-EOF_SERVER_NAME
-BASH_EOF
-        }
-        retval=$?
-        puts out
-        if not retval.success?
-            fail "Test task failed!"
-        end
-
-    end
-
-    desc "Run stacktester tests."
-    task :stacktester do
-
-        sg=ServerGroup.fetch(:source => "cache")
-        gw_ip=sg.vpn_gateway_ip
-        server_name=ENV['SERVER_NAME']
-        server_name = "nova1" if server_name.nil?
-        git_url=ENV['GIT_URL']
-        git_url = "git://github.com/rackspace-titan/stacktester.git" if git_url.nil?
-        out=%x{
-ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
-scp /tmp/ruby-tests.tar.gz #{server_name}:/tmp
-ssh #{server_name} bash <<-"EOF_SERVER_NAME"
-    dpkg -l git &> /dev/null || apt-get -y -q install git &> /dev/null
-    dpkg -l python-unittest2 &> /dev/null || apt-get -y -q install python-unittest2 &> /dev/null
-    dpkg -l python-paramiko &> /dev/null || apt-get -y -q install python-paramiko &> /dev/null
-    [ -d "/root/stacktester" ] || git clone #{git_url}
-    if [ ! -f "/usr/local/bin/stacktester" ]; then
-        cd stacktester
-        ./setup.py develop
-    fi
-    [ -f /root/novarc ] && source /root/novarc
-    [ -f /root/openstackrc ] && source /root/openstackrc
-    #FIXME: novaclient doesn't work with keystone yet but the EC2 API does.
-    dpkg -l euca2ools &> /dev/null || apt-get install -q -y euca2ools &> /dev/null
-    #IMG_ID=$(nova image-list | grep ACTIVE | tail -n 1 | sed -e "s|\\| \\([0-9]*\\)  .*|\\1|")
-    IMG_ID=$(euca-describe-images | wc -l)
-    if grep v2.0 /root/novarc &> /dev/null; then
-      AUTH_BASE_PATH="v2.0"
-    else
-      AUTH_BASE_PATH="v1.0"
-    fi
-    cat > /etc/stacktester.cfg <<EOF_CAT
-[nova]
-host=127.0.0.1
-port=8774
-user=admin
-auth_base_path=$AUTH_BASE_PATH
-api_key=$NOVA_API_KEY
-ssh_timeout=300
-service_name=nova
-
-[environment]
-image_ref=$IMG_ID
-image_ref_alt=$IMG_ID
-flavor_ref=1
-flavor_ref_alt=2
-multi_node=false
-EOF_CAT
-
-    stacktester --config=/etc/stacktester.cfg --verbose
-
-EOF_SERVER_NAME
-BASH_EOF
-    }
-        retval=$?
-        puts out
-        fail "Test task failed!" if not retval.success?
     end
 
     desc "Build xen plugins rpm."
     task :build_rpms => :tarball do
-        gw_ip = ServerGroup.fetch(:source => "cache").vpn_gateway_ip
         src_dir = ENV['SOURCE_DIR'] or raise "Please specify a SOURCE_DIR."
         nova_revision = get_revision(src_dir)
         raise "Failed to get nova revision." if nova_revision.empty?
 
-        shh %{
-            ssh #{SSH_OPTS} root@#{gw_ip} bash <<'BASH_EOF'
+        remote_exec %{
             set -e
             DEBIAN_FRONTEND=noninteractive apt-get -y -q install rpm createrepo > /dev/null
             mkdir -p /root/openstack-rpms
@@ -422,9 +191,8 @@ BASH_EOF
             ./build-rpm.sh &> /dev/null
             cp rpmbuild/RPMS/noarch/*.rpm /root/openstack-rpms
             rm -rf "$BUILD_TMP"
-BASH_EOF
-        } do |ok, res|
-            fail "Building rpms failed! \n #{res}" unless ok
+        } do |ok, out|
+            fail "Building rpms failed! \n #{out}" unless ok
         end
     end
 
@@ -460,8 +228,6 @@ BASH_EOF
 
     task :build_ubuntu_packages => :tarball do
 
-        sg=ServerGroup.fetch(:source => "cache")
-        gw_ip=sg.vpn_gateway_ip
         src_dir=ENV['SOURCE_DIR']
         raise "Please specify a SOURCE_DIR." if src_dir.nil?
         deb_packager_url=ENV['DEB_PACKAGER_URL']
@@ -474,10 +240,7 @@ BASH_EOF
 
         puts "Building nova packages using: #{deb_packager_url}"
 
-        out=%x{
-ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
-
-
+        remote_exec %{
 if ! /usr/bin/dpkg -l add-apt-key &> /dev/null; then
   cat > /etc/apt/sources.list.d/nova_ppa-source.list <<-EOF_CAT
 deb http://ppa.launchpad.net/nova-core/trunk/ubuntu $(lsb_release -sc) main
@@ -514,39 +277,27 @@ rm -f /root/openstack-packages/nova*
 rm -f /root/openstack-packages/python-nova*
 cp $BUILD_TMP/*.deb /root/openstack-packages
 rm -Rf "$BUILD_TMP"
-BASH_EOF
 RETVAL=$?
 exit $RETVAL
-        }
-        retval=$?
-        puts out
-        if not retval.success?
-            fail "Build packages failed!"
+        } do |ok, out|
+            fail "Build packages failed! \n #{out}" unless ok
         end
-
     end
 
     desc "Tail nova logs."
     task :tail_logs do
 
-        sg=ServerGroup.fetch(:source => "cache")
-        gw_ip=sg.vpn_gateway_ip
         server_name=ENV['SERVER_NAME']
         raise "Please specify a SERVER_NAME." if server_name.nil?
         line_count=ENV['LINE_COUNT']
         line_count = 50 if line_count.nil?
 
-        out=%x{
-ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
+        remote_exec %{
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 tail -n #{line_count} /var/log/nova/*
 EOF_SERVER_NAME
-BASH_EOF
-        }
-        retval=$?
-        puts out
-        if not retval.success?
-            fail "Tail logs failed!"
+        } do |ok, out|
+            fail "Tail logs failed! \n #{out}" unless ok
         end
 
     end

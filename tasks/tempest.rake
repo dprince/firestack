@@ -3,15 +3,12 @@ include ChefVPCToolkit::CloudServersVPC
 desc "Run tempest."
 task :tempest do
 
-sg=ServerGroup.fetch(:source => "cache")
-gw_ip=sg.vpn_gateway_ip
 server_name=ENV['SERVER_NAME']
 server_name = "nova1" if server_name.nil?
 git_url=ENV['GIT_URL']
 git_url = "git://github.com/openstack/tempest.git" if git_url.nil?
 image_name=ENV.fetch('IMAGE_NAME', "ami-tty")
-out=%x{
-ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
+remote_exec %{
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 
 for PKG in git python-unittest2 python-paramiko euca2ools python-nose; do
@@ -89,16 +86,25 @@ ssh_timeout=300
 username=admin
 password=AABBCC112233
 tenant_name=admin
+
+[compute-admin]
+# This section contains configuration options for an administrative
+# user of the Compute API. These options are used in tests that stress
+# the admin-only parts of the Compute API
+
+username=admin
+password=AABBCC112233
+tenant_name=admin
+
 EOF_CAT
 
 cd /root/tempest
 nosetests tempest -a type=smoke
 
 EOF_SERVER_NAME
-BASH_EOF
-}
-retval=$?
-puts out
-fail "Tempest failed!" if not retval.success?
+} do |ok, out|
+    fail "Tempest failed! \n #{out}" unless ok
+end
+
 end
 

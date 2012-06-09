@@ -4,7 +4,6 @@ desc "Tail nova, glance, keystone logs."
 task :tail_logs do
 
     sg=ServerGroup.fetch(:source => "cache")
-    gw_ip=sg.vpn_gateway_ip
     server_name=ENV['SERVER_NAME']
     line_count=ENV['LINE_COUNT']
     line_count = 250 if line_count.nil?
@@ -14,8 +13,7 @@ task :tail_logs do
         all_servers +=  "#{server.name}\n"
     end
 
-    out=%x{
-ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
+    remote_exec %{
 
 if [ -n "#{server_name}" ]; then
   SERVER_NAMES="#{server_name}"
@@ -43,12 +41,8 @@ fi
 EOF_SERVER_NAME
 fi
 done
-BASH_EOF
-    }
-    retval=$?
-    puts out
-    if not retval.success?
-        fail "Tail logs failed!"
+    } do |ok, out|
+        fail "Tail logs failed! \n #{out}" unless ok
     end
 
 end

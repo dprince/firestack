@@ -4,17 +4,9 @@ namespace :glance do
 
     desc "Push source into a glance installation."
     task :install_source => :tarball do
-
-        sg=ServerGroup.fetch(:source => "cache")
-        gw_ip=sg.vpn_gateway_ip
-        src_dir=ENV['SOURCE_DIR']
-        raise "Please specify a SOURCE_DIR." if src_dir.nil?
         server_name=ENV['SERVER_NAME']
         server_name = "glance1" if server_name.nil?
-        pwd=Dir.pwd
-        out=%x{
-cd #{src_dir}
-ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
+        remote_exec %{
 scp /tmp/glance.tar.gz #{server_name}:/tmp
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 cd /usr/share/pyshared
@@ -28,13 +20,11 @@ done
 [ -f /etc/init/glance-api.conf ] && service glance-api restart
 [ -f /etc/init/glance-registry.conf ] && service glance-registry restart
 EOF_SERVER_NAME
-BASH_EOF
-RETVAL=$?
-exit $RETVAL
-        }
-        puts out
-
+        } do |ok, out|
+            fail "Failed to install source! \n #{out}" unless ok
+        end
     end
+
     desc "Build packages from a local glance source directory."
     task :build_packages do
         if ENV['RPM_PACKAGER_URL'].nil? then
@@ -56,10 +46,6 @@ exit $RETVAL
 
     task :build_ubuntu_packages => :tarball do
 
-        sg=ServerGroup.fetch(:source => "cache")
-        gw_ip=sg.vpn_gateway_ip
-        src_dir=ENV['SOURCE_DIR']
-        raise "Please specify a SOURCE_DIR." if src_dir.nil?
         deb_packager_url=ENV['DEB_PACKAGER_URL']
         if deb_packager_url.nil? then
             deb_packager_url="lp:~openstack-ubuntu-packagers/glance/ubuntu"
@@ -70,10 +56,7 @@ exit $RETVAL
 
         puts "Building glance packages using: #{deb_packager_url}"
 
-        out=%x{
-cd #{src_dir}
-ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
-
+        remote_exec %{
 DEBIAN_FRONTEND=noninteractive apt-get -y -q install dpkg-dev bzr git quilt debhelper python-m2crypto python-all python-setuptools python-sphinx python-distutils-extra python-twisted-web python-gflags python-mox python-carrot python-boto python-amqplib python-ipy python-sqlalchemy-ext  python-eventlet python-routes python-webob python-cheetah python-nose python-paste python-pastedeploy python-tempita python-migrate python-netaddr python-glance python-lockfile pep8 python-sphinx &> /dev/null || { echo "Failed to install prereq packages."; exit 1; }
 
 BUILD_TMP=$(mktemp -d)
@@ -101,14 +84,8 @@ cd /tmp
 rm -f /root/openstack-packages/glance*
 cp $BUILD_TMP/*.deb /root/openstack-packages
 rm -Rf "$BUILD_TMP"
-BASH_EOF
-RETVAL=$?
-exit $RETVAL
-        }
-        retval=$?
-        puts out
-        if not retval.success?
-            fail "Build packages failed!"
+        } do |ok, out|
+            fail "Build packages failed! \n #{out}" unless ok
         end
 
     end
@@ -140,18 +117,11 @@ exit $RETVAL
     end
 
     task :load_images do
-        sg=ServerGroup.fetch(:source => "cache")
-        gw_ip=sg.vpn_gateway_ip
         server_name=ENV['SERVER_NAME']
         # default to nova1 if SERVER_NAME is unset
         server_name = "nova1" if server_name.nil?
-        xunit_output=ENV['XUNIT_OUTPUT'] # set if you want Xunit style output
-        out=%x{
-ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
-
+        remote_exec %{
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
-
-#add images
 if [ ! -f /var/lib/glance/images_loaded ]; then
     mkdir -p /var/lib/glance/
     [ -f /root/openstackrc ] && source /root/openstackrc
@@ -162,17 +132,10 @@ if [ ! -f /var/lib/glance/images_loaded ]; then
        touch /var/lib/glance/images_loaded
     fi
 fi
-
 EOF_SERVER_NAME
-BASH_EOF
-        }
-        retval=$?
-        puts out
-        if not retval.success?
-            fail "Test task failed!"
+        } do |ok, out|
+            fail "Load images failed! \n #{out}" unless ok
         end
-
-
     end
 
 end

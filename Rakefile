@@ -37,6 +37,24 @@ def shh(script)
     end
 end
 
+def remote_exec(text)
+    sg=ServerGroup.fetch(:source => "cache")
+
+    gw_ip=sg.vpn_gateway_ip
+    out=%x{
+ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"REMOTE_EXEC_EOF"
+#{BASH_COMMON}
+#{text}
+REMOTE_EXEC_EOF
+    }
+    retval=$?
+    if block_given? then
+        yield retval.success?, out
+    else
+        return [retval.success?, out]
+    end
+end
+
 def get_revision(source_dir)
     %x{
         cd #{source_dir}

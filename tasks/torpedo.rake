@@ -3,17 +3,13 @@ include ChefVPCToolkit::CloudServersVPC
 desc "Ruby tests for the v1.1 API."
 task :torpedo do
 
-	sg=ServerGroup.fetch(:source => "cache")
-	gw_ip=sg.vpn_gateway_ip
 	server_name=ENV['SERVER_NAME']
-	# default to nova1 if SERVER_NAME is unset
 	server_name = "nova1" if server_name.nil?
 	mode=ENV['MODE'] # set to 'xen' or 'libvirt'
 	mode = "libvirt" if mode.nil?
 	xunit_output=ENV['XUNIT_OUTPUT'] # set if you want Xunit style output
 
-	out=%x{
-ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
+	remote_exec %{
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 
 if [ -f /bin/rpm ]; then
@@ -76,7 +72,7 @@ if [[ "#{mode}" == "libvirt" ]]; then
 		keyname: $KEYNAME
 		image_name: ami-tty
 		test_rebuild_server: true
-		#test_create_image: true
+		test_create_image: true
 		test_resize_server: true
 		flavor_ref: 1
 	EOF_CAT
@@ -101,12 +97,8 @@ else
 	torpedo fire
 fi
 EOF_SERVER_NAME
-BASH_EOF
-	}
-	retval=$?
-	puts out
-	if not retval.success?
-		fail "Test task failed!"
-	end
+        } do |ok, out|
+            fail "Test task failed! \n #{out}" unless ok
+        end
 
 end

@@ -273,14 +273,9 @@ EOF_BASH
     desc "Disconnect and cleanup Xen instance from VPC Group."
     task :disconnect do
 
-        sg=ServerGroup.fetch(:source => "cache")
-        gw_ip=sg.vpn_gateway_ip
         server_name=ENV['SERVER_NAME']
-        # default to xen1 if SERVER_NAME is unset
         server_name = "xen1" if server_name.nil?
-        pwd=Dir.pwd
-        out=%x{
-ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
+        remote_exec %{
 ssh #{server_name} bash <<"EOF_XEN1_BASH"
 [ -f /etc/logrotate.d/chef ] && rm /etc/logrotate.d/chef
 chkconfig chef-client off
@@ -313,16 +308,9 @@ TMP_SHUTDOWN=$(mktemp)
 echo 'sleep 2 && service openvpn stop' > $TMP_SHUTDOWN
 bash $TMP_SHUTDOWN </dev/null &> /dev/null &
 EOF_XEN1_BASH
-BASH_EOF
-
-	}
-
-		retval=$?
-		puts out
-		if not retval.success?
-			fail "Failed to disconnect #{server_name} from VPC Group!"
-		end
-
-	end
+        } do |ok, out|
+            fail "Failed to disconnect #{server_name} from VPC Group!" unless ok
+        end
+    end
 
 end
