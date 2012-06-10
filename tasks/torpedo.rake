@@ -98,7 +98,8 @@ else
 fi
 EOF_SERVER_NAME
         } do |ok, out|
-            fail "Test task failed! \n #{out}" unless ok
+            puts out
+            fail "Torpedo failed!" unless ok
         end
 
 end

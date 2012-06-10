@@ -15,7 +15,8 @@ chmod +x stack-attack.pl
 mv stack-attack.pl /usr/local/bin/
 EOF_SERVER_NAME
         } do |ok, out|
-            fail "Install of stackattack failed! \n #{out}" unless ok
+            puts out
+            fail "Install of stackattack failed!" unless ok
         end
 
     end

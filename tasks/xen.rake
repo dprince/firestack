@@ -309,6 +309,7 @@ echo 'sleep 2 && service openvpn stop' > $TMP_SHUTDOWN
 bash $TMP_SHUTDOWN </dev/null &> /dev/null &
 EOF_XEN1_BASH
         } do |ok, out|
+            puts out
             fail "Failed to disconnect #{server_name} from VPC Group!" unless ok
         end
     end

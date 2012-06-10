@@ -21,7 +21,8 @@ done
 [ -f /etc/init/glance-registry.conf ] && service glance-registry restart
 EOF_SERVER_NAME
         } do |ok, out|
-            fail "Failed to install source! \n #{out}" unless ok
+            puts out
+            fail "Failed to install source!" unless ok
         end
     end
 
@@ -85,7 +86,8 @@ rm -f /root/openstack-packages/glance*
 cp $BUILD_TMP/*.deb /root/openstack-packages
 rm -Rf "$BUILD_TMP"
         } do |ok, out|
-            fail "Build packages failed! \n #{out}" unless ok
+            puts out
+            fail "Build packages failed!" unless ok
         end
 
     end
@@ -134,7 +136,8 @@ if [ ! -f /var/lib/glance/images_loaded ]; then
 fi
 EOF_SERVER_NAME
         } do |ok, out|
-            fail "Load images failed! \n #{out}" unless ok
+            puts out
+            fail "Load images failed!" unless ok
         end
     end
 

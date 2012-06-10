@@ -30,7 +30,8 @@ EOF_SERVER_NAME
 RETVAL=$?
 exit $RETVAL
         } do |ok, out|
-            fail "Install source failed! \n #{out}" unless ok
+            puts out
+            fail "Install source failed!" unless ok
         end
 
     end
@@ -115,7 +116,8 @@ python run_tests.py --test_image=$IMG_ID
 
 EOF_SERVER_NAME
         } do |ok, out|
-            fail "Test task failed! \n #{out}" unless ok
+            puts out
+            fail "Test task failed!" unless ok
         end
 
     end
@@ -166,7 +168,8 @@ python run_tests.py --test_image=$IMG_ID
 
 EOF_SERVER_NAME
         } do |ok, out|
-            fail "Test task failed! \n #{out}" unless ok
+            puts out
+            fail "Test task failed!" unless ok
         end
 
     end
@@ -192,7 +195,8 @@ EOF_SERVER_NAME
             cp rpmbuild/RPMS/noarch/*.rpm /root/openstack-rpms
             rm -rf "$BUILD_TMP"
         } do |ok, out|
-            fail "Building rpms failed! \n #{out}" unless ok
+            puts out
+            fail "Building rpms failed!" unless ok
         end
     end
 
@@ -280,7 +284,8 @@ rm -Rf "$BUILD_TMP"
 RETVAL=$?
 exit $RETVAL
         } do |ok, out|
-            fail "Build packages failed! \n #{out}" unless ok
+            puts out
+            fail "Build packages failed!" unless ok
         end
     end
 
@@ -297,7 +302,8 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 tail -n #{line_count} /var/log/nova/*
 EOF_SERVER_NAME
         } do |ok, out|
-            fail "Tail logs failed! \n #{out}" unless ok
+            puts out
+            fail "Tail logs failed!" unless ok
         end
 
     end

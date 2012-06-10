@@ -52,7 +52,8 @@ cp $BUILD_TMP/*.deb /root/openstack-packages
 rm -Rf "$BUILD_TMP"
 BASH_EOF
         } do |ok, out|
-            fail "Build packages failed! \n #{out}" unless ok
+            puts out
+            fail "Build packages failed!" unless ok
         end
     end
 
@@ -99,8 +100,8 @@ BASH_EOF
             tar czf $MY_TMP/keystone.tar.gz . 2> /dev/null || { echo "Failed to create keystone source tar."; exit 1; }
             scp #{SSH_OPTS} $MY_TMP/keystone.tar.gz root@#{gw_ip}:/tmp
             rm -rf "$MY_TMP"
-        } do |ok, res|
-            fail "Unable to create keystone tarball! \n #{res}" unless ok
+        } do |ok, out|
+            fail "Unable to create keystone tarball! \n #{out}" unless ok
         end
     end
 

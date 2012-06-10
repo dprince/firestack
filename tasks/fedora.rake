@@ -110,7 +110,8 @@ fi
 RETVAL=$?
 exit $RETVAL
         } do |ok, out|
-            fail "Failed to build packages for #{project}! \n #{out}" unless ok
+            puts out
+            fail "Failed to build packages for #{project}!" unless ok
         end
 
     end

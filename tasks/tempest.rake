@@ -103,7 +103,8 @@ nosetests tempest -a type=smoke
 
 EOF_SERVER_NAME
 } do |ok, out|
-    fail "Tempest failed! \n #{out}" unless ok
+    puts out
+    fail "Tempest failed!" unless ok
 end
 
 end

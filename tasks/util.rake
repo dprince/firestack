@@ -42,7 +42,8 @@ EOF_SERVER_NAME
 fi
 done
     } do |ok, out|
-        fail "Tail logs failed! \n #{out}" unless ok
+        puts out
+        fail "Tail logs failed!" unless ok
     end
 
 end
