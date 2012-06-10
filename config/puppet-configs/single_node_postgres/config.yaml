@@ -1,0 +1,3 @@
+nodes:
+    - name: nova1
+      manifest: keystone_qpid_postgres.pp

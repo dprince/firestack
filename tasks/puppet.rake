@@ -1,21 +1,33 @@
+require 'yaml'
 
 namespace :puppet do
     desc "Install Puppet server and clients"
     task :install do
 
-        sg=ServerGroup.fetch(:source => "cache")
-
         source_url=ENV['SOURCE_URL']
         raise "Please specify a SOURCE_URL." if source_url.nil?
         source_branch=ENV['SOURCE_BRANCH']
-        source_branch = "master" if source_branch.nil?
+        source_branch="master" if source_branch.nil?
 
-        puppetclients = ""
-        #FIXME: we need a config file to drive this...
-        # For now run puppet on all servers in the group except login
-        sg.servers.each do |client|
-            puppetclients +=  client.name + " " if not client.name == "login"
+        puppet_config=ENV['PUPPET_CONFIG']
+        puppet_config="default" if puppet_config.nil?
+
+        #specify if you only want to run puppet on a single server
+        server_name=ENV['SERVER_NAME']
+
+        config=YAML.load_file("#{CHEF_VPC_PROJECT}/config/puppet-configs/#{puppet_config}/config.yaml")
+        node_cmds = ""
+        hostnames = []
+        config["nodes"].each do |node|
+            hostname = node["name"]
+            manifest = node["manifest"]
+            if server_name.nil? or server_name == hostname
+                hostnames << hostname
+                node_cmds += "scp -r puppet-modules #{hostname}: && scp puppet-configs/#{puppet_config}/#{manifest} #{hostname}:manifest.pp\n"
+            end
         end
+
+        scp("#{CHEF_VPC_PROJECT}/config/puppet-configs", "")
 
         remote_exec %{
 yum -q -y install httpd
@@ -28,32 +40,38 @@ rm -rf puppet-modules
 echo Getting Puppet modules from #{source_url}
 git_clone_with_retry "#{source_url}" puppet-modules
 pushd puppet-modules
-git checkout #{source_branch}
+git checkout -q #{source_branch} || { echo "Failed to checkout #{source_branch}."; exit 1; }
 popd
 
 createrepo /var/www/html/repos
 /etc/init.d/httpd restart
 
-for client in #{puppetclients}; do 
-    scp -r puppet-modules $client:
-    echo Running puppet client on : $client
-    ssh $client bash <<- "SSH_EOF"
-# NOTE: we upgrade systemd due to a potential issue w/ the MySQL init scripts
-yum -q -y install puppet yum-plugin-priorities systemd
-echo -e "[puppetserverrepos]\\nname=puppet server repository\\nbaseurl=http://login/repos\\nenabled=1\\ngpgcheck=0\\npriority=1" > /etc/yum.repos.d/puppetserverrepos.repo
+#run commands to scp modules and manifests here
+#{node_cmds}
 
-ln -sf /root/puppet-modules/modules /etc/puppet/modules
-puppet apply --verbose ~/puppet-modules/manifests/fedora_keystone_qpid_postgresql.pp &> /var/log/puppet/puppet.log || { cat /var/log/puppet/puppet.log; exit 1; }
-SSH_EOF
-
-done
         } do |ok, out|
             fail "Puppet errors occurred! \n #{out}" unless ok
         end
+
+        results = remote_multi_exec hostnames, %{
+# NOTE: we upgrade systemd due to a potential issue w/ the MySQL init scripts
+rpm -q puppet &> /dev/null || yum -q -y install puppet yum-plugin-priorities systemd
+echo -e "[puppetserverrepos]\\nname=puppet server repository\\nbaseurl=http://login/repos\\nenabled=1\\ngpgcheck=0\\npriority=1" > /etc/yum.repos.d/puppetserverrepos.repo
+ln -sf /root/puppet-modules/modules /etc/puppet/modules
+puppet apply --verbose manifest.pp &> /var/log/puppet/puppet.log || { cat /var/log/puppet/puppet.log; exit 1; }
+        }
+
+        err_msg = ""
+        results.each_pair do |hostname, data|
+            ok = data[0]
+            out = data[1]
+            err_msg += "Puppet errors on #{hostname}! \n #{out}\n" unless ok
+        end
+        fail err_msg unless err_msg == ""
+         
     end
 end
 
-#FIXME: Need to update the puppet:install task to support a single server
 desc "Rebuild and Re-run puppet the specified server."
 task :repuppet => [ "server:rebuild", "group:poll" ] do
     remote_exec "rm .ssh/known_hosts"

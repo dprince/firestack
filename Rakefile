@@ -37,14 +37,14 @@ def shh(script)
     end
 end
 
-def remote_exec(text)
+def remote_exec(script_text)
     sg=ServerGroup.fetch(:source => "cache")
-
     gw_ip=sg.vpn_gateway_ip
+
     out=%x{
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"REMOTE_EXEC_EOF"
 #{BASH_COMMON}
-#{text}
+#{script_text}
 REMOTE_EXEC_EOF
     }
     retval=$?
@@ -53,6 +53,48 @@ REMOTE_EXEC_EOF
     else
         return [retval.success?, out]
     end
+end
+
+def remote_multi_exec(hosts, script_text)
+
+    sg=ServerGroup.fetch(:source => "cache")
+    gw_ip=sg.vpn_gateway_ip
+
+    results = {}
+    threads = []
+
+    hosts.each do |host|
+        t = Thread.new do
+            out=%x{
+ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"REMOTE_EXEC_EOF"
+ssh #{host} bash <<-"EOF_HOST"
+#{BASH_COMMON}
+#{script_text}
+EOF_HOST
+REMOTE_EXEC_EOF
+            }
+            retval=$?
+            results.store host, [retval.success?, out]
+        end
+        threads << t
+    end
+
+    threads.each {|t| t.join}
+
+    return results
+
+end
+
+def scp(src_dir, dest)
+
+    gw_ip = ServerGroup.fetch(:source => "cache").vpn_gateway_ip
+
+    shh %{
+        scp -r #{SSH_OPTS} #{src_dir} root@#{gw_ip}:#{dest}
+    } do |ok, out|
+        fail "Failed to scp #{src_dir}! \n #{out}" unless ok
+    end
+
 end
 
 def get_revision(source_dir)
