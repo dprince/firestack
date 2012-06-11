@@ -15,7 +15,7 @@ namespace :puppet do
         #specify if you only want to run puppet on a single server
         server_name=ENV['SERVER_NAME']
 
-        config=YAML.load_file("#{CHEF_VPC_PROJECT}/config/puppet-configs/#{puppet_config}/config.yaml")
+        config=YAML.load_file("#{CHEF_VPC_PROJECT}/config/puppet-configs/#{puppet_config}/config.yml")
         node_cmds = ""
         hostnames = []
         config["nodes"].each do |node|
