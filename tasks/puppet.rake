@@ -44,7 +44,7 @@ git checkout -q #{source_branch} || { echo "Failed to checkout #{source_branch}.
 popd
 
 createrepo /var/www/html/repos
-/etc/init.d/httpd restart
+/etc/init.d/httpd restart || systemctl restart httpd.service
 
 #run commands to scp modules and manifests here
 #{node_cmds}
