@@ -111,7 +111,7 @@ class { 'nova::compute':
 class { 'glance::api':
   api_flavor => 'keystone+cachemanagement',
   sql_connection => $glance_sql_connection,
-  require => Class["keystone"]
+  require => [Class["keystone"], Class["glance::postgresql"], Class["postgresql::python"]]
 }
 
 class { 'glance::postgresql':
