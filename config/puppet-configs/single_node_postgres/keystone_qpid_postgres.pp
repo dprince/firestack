@@ -108,12 +108,6 @@ class { 'nova::compute':
   aws_address    => '169.254.169.254',
 }
 
-class { 'glance::api':
-  api_flavor => 'keystone+cachemanagement',
-  sql_connection => $glance_sql_connection,
-  require => [Class["keystone"], Class["glance::postgresql"], Class["postgresql::python"]]
-}
-
 class { 'glance::postgresql':
   db_password      => $glance_db_password,
   db_name        => $glance_db_name,
@@ -126,3 +120,11 @@ class { 'glance::registry':
   sql_connection => $glance_sql_connection,
   require => [Class["keystone"], Class["glance::postgresql"], Class["postgresql::python"]]
 }
+
+class { 'glance::api':
+  api_flavor => 'keystone+cachemanagement',
+  sql_connection => $glance_sql_connection,
+  require => [Class["keystone"], Class["glance::postgresql"], Class["postgresql::python"], Class["glance::registry"]]
+}
+
+
