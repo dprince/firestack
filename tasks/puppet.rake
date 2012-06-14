@@ -29,6 +29,7 @@ namespace :puppet do
 
         scp("#{CHEF_VPC_PROJECT}/config/puppet-configs", "")
 
+puts "Downloading puppet modules..."
         remote_exec %{
 yum -q -y install httpd
 
@@ -56,6 +57,8 @@ fi
         } do |ok, out|
             fail "Puppet errors occurred! \n #{out}" unless ok
         end
+
+puts "Running puppet apply on hostnames: " + hostnames.to_s
 
         results = remote_multi_exec hostnames, %{
 # NOTE: we upgrade systemd due to a potential issue w/ the MySQL init scripts
