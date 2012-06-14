@@ -15,6 +15,9 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 if [ -f /bin/rpm ]; then
 	rpm -q rubygems &> /dev/null || yum install -y rubygems &> /dev/null
 	rpm -q rubygem-json &> /dev/null || yum install -y rubygem-json &> /dev/null
+	if ruby -v | grep 1\.9\. &> /dev/null; then
+		gem install --no-rdoc --no-ri test-unit
+	fi
 fi
 if ! gem list | grep torpedo &> /dev/null; then
 	gem install --no-rdoc --no-ri torpedo
@@ -72,7 +75,7 @@ if [[ "#{mode}" == "libvirt" ]]; then
 		keyname: $KEYNAME
 		image_name: ami-tty
 		test_rebuild_server: true
-		test_create_image: true
+		test_create_image: false
 		test_resize_server: true
 		flavor_ref: 1
 	EOF_CAT
