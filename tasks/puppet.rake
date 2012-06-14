@@ -66,6 +66,8 @@ rpm -q puppet &> /dev/null || yum -q -y install puppet yum-plugin-priorities sys
 echo -e "[puppetserverrepos]\\nname=puppet server repository\\nbaseurl=http://login/repos\\nenabled=1\\ngpgcheck=0\\npriority=1" > /etc/yum.repos.d/puppetserverrepos.repo
 ln -sf /root/puppet-modules/modules /etc/puppet/modules
 puppet apply --verbose manifest.pp &> /var/log/puppet/puppet.log || { cat /var/log/puppet/puppet.log; exit 1; }
+#FIXME remove nova-iptables.lock if it exists. (puppet restarts nova-network twice too quickly which sometimes causes it to create a lockfile which isn't deleted)
+rm -f /var/lib/nova/tmp/nova-iptables.lock
         }
 
         err_msg = ""
