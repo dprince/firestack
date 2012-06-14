@@ -83,9 +83,6 @@ sed -i.bk -e "s/Source0:.*/Source0:      $(ls *.tar.gz)/g" "$SPEC_FILE_NAME"
 [ -z "#{build_docs}" ] && sed -i -e 's/%global with_doc .*/%global with_doc 0/g' "$SPEC_FILE_NAME"
 md5sum *.tar.gz > sources 
 
-# tmp workaround
-sed -i.bk "$SPEC_FILE_NAME" -e 's/.*dnsmasq-utils.*//g'
-
 # custom version
 sed -i.bk "$SPEC_FILE_NAME" -e 's/^Version:.*/Version:          9999.9/g'
 
