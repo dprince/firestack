@@ -99,20 +99,19 @@ keystone service-create \
                                  --name=keystone \
                                  --type=identity \
                                  --description="Keystone Identity Service"
-if [[ "$ENABLED_SERVICES" =~ "swift" ]]; then
-    keystone service-create \
-                                 --name=swift \
-                                 --type="object-store" \
-                                 --description="Swift Service"
-    SWIFT_USER=`get_id keystone user-create \
-                                 --name=swift \
-                                 --pass="$SERVICE_PASSWORD" \
-                                 --email=swift@example.com`
-    keystone user-role-add --tenant_id $SERVICE_TENANT \
-                                 --user $SWIFT_USER \
-                                 --role $ADMIN_ROLE
 
-fi
+# Swift Service
+keystone service-create \
+                             --name=swift \
+                             --type="object-store" \
+                             --description="Swift Service"
+SWIFT_USER=`get_id keystone user-create \
+                             --name=swift \
+                             --pass="$SERVICE_PASSWORD" \
+                             --email=swift@example.com`
+keystone user-role-add --tenant_id $SERVICE_TENANT \
+                             --user $SWIFT_USER \
+                             --role $ADMIN_ROLE
 
 # create ec2 creds and parse the secret and access key returned
 RESULT=`keystone ec2-credentials-create --tenant_id=$ADMIN_TENANT --user=$ADMIN_USER`
