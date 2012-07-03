@@ -78,7 +78,7 @@ if [[ "#{mode}" == "libvirt" ]]; then
 		test_create_image: false
 		test_resize_server: true
 		flavor_ref: 1
-                sleep_after_image_create: 10
+		sleep_after_image_create: 10
 	EOF_CAT
 elif [[ "#{mode}" == "xen" ]]; then
 	cat > ~/.torpedo.conf <<-EOF_CAT
@@ -91,7 +91,7 @@ elif [[ "#{mode}" == "xen" ]]; then
 		test_admin_password: true
 		test_soft_reboot_server: true
 		test_hard_reboot_server: true
-                sleep_after_image_create: 10
+		sleep_after_image_create: 10
 	EOF_CAT
 else
 	echo "Invalid mode specified."
