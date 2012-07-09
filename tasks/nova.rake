@@ -13,19 +13,15 @@ namespace :nova do
         remote_exec %{
 scp /tmp/nova.tar.gz #{server_name}:/tmp
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
-cd /usr/share/pyshared
+cd /usr/lib/python2.7/site-packages
 rm -Rf nova
 tar xf /tmp/nova.tar.gz 2> /dev/null || { echo "Failed to extract nova source tar."; exit 1; }
-for FILE in $(find nova -name '*.py' -o -name '*.template'); do
-    DIR=$(dirname /usr/lib/pymodules/python2.6/$FILE)
-    [ -d $DIR ] || mkdir -p $DIR
-    [ -f /usr/lib/pymodules/python2.6/$FILE ] || ln -s /usr/share/pyshared/$FILE /usr/lib/pymodules/python2.6/$FILE
-done
-[ -f /etc/init/nova-api.conf ] && service nova-api restart
-[ -f /etc/init/nova-compute.conf ] && service nova-compute restart
-[ -f /etc/init/nova-network.conf ] && service nova-network restart
-[ -f /etc/init/nova-scheduler.conf ] && service nova-scheduler restart
-[ -f /etc/init/nova-objectstore.conf ] && service nova-objectstore restart
+service openstack-nova-api restart
+service openstack-nova-compute restart
+service openstack-nova-network restart
+service openstack-nova-scheduler restart
+service openstack-nova-cert restart
+service openstack-nova-objectstore restart
 EOF_SERVER_NAME
 RETVAL=$?
 exit $RETVAL

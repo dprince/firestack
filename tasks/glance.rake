@@ -9,16 +9,11 @@ namespace :glance do
         remote_exec %{
 scp /tmp/glance.tar.gz #{server_name}:/tmp
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
-cd /usr/share/pyshared
+cd /usr/lib/python2.7/site-packages
 rm -Rf glance
 tar xf /tmp/glance.tar.gz 2> /dev/null || { echo "Failed to extract glance source tar."; exit 1; }
-for FILE in $(find glance -name '*.py'); do
-    DIR=$(dirname /usr/lib/pymodules/python2.6/$FILE)
-    [ -d $DIR ] || mkdir -p $DIR
-    [ -f /usr/lib/pymodules/python2.6/$FILE ] || ln -s /usr/share/pyshared/$FILE /usr/lib/pymodules/python2.6/$FILE
-done
-[ -f /etc/init/glance-api.conf ] && service glance-api restart
-[ -f /etc/init/glance-registry.conf ] && service glance-registry restart
+service openstack-glance-api restart
+service openstack-glance-registry restart
 EOF_SERVER_NAME
         } do |ok, out|
             puts out
