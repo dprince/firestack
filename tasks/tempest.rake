@@ -88,14 +88,14 @@ password=AABBCC112233
 tenant_name=admin
 
 [compute-admin]
-# This section contains configuration options for an administrative
-# user of the Compute API. These options are used in tests that stress
-# the admin-only parts of the Compute API
-
 username=admin
 password=AABBCC112233
 tenant_name=admin
 
+[identity-admin]
+username=admin
+password=AABBCC112233
+tenant_name=admin
 EOF_CAT
 
 cd /root/tempest
