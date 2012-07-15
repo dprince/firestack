@@ -126,15 +126,28 @@ function fail {
     exit 1
 }
 
+GIT_CACHE_DIR=/root/.git_repo_cache
 function git_clone_with_retry {
     local URL=${1:?"Please specify a URL."}
     local DIR=${2:?"Please specify a DIR."}
-    local COUNT=1
-    until GIT_ASKPASS=echo git clone "$URL" "$DIR"; do
-        [ "$COUNT" -eq "3" ] && { echo"Failed to clone: $URL"; exit 1; }
-        sleep $(( $COUNT * 5 ))
-        COUNT=$(( $COUNT + 1 ))
-    done
+    local CACHE_DIR="$GIT_CACHE_DIR/$(echo \"$DIR\" | md5sum | cut -f 1 -d ' ')"
+    [ -d "$GIT_CACHE_DIR" ] || mkdir -p "$GIT_CACHE_DIR"
+    if [ -d "$CACHE_DIR" ]; then
+        echo "Using git repository cache..."
+        pushd "$CACHE_DIR"
+        git pull origin master
+        popd
+        cp -a "$CACHE_DIR" "$DIR"
+    else
+        local COUNT=1
+        echo "Git cloning: $URL"
+        until GIT_ASKPASS=echo git clone "$URL" "$DIR"; do
+            [ "$COUNT" -eq "4" ] && fail "Failed to clone: $URL"
+            sleep $(( $COUNT * 5 ))
+            COUNT=$(( $COUNT + 1 ))
+        done
+        cp -a "$DIR" "$CACHE_DIR"
+    fi
 }
 
 # Test if the rpms we require are in the cache allready
