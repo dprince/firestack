@@ -74,7 +74,7 @@ if [[ "#{mode}" == "libvirt" ]]; then
 		image_name: ami-tty
 		test_rebuild_server: true
 		test_create_image: false
-		test_resize_server: true
+		test_resize_server: false
 		flavor_ref: 1
 		sleep_after_image_create: 10
 	EOF_CAT
@@ -85,7 +85,7 @@ elif [[ "#{mode}" == "xen" ]]; then
 		server_build_timeout: 420
 		test_create_image: true
 		test_rebuild_server: true
-		test_resize_server: true
+		test_resize_server: false
 		test_admin_password: true
 		test_soft_reboot_server: true
 		test_hard_reboot_server: true
