@@ -1,5 +1,3 @@
-include ChefVPCToolkit::CloudServersVPC
-
 namespace :fedora do
 
     #generic package builder to build RPMs for all Openstack projects
@@ -25,12 +23,15 @@ namespace :fedora do
         src_branch = ENV.fetch("SOURCE_BRANCH", "master")
         build_docs = ENV.fetch("BUILD_DOCS", "")
         raise "Please specify a SOURCE_URL." if src_url.nil?
-
+        server_name=ENV['SERVER_NAME']
+        server_name = "login" if server_name.nil?
         cacheurl=ENV["CACHEURL"]
 
         puts "Building #{project} packages using: #{packager_url}:#{packager_branch} #{src_url}:#{src_branch}"
 
         remote_exec %{
+ssh #{server_name} bash <<-"EOF_SERVER_NAME"
+#{BASH_COMMON}
 rpm -q fedpkg &> /dev/null || yum install -q -y git fedpkg python-setuptools
 
 BUILD_LOG=$(mktemp)
@@ -104,6 +105,7 @@ else
   echo "Failed to build RPM: $RPM_BASE_NAME"
   exit 1
 fi
+EOF_SERVER_NAME
 RETVAL=$?
 exit $RETVAL
         } do |ok, out|
@@ -114,12 +116,17 @@ exit $RETVAL
     end
 
     # uploader to rpm cache
+    desc "Upload packages to the cache URL."
     task :fill_cache do
 
         cacheurl=ENV["CACHEURL"]
         raise "Please specify a CACHEURL" if cacheurl.nil?
+        server_name=ENV['SERVER_NAME']
+        server_name = "login" if server_name.nil?
 
         remote_exec %{
+ssh #{server_name} bash <<-"EOF_SERVER_NAME"
+#{BASH_COMMON}
 ls -d *_source || { echo "No RPMS to upload"; exit 0; }
 
 for SRCDIR in $(ls -d *_source) ; do
@@ -147,8 +154,39 @@ for SRCDIR in $(ls -d *_source) ; do
         fi
     done
 done
+EOF_SERVER_NAME
         } do |ok, out|
             fail "Cache of packages failed!" unless ok
         end
     end
+
+    desc "Create an RPM repo."
+    task :create_rpm_repo do
+
+        server_name=ENV['SERVER_NAME']
+        server_name = "login" if server_name.nil?
+ 
+        puts "Creating RPM repo..."
+        remote_exec %{
+ssh #{server_name} bash <<-"EOF_SERVER_NAME"
+#{BASH_COMMON}
+yum -q -y install httpd
+
+mkdir -p /var/www/html/repos/
+rm -rf /var/www/html/repos/*
+find ~/rpms -name "*rpm" -exec cp {} /var/www/html/repos/ \\;
+
+createrepo /var/www/html/repos
+if [ -f /etc/init.d/httpd ]; then
+  /etc/init.d/httpd restart
+else
+  systemctl restart httpd.service
+fi
+
+EOF_SERVER_NAME
+        } do |ok, out|
+            fail "Failed to create RPM repo!" unless ok
+        end
+    end
+
 end

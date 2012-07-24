@@ -1,9 +1,7 @@
-include ChefVPCToolkit::CloudServersVPC
-
 desc "Tail nova, glance, keystone logs."
 task :tail_logs do
 
-    sg=ServerGroup.fetch(:source => "cache")
+    sg=ServerGroup.get(:source => "cache")
     server_name=ENV['SERVER_NAME']
     line_count=ENV['LINE_COUNT']
     line_count = 250 if line_count.nil?

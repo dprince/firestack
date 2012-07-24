@@ -1,5 +1,3 @@
-include ChefVPCToolkit::CloudServersVPC
-
 desc "Ruby tests for the v1.1 API."
 task :torpedo do
 

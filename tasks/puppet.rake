@@ -1,7 +1,7 @@
 require 'yaml'
 
 namespace :puppet do
-    desc "Install Puppet server and clients"
+    desc "Install and configure packages on clients with puppet."
     task :install do
 
         source_url=ENV['SOURCE_URL']
@@ -15,7 +15,7 @@ namespace :puppet do
         #specify if you only want to run puppet on a single server
         server_name=ENV['SERVER_NAME']
 
-        config=YAML.load_file("#{CHEF_VPC_PROJECT}/config/puppet-configs/#{puppet_config}/config.yml")
+        config=YAML.load_file("#{KYTOON_PROJECT}/config/puppet-configs/#{puppet_config}/config.yml")
         node_cmds = ""
         hostnames = []
         config["nodes"].each do |node|
@@ -27,16 +27,10 @@ namespace :puppet do
             end
         end
 
-        scp("#{CHEF_VPC_PROJECT}/config/puppet-configs", "")
+        scp("#{KYTOON_PROJECT}/config/puppet-configs", "")
 
 puts "Downloading puppet modules..."
         remote_exec %{
-yum -q -y install httpd
-
-mkdir -p /var/www/html/repos/
-rm -rf /var/www/html/repos/*
-find ~/rpms -name "*rpm" -exec cp {} /var/www/html/repos/ \\;
-
 rm -rf puppet-modules
 echo Getting Puppet modules from #{source_url}
 git_clone_with_retry "#{source_url}" puppet-modules
@@ -44,16 +38,8 @@ pushd puppet-modules
 git checkout -q #{source_branch} || { echo "Failed to checkout #{source_branch}."; exit 1; }
 popd
 
-createrepo /var/www/html/repos
-if [ -f /etc/init.d/httpd ]; then
-  /etc/init.d/httpd restart
-else
-  systemctl restart httpd.service
-fi
-
 #run commands to scp modules and manifests here
 #{node_cmds}
-
         } do |ok, out|
             fail "Puppet errors occurred! \n #{out}" unless ok
         end

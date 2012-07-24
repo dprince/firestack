@@ -1,7 +1,6 @@
 require "base64"
 
-include ChefVPCToolkit::CloudServersVPC
-include ChefVPCToolkit::Util
+include Kytoon::Util
 
 def mask_to_cidr(mask)
     bitcount = 0
@@ -51,47 +50,37 @@ namespace :xen do
     desc "Install plugins into the XenServer dom0."
     task :install_plugins do
 
-        sg=ServerGroup.fetch(:source => "cache")
-        gw_ip=sg.vpn_gateway_ip
-        src_dir=ENV['SOURCE_DIR']
-        raise "Please specify a SOURCE_DIR." if src_dir.nil?
-        server_name=ENV['SERVER_NAME']
-        # default to xen1 if SERVER_NAME is unset
-        server_name = "xen1" if server_name.nil?
-        pwd=Dir.pwd
-        out=%x{
-cd #{src_dir}
+        source_url=ENV['SOURCE_URL']
+        raise "Please specify a SOURCE_URL." if source_url.nil?
+        source_branch=ENV['SOURCE_BRANCH']
+        source_branch="master" if source_branch.nil?
+
+        puts "Installing Xen plugins..."
+        remote_exec %{
+MY_TMP=$(mktemp -d)
+git_clone_with_retry "#{source_url}" nova_source
+cd nova_source
+git checkout -q #{source_branch} || { echo "Failed to checkout #{source_branch}."; exit 1; }
+
 [ -f nova/flags.py ] || { echo "Please specify a top level nova project dir."; exit 1; }
 cd plugins/xenserver/xenapi
-MY_TMP="#{mktempdir}"
 tar czf $MY_TMP/plugins.tar.gz ./etc 2> /dev/null || { echo "Failed to create plugins source tar."; exit 1; }
-scp #{SSH_OPTS} $MY_TMP/plugins.tar.gz root@#{gw_ip}:/tmp/plugins.tar.gz
-ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"BASH_EOF"
-scp /tmp/plugins.tar.gz #{server_name}:/tmp
-ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 cd /
-tar xf /tmp/plugins.tar.gz 2> /dev/null || { echo "Failed to extract plunigs tar."; exit 1; }
+tar xf $MY_TMP/plugins.tar.gz 2> /dev/null || { echo "Failed to extract plugins tar."; exit 1; }
 chmod a+x /etc/xapi.d/plugins/*
 sed -i -e "s/enabled=0/enabled=1/" /etc/yum.repos.d/CentOS-Base.repo
 rpm -q parted &> /dev/null || yum install -y -q parted
-EOF_SERVER_NAME
-BASH_EOF
+        } do |ok, out|
+            fail "Failed to install plugins. \n #{out}" unless ok
+        end
 
-	}
+    end
 
-		retval=$?
-		puts out
-		if not retval.success?
-			fail "Failed to install plugins!"
-		end
-
-	end
-
-    desc "Bootstrap a local XenServer install to a server group."
+    #desc "Bootstrap a local XenServer install to a server group."
     task :bootstrap do
 
-        group=ServerGroup.fetch(:source => "cache")
-        gw_ip=group.vpn_gateway_ip
+        group=ServerGroup.get(:source => "cache")
+        gw_ip=group.gateway_ip
 
         xenserver_ip=ENV['XENSERVER_IP']
         raise "Please specify a XENSERVER_IP." if xenserver_ip.nil?
@@ -103,10 +92,10 @@ BASH_EOF
         if client.nil? then
             client=Client.create(group, server_name, false)
             client.poll_until_online
-			group=ServerGroup.fetch
+			group=ServerGroup.get
 			group.cache_to_disk
         end
-        client=Client.fetch(:id => client.id, :source => "remote")
+        client=Client.get(:id => client.id, :source => "remote")
         vpn_interface=client.vpn_network_interfaces[0]
 
         root_ssh_pub_key=%x{rake ssh cat /root/.ssh/authorized_keys | grep cloud_servers_vpc}.chomp
@@ -162,7 +151,7 @@ client
 dev #{group.vpn_device}
 proto #{group.vpn_proto}
 
-remote #{group.vpn_gateway_ip} 1194
+remote #{group.gateway_ip} 1194
 
 resolv-retry infinite
 nobind
@@ -270,7 +259,7 @@ EOF_BASH
 
     end
 
-    desc "Disconnect and cleanup Xen instance from VPC Group."
+    #desc "Disconnect and cleanup Xen instance from VPC Group."
     task :disconnect do
 
         server_name=ENV['SERVER_NAME']

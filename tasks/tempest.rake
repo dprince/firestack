@@ -1,5 +1,3 @@
-include ChefVPCToolkit::CloudServersVPC
-
 desc "Run tempest."
 task :tempest do
 

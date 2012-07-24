@@ -1,5 +1,3 @@
-include ChefVPCToolkit::CloudServersVPC
-
 namespace :stackattack do
 
     desc "Install stack attack and dependencies on SERVER_NAME or nova1 in /usr/local/bin"

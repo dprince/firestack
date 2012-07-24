@@ -1,5 +1,3 @@
-include ChefVPCToolkit::CloudServersVPC
-
 namespace :swift do
     task :build_fedora_packages do
 

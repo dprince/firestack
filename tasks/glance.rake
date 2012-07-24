@@ -1,5 +1,3 @@
-include ChefVPCToolkit::CloudServersVPC
-
 namespace :glance do
 
     desc "Push source into a glance installation."
@@ -88,7 +86,7 @@ rm -Rf "$BUILD_TMP"
     end
 
     task :tarball do
-        gw_ip = ServerGroup.fetch(:source => "cache").vpn_gateway_ip
+        gw_ip = ServerGroup.get(:source => "cache").vpn_gateway_ip
         src_dir = ENV['SOURCE_DIR'] or raise "Please specify a SOURCE_DIR."
         glance_revision = get_revision(src_dir)
         raise "Failed to get glance revision." if glance_revision.empty?
@@ -126,6 +124,33 @@ if [ ! -f /var/lib/glance/images_loaded ]; then
     ARI_ID=`glance add name="ari-tty" type="ramdisk" disk_format="ari" container_format="ari" is_public=true --silent-upload < /tmp/tty_linux/ramdisk | tail -n 1 | sed 's/.*\: //g'`
     AKI_ID=`glance add name="aki-tty" type="kernel" disk_format="aki" container_format="aki" is_public=true --silent-upload < /tmp/tty_linux/kernel | tail -n 1 | sed 's/.*\: //g'`
     if glance add name="ami-tty" type="kernel" disk_format="ami" container_format="ami" ramdisk_id="$ARI_ID" kernel_id="$AKI_ID" is_public=true --silent-upload < /tmp/tty_linux/image; then
+       touch /var/lib/glance/images_loaded
+    fi
+fi
+EOF_SERVER_NAME
+        } do |ok, out|
+            puts out
+            fail "Load images failed!" unless ok
+        end
+    end
+
+    task :load_images_xen do
+        server_name=ENV['SERVER_NAME']
+        # default to nova1 if SERVER_NAME is unset
+        server_name = "nova1" if server_name.nil?
+        remote_exec %{
+if [ -f /images/squeeze-agent-0.0.1.31.ova ]; then
+  scp /images/squeeze-agent-0.0.1.31.ova #{server_name}:/tmp/
+fi
+ssh #{server_name} bash <<-"EOF_SERVER_NAME"
+if [ ! -f /var/lib/glance/images_loaded ]; then
+    mkdir -p /var/lib/glance/
+    [ -f /root/openstackrc ] && source /root/openstackrc
+    if [ ! -f /tmp/squeeze-agent-0.0.1.31.ova ]; then
+      cd /tmp
+      curl http://c3324746.r46.cf0.rackcdn.com/squeeze-agent-0.0.1.31.ova -o /tmp/squeeze-agent-0.0.1.31.ova
+    fi
+    if glance add name="squeeze" disk_format="vhd" container_format="ovf" is_public=true --silent-upload < /tmp/squeeze-agent-0.0.1.31.ova; then
        touch /var/lib/glance/images_loaded
     fi
 fi

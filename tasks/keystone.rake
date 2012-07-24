@@ -1,5 +1,3 @@
-include ChefVPCToolkit::CloudServersVPC
-
 namespace :keystone do
 
     desc "Build packages from a local keystone source directory."
@@ -80,7 +78,7 @@ BASH_EOF
     end
 
     task :tarball do
-        gw_ip = ServerGroup.fetch(:source => "cache").vpn_gateway_ip
+        gw_ip = ServerGroup.get(:source => "cache").vpn_gateway_ip
         src_dir = ENV['SOURCE_DIR'] or raise "Please specify a SOURCE_DIR."
         keystone_revision = get_revision(src_dir)
         raise "Failed to get keystone revision." if keystone_revision.empty?
