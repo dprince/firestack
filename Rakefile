@@ -1,21 +1,20 @@
-CHEF_VPC_PROJECT = "#{File.dirname(__FILE__)}" unless defined?(CHEF_VPC_PROJECT)
+KYTOON_PROJECT = "#{File.dirname(__FILE__)}" unless defined?(KYTOON_PROJECT)
 SSH_OPTS="-o StrictHostKeyChecking=no"
 
 require 'rubygems'
 
-version_file=(File.join(CHEF_VPC_PROJECT, 'config', 'TOOLKIT_VERSION'))
-toolkit_version=nil
-if ENV['CHEF_VPC_TOOLKIT_VERSION'] then
-  toolkit_version=ENV['CHEF_VPC_TOOLKIT_VERSION']
-elsif File.exists?(version_file)
-  toolkit_version=IO.read(version_file)
-end
+#version_file=(File.join(KYTOON_PROJECT, 'config', 'TOOLKIT_VERSION'))
+#toolkit_version=nil
+#if ENV['KYTOON_VERSION'] then
+  #toolkit_version=ENV['KYTOON_VERSION']
+#elsif File.exists?(version_file)
+  #toolkit_version=IO.read(version_file)
+#end
+#gem 'kytoon', "~>#{toolkit_version}" if toolkit_version
 
-gem 'chef-vpc-toolkit', "~>#{toolkit_version}" if toolkit_version
+require 'kytoon'
 
-require 'chef-vpc-toolkit'
-
-include ChefVPCToolkit
+include Kytoon
 
 require 'tempfile'
 require 'fileutils'
@@ -38,8 +37,8 @@ def shh(script)
 end
 
 def remote_exec(script_text)
-    sg=ServerGroup.fetch(:source => "cache")
-    gw_ip=sg.vpn_gateway_ip
+    sg=ServerGroup.get
+    gw_ip=sg.gateway_ip
 
     out=%x{
 ssh #{SSH_OPTS} root@#{gw_ip} bash <<-"REMOTE_EXEC_EOF"
@@ -57,8 +56,8 @@ end
 
 def remote_multi_exec(hosts, script_text)
 
-    sg=ServerGroup.fetch(:source => "cache")
-    gw_ip=sg.vpn_gateway_ip
+    sg=ServerGroup.get
+    gw_ip=sg.gateway_ip
 
     results = {}
     threads = []
@@ -87,7 +86,7 @@ end
 
 def scp(src_dir, dest)
 
-    gw_ip = ServerGroup.fetch(:source => "cache").vpn_gateway_ip
+    gw_ip = ServerGroup.get.gateway_ip
 
     shh %{
         scp -r #{SSH_OPTS} #{src_dir} root@#{gw_ip}:#{dest}
@@ -108,11 +107,11 @@ def get_revision(source_dir)
     }.strip
 end
 
-Dir[File.join("#{ChefVPCToolkit::Version::CHEF_VPC_TOOLKIT_ROOT}/rake", '*.rake')].each do  |rakefile|
+Dir[File.join("#{Kytoon::Version::KYTOON_ROOT}/rake", '*.rake')].each do  |rakefile|
     import(rakefile)
 end
 
-if File.exist?(File.join(CHEF_VPC_PROJECT, 'tasks')) then
+if File.exist?(File.join(KYTOON_PROJECT, 'tasks')) then
   Dir[File.join(File.dirname("__FILE__"), 'tasks', '*.rake')].each do  |rakefile|
     import(rakefile)
   end
@@ -127,7 +126,9 @@ function fail {
 }
 
 GIT_CACHE_DIR=/root/.git_repo_cache
+
 function git_clone_with_retry {
+    rpm -q git &> /dev/null || yum install -q -y git
     local URL=${1:?"Please specify a URL."}
     local DIR=${2:?"Please specify a DIR."}
     local CACHE_DIR="$GIT_CACHE_DIR/$(echo \"$DIR\" | md5sum | cut -f 1 -d ' ')"
@@ -153,6 +154,7 @@ function git_clone_with_retry {
 # Test if the rpms we require are in the cache allready
 # If present this function downloads them to ~/rpms
 function download_cached_rpm {
+    rpm -q git &> /dev/null || yum install -q -y git
     local PROJECT="$1"
     local SRC_URL="$2"
     local SRC_BRANCH="$3"
