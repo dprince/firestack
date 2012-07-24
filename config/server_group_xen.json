@@ -1,0 +1,24 @@
+{
+    "name": "Fedora",
+    "netmask": "255.255.255.0",
+    "gateway": "192.168.0.1",
+    "broadcast": "192.168.0.127",
+    "dns_nameserver": "8.8.8.8",
+    "network_type": "static",
+    "public_ip_bridge": "xenbr0",
+    "bridge": "xenbr1",
+    "servers": [
+        {
+            "hostname": "login",
+            "image_path": "/images/fedora-buildbox.xva",
+            "ip_address": "192.168.0.2",
+            "mac": "e2:6d:71:67:7e:66"
+        },
+        {
+            "hostname": "nova1",
+            "image_path": "/images/fedora-db.xva",
+            "ip_address": "192.168.0.3",
+            "mac": "e2:ad:a1:a7:ae:67"
+        }
+    ]
+}
