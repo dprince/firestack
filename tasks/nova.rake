@@ -1,6 +1,6 @@
 namespace :nova do
 
-    desc "Push source into a nova installation."
+    desc "Install local Nova source code into the group."
     task :install_source => :tarball do
 
         src_dir=ENV['SOURCE_DIR']
@@ -168,8 +168,9 @@ EOF_SERVER_NAME
 
     end
 
-    desc "Build xen plugins rpm."
-    task :build_rpms => :tarball do
+    #Used only for XenServer
+    #desc "Build xen plugins rpm."
+    task :build_xen_rpms => :tarball do
         src_dir = ENV['SOURCE_DIR'] or raise "Please specify a SOURCE_DIR."
         nova_revision = get_revision(src_dir)
         raise "Failed to get nova revision." if nova_revision.empty?
@@ -194,7 +195,7 @@ EOF_SERVER_NAME
         end
     end
 
-    desc "Build packages from a local nova source directory."
+    desc "Build Nova packages."
     task :build_packages do
         if ENV['RPM_PACKAGER_URL'].nil? then
             Rake::Task["nova:build_ubuntu_packages"].invoke

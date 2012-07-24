@@ -10,7 +10,7 @@ namespace :swift do
         Rake::Task["fedora:build_packages"].invoke
     end
 
-    desc "Build swift packages."
+    desc "Build Swift packages."
     task :build_packages do
         Rake::Task["swift:build_fedora_packages"].invoke
     end

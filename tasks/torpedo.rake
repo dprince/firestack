@@ -1,4 +1,4 @@
-desc "Ruby tests for the v1.1 API."
+desc "Install and run Torpedo: Fast Openstack tests"
 task :torpedo do
 
 	server_name=ENV['SERVER_NAME']

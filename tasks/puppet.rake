@@ -67,7 +67,7 @@ rm -f /var/lib/nova/tmp/nova-iptables.lock
     end
 end
 
-desc "Rebuild and Re-run puppet the specified server."
+#desc "Rebuild and Re-run puppet the specified server."
 task :repuppet => [ "server:rebuild", "group:poll" ] do
     remote_exec "rm .ssh/known_hosts"
     Rake::Task['puppet:install'].invoke

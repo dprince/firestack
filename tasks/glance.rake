@@ -1,6 +1,6 @@
 namespace :glance do
 
-    desc "Push source into a glance installation."
+    desc "Install local Glance source code into the group."
     task :install_source => :tarball do
         server_name=ENV['SERVER_NAME']
         server_name = "glance1" if server_name.nil?
@@ -19,7 +19,7 @@ EOF_SERVER_NAME
         end
     end
 
-    desc "Build packages from a local glance source directory."
+    desc "Build Glance packages."
     task :build_packages do
         if ENV['RPM_PACKAGER_URL'].nil? then
             Rake::Task["glance:build_ubuntu_packages"].invoke

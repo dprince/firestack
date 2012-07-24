@@ -1,4 +1,4 @@
-desc "Run tempest."
+desc "Install and run Tempest."
 task :tempest do
 
 server_name=ENV['SERVER_NAME']

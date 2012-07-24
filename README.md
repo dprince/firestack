@@ -34,6 +34,34 @@ notes in the Kytoon XenServer provider for the required setup.
 Examples
 --------
 
+Available tasks:
+
+	rake fedora:create_rpm_repo   # Create an RPM repo.
+	rake fedora:fill_cache        # Upload packages to the cache URL.
+	rake glance:build_packages    # Build Glance packages.
+	rake glance:install_source    # Install local Glance source code into the g...
+	rake group:create             # Create a new group of cloud servers
+	rake group:delete             # Delete a cloud server group
+	rake group:gateway_ip         # Print the VPN gateway IP address
+	rake group:list               # List existing cloud server groups.
+	rake group:show               # Print information for a cloud server group
+	rake keystone:build_packages  # Build Keystone packages.
+	rake keystone:configure       # Configure keystone
+	rake nova:build_packages      # Build Nova packages.
+	rake nova:install_source      # Install local Nova source code into the group.
+	rake nova:smoke_tests         # Run the nova smoke tests.
+	rake nova:tail_logs           # Tail nova logs.
+	rake puppet:install           # Install and configure packages on clients w...
+	rake ssh                      # SSH into the most recently created VPN gate...
+	rake stackattack:install      # Install stack attack and dependencies on SE...
+	rake swift:build_packages     # Build Swift packages.
+	rake tail_logs                # Tail nova, glance, keystone logs.
+	rake tempest                  # Install and run Tempest.
+	rake torpedo                  # Install and run Torpedo: Fast Openstack tests
+	rake usage                    # Print help and usage information
+	rake xen:install_plugins      # Install plugins into the XenServer dom0.
+
+
 ```bash
 
 #create a group

@@ -1,6 +1,5 @@
 namespace :keystone do
 
-    desc "Build packages from a local keystone source directory."
     task :build_ubuntu_packages => :tarball do
 
         src_dir=ENV['SOURCE_DIR']
@@ -103,7 +102,7 @@ BASH_EOF
         end
     end
 
-    desc "Build keystone packages."
+    desc "Build Keystone packages."
     task :build_packages do
         if ENV['RPM_PACKAGER_URL'].nil? then
             Rake::Task["keystone:build_ubuntu_packages"].invoke
