@@ -134,7 +134,6 @@ swift::storage::loopback { ['1', '2', '3']:
   require => Class['swift'],
   seek => '250000',
 }
-
 # sets up storage nodes which is composed of a single
 # device that contains an endpoint for an object, account, and container
 
@@ -168,19 +167,9 @@ class { 'swift::ringbuilder':
 }
 
 class { 'swift::proxy':
+  auth_type => 'keystone',
   account_autocreate => true,
   require            => Class['swift::ringbuilder'],
-}
-
-class { 'glance::api':
-  api_flavor => 'keystone+cachemanagement',
-  sql_connection => $glance_sql_connection,
-  default_store => 'swift',
-  swift_store_auth_address => 'http://127.0.0.1:8080/auth/v1.0/',
-  swift_store_user => 'test:tester',
-  swift_store_key => 'testing',
-  swift_store_create_container_on_put => 'True',
-  require => [Class["keystone"], Class["swift::proxy"]]
 }
 
 class { 'glance::postgresql':
@@ -193,5 +182,17 @@ class { 'glance::postgresql':
 class { 'glance::registry':
   registry_flavor => 'keystone',
   sql_connection => $glance_sql_connection,
-  require => [Class["keystoner"], Class["glance::postgresql"], Class["postgresql::python"]]
+  require => [Class["keystone"], Class["glance::postgresql"], Class["postgresql::python"]]
+}
+
+class { 'glance::api':
+  api_flavor => 'keystone+cachemanagement',
+  sql_connection => $glance_sql_connection,
+  default_store => 'swift',
+  swift_store_auth_version => '2',
+  swift_store_auth_address => 'http://127.0.0.1:5000/v2.0/',
+  swift_store_user => 'admin:admin',
+  swift_store_key => 'AABBCC112233',
+  swift_store_create_container_on_put => 'True',
+  require => [Class["keystone"], Class["swift::proxy"], Class["glance::postgresql"], Class["postgresql::python"], Class["glance::registry"]]
 }

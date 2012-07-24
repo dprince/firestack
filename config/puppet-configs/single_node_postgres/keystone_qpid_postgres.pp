@@ -126,5 +126,3 @@ class { 'glance::api':
   sql_connection => $glance_sql_connection,
   require => [Class["keystone"], Class["glance::postgresql"], Class["postgresql::python"], Class["glance::registry"]]
 }
-
-
