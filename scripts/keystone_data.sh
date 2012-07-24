@@ -23,7 +23,7 @@ ADMIN_USER=`get_id keystone user-create \
 DEMO_USER=`get_id keystone user-create \
                                  --name=demo \
                                  --pass="DDEEFF445566" \
-                                 --email=admin@example.com`
+                                 --email=demo@example.com`
 
 # Roles
 ADMIN_ROLE=`get_id keystone role-create --name=admin`
