@@ -1,4 +1,4 @@
-GROUP_TYPE=xenserver
+export GROUP_TYPE=xenserver
 # GATEWAY_IP points to your XenServer machine
 rake group:create SERVER_GROUP_JSON="config/server_group_xen.json" GATEWAY_IP="123.123.123.123"
 
