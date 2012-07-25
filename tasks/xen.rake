@@ -55,12 +55,18 @@ namespace :xen do
         source_branch=ENV['SOURCE_BRANCH']
         source_branch="master" if source_branch.nil?
 
+        git_master=ENV['GIT_MASTER']
+        git_master="git://github.com/openstack/nova.git" if git_master.nil?
+
         puts "Installing Xen plugins..."
         remote_exec %{
 MY_TMP=$(mktemp -d)
-git_clone_with_retry "#{source_url}" nova_source
+rm -Rf nova_source
+
+git_clone_with_retry "#{git_master}" nova_source
 cd nova_source
-git checkout -q #{source_branch} || { echo "Failed to checkout #{source_branch}."; exit 1; }
+git fetch "#{source_url}" "#{source_branch}" || fail "Failed to git fetch branch #{source_branch}."
+git checkout -q FETCH_HEAD || fail "Failed to git checkout FETCH_HEAD."
 
 [ -f nova/flags.py ] || { echo "Please specify a top level nova project dir."; exit 1; }
 cd plugins/xenserver/xenapi
