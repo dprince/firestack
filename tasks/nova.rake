@@ -304,7 +304,7 @@ EOF_SERVER_NAME
     end
 
     task :tarball do
-        gw_ip = ServerGroup.get(:source => "cache").vpn_gateway_ip
+        gw_ip = ServerGroup.get.gateway_ip
         src_dir = ENV['SOURCE_DIR'] or raise "Please specify a SOURCE_DIR."
         nova_revision = get_revision(src_dir)
         raise "Failed to get nova revision." if nova_revision.empty?

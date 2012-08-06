@@ -86,7 +86,7 @@ rm -Rf "$BUILD_TMP"
     end
 
     task :tarball do
-        gw_ip = ServerGroup.get(:source => "cache").vpn_gateway_ip
+        gw_ip = ServerGroup.get.gateway_ip
         src_dir = ENV['SOURCE_DIR'] or raise "Please specify a SOURCE_DIR."
         glance_revision = get_revision(src_dir)
         raise "Failed to get glance revision." if glance_revision.empty?
