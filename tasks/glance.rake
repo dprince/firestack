@@ -38,6 +38,33 @@ EOF_SERVER_NAME
         Rake::Task["fedora:build_packages"].invoke
     end
 
+    task :build_python_warlock do
+
+        # First we build warlock here until it gets into Fedora
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/python-warlock.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/bcwaldon/warlock.git"
+        end
+        ENV["PROJECT_NAME"] = "python-warlock"
+        ENV["SOURCE_URL"] = "git://github.com/bcwaldon/warlock.git"
+        Rake::Task["fedora:build_packages"].invoke
+
+    end
+
+    task :build_python_glanceclient do
+
+        # Now build python-glanceclient
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://pkgs.fedoraproject.org/python-glanceclient.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/openstack/python-glanceclient.git"
+        end
+        ENV["PROJECT_NAME"] = "python-glanceclient"
+        Rake::Task["fedora:build_packages"].invoke
+
+    end
+
     task :build_ubuntu_packages => :tarball do
 
         deb_packager_url=ENV['DEB_PACKAGER_URL']
