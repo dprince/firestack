@@ -49,7 +49,6 @@ puts "Running puppet apply on hostnames: " + hostnames.to_s
         results = remote_multi_exec hostnames, %{
 # NOTE: we upgrade systemd due to a potential issue w/ the MySQL init scripts
 rpm -q puppet &> /dev/null || yum -q -y install puppet yum-plugin-priorities systemd
-echo -e "[puppetserverrepos]\\nname=puppet server repository\\nbaseurl=http://login/repos\\nenabled=1\\ngpgcheck=0\\npriority=1" > /etc/yum.repos.d/puppetserverrepos.repo
 ln -sf /root/puppet-modules/modules /etc/puppet/modules
 puppet apply --verbose manifest.pp &> /var/log/puppet/puppet.log || { cat /var/log/puppet/puppet.log; exit 1; }
 #FIXME remove nova-iptables.lock if it exists. (puppet restarts nova-network twice too quickly which sometimes causes it to create a lockfile which isn't deleted)

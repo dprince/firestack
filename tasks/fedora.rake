@@ -165,8 +165,8 @@ EOF_SERVER_NAME
 
         server_name=ENV['SERVER_NAME']
         server_name = "login" if server_name.nil?
- 
-        puts "Creating RPM repo..."
+
+        puts "Creating RPM repo on #{server_name}..."
         remote_exec %{
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 #{BASH_COMMON}
@@ -187,6 +187,21 @@ EOF_SERVER_NAME
         } do |ok, out|
             fail "Failed to create RPM repo!" unless ok
         end
+
+        sg=ServerGroup.get()
+        puts "Creating yum repo config files..."
+        results = remote_multi_exec sg.server_names, %{
+echo -e "[openstack]\\nname=OpenStack RPM repo\\nbaseurl=http://#{server_name}/repos\\nenabled=1\\ngpgcheck=0\\npriority=1" > /etc/yum.repos.d/openstack.repo
+        }
+
+        err_msg = ""
+        results.each_pair do |hostname, data|
+            ok = data[0]
+            out = data[1]
+            err_msg += "Errors creating Yum conf on #{hostname}. \n #{out}\n" unless ok
+        end
+        fail err_msg unless err_msg == ""
+
     end
 
 end
