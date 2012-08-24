@@ -58,13 +58,13 @@ path=tokens
 strategy=keystone
 
 [compute]
-username=admin
-password=AABBCC112233
-tenant_name=admin
+username=user1
+password=DDEEFF445566
+tenant_name=user1
 
-alt_username=demo
-alt_password=DDEEFF445566
-alt_tenant_name=demo
+alt_username=user2
+alt_password=GGHHII778899
+alt_tenant_name=user2
 
 image_ref=$IMG_ID
 image_ref_alt=$IMG_ID

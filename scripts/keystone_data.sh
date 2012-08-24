@@ -12,7 +12,8 @@ ADMIN_PASSWORD="AABBCC112233"
 SERVICE_PASSWORD="SERVICE_PASSWORD"
 ADMIN_TENANT=`get_id keystone tenant-create --name=admin`
 SERVICE_TENANT=$(get_id keystone tenant-create --name=service)
-DEMO_TENANT=`get_id keystone tenant-create --name=demo`
+USER1_TENANT=`get_id keystone tenant-create --name=user1`
+USER2_TENANT=`get_id keystone tenant-create --name=user2`
 INVIS_TENANT=`get_id keystone tenant-create --name=invisible_to_admin`
 
 # Users
@@ -20,10 +21,14 @@ ADMIN_USER=`get_id keystone user-create \
                                  --name=admin \
                                  --pass="$ADMIN_PASSWORD" \
                                  --email=admin@example.com`
-DEMO_USER=`get_id keystone user-create \
-                                 --name=demo \
+USER1_USER=`get_id keystone user-create \
+                                 --name=user1 \
                                  --pass="DDEEFF445566" \
-                                 --email=demo@example.com`
+                                 --email=user1@example.com`
+USER2_USER=`get_id keystone user-create \
+                                 --name=user2 \
+                                 --pass="GGHHII778899" \
+                                 --email=user2@example.com`
 
 # Roles
 ADMIN_ROLE=`get_id keystone role-create --name=admin`
@@ -39,22 +44,30 @@ NETADMIN_ROLE=`get_id keystone role-create --name=netadmin`
 keystone user-role-add --user_id="$ADMIN_USER" \
                        --role_id="$ADMIN_ROLE" \
                        --tenant_id="$ADMIN_TENANT"
-keystone user-role-add --user_id="$DEMO_USER" \
+keystone user-role-add --user_id="$USER1_USER" \
                        --role_id="$MEMBER_ROLE" \
-                       --tenant_id="$DEMO_TENANT"
-keystone user-role-add --user_id="$DEMO_USER" \
+                       --tenant_id="$USER1_TENANT"
+keystone user-role-add --user_id="$USER1_USER" \
                        --role_id="$SYSADMIN_ROLE" \
-                       --tenant_id="$DEMO_TENANT"
-keystone user-role-add --user_id="$DEMO_USER" \
+                       --tenant_id="$USER1_TENANT"
+keystone user-role-add --user_id="$USER1_USER" \
                        --role_id="$NETADMIN_ROLE" \
-                       --tenant_id="$DEMO_TENANT"
-keystone user-role-add --user_id="$DEMO_USER" \
+                       --tenant_id="$USER1_TENANT"
+keystone user-role-add --user_id="$USER2_USER" \
+                       --role_id="$MEMBER_ROLE" \
+                       --tenant_id="$USER2_TENANT"
+keystone user-role-add --user_id="$USER2_USER" \
+                       --role_id="$SYSADMIN_ROLE" \
+                       --tenant_id="$USER2_TENANT"
+keystone user-role-add --user_id="$USER2_USER" \
+                       --role_id="$NETADMIN_ROLE" \
+                       --tenant_id="$USER2_TENANT"
+keystone user-role-add --user_id="$USER1_USER" \
                        --role_id="$MEMBER_ROLE" \
                        --tenant_id="$INVIS_TENANT"
 keystone user-role-add --user_id="$ADMIN_USER" \
                        --role_id="$ADMIN_ROLE" \
-                       --tenant_id="$DEMO_TENANT"
-
+                       --tenant_id="$USER1_TENANT"
 keystone user-role-add --user_id="$ADMIN_USER" \
                        --role_id="$KEYSTONEADMIN_ROLE" \
                        --tenant_id="$ADMIN_TENANT"
@@ -120,9 +133,15 @@ ADMIN_ACCESS=`echo "$RESULT" | grep access | awk '{print $4}'`
 ADMIN_SECRET=`echo "$RESULT" | grep secret | awk '{print $4}'`
 
 
-RESULT=`keystone ec2-credentials-create --tenant_id=$DEMO_TENANT --user_id=$DEMO_USER`
-DEMO_ACCESS=`echo "$RESULT" | grep access | awk '{print $4}'`
-DEMO_SECRET=`echo "$RESULT" | grep secret | awk '{print $4}'`
+RESULT=`keystone ec2-credentials-create --tenant_id=$USER1_TENANT --user_id=$USER1_USER`
+USER1_ACCESS=`echo "$RESULT" | grep access | awk '{print $4}'`
+USER1_SECRET=`echo "$RESULT" | grep secret | awk '{print $4}'`
+
+RESULT=`keystone ec2-credentials-create --tenant_id=$USER2_TENANT --user_id=$USER2_USER`
+USER2_ACCESS=`echo "$RESULT" | grep access | awk '{print $4}'`
+USER2_SECRET=`echo "$RESULT" | grep secret | awk '{print $4}'`
+
+
 
 cat > /root/openstackrc <<EOF
 export OS_USERNAME=admin
