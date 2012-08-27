@@ -46,6 +46,14 @@ fi
 test -e openstack-#{project} && rm -rf openstack-#{project}
 test -e $SRC_DIR && rm -rf $SRC_DIR
 
+# if no .gitconfig exists create one (we may need it when merging below)
+if [ ! -f ~/.gitconfig ]; then
+cat > ~/.gitconfig <<-EOF_GIT_CONFIG_CAT
+[user]
+        name = OpenStack
+        email = devnull@openstack.org
+EOF_GIT_CONFIG_CAT
+fi
 
 git_clone_with_retry "#{git_master}" "$SRC_DIR"
 cd "$SRC_DIR"
