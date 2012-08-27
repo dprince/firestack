@@ -77,6 +77,15 @@ fi
 #custom version
 sed -e "s|version *=.*|version='9999.9',|" -i setup.py
 
+#write out a custom versioninfo file (now required by novaclient)
+PROJECT="#{project}"
+SHORT_PROJECT_NAME=${PROJECT##python-}
+echo $SHORT_PROJECT_NAME
+if [ ! -f "$SHORT_PROJECT_NAME/versioninfo" ]; then
+  echo "writing version info"
+  echo "9999.9" > "$SHORT_PROJECT_NAME/versioninfo"
+fi
+
 SKIP_GENERATE_AUTHORS=1 SKIP_WRITE_GIT_CHANGELOG=1 python setup.py sdist &> $BUILD_LOG || { echo "Failed to run sdist."; cat $BUILD_LOG; exit 1; }
 
 cd 
