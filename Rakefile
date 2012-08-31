@@ -135,9 +135,9 @@ function git_clone_with_retry {
     [ -d "$GIT_CACHE_DIR" ] || mkdir -p "$GIT_CACHE_DIR"
     if [ -d "$CACHE_DIR" ]; then
         echo "Using git repository cache..."
-        pushd "$CACHE_DIR"
-        git pull origin master
-        popd
+        pushd "$CACHE_DIR" > /dev/null
+        git pull origin master &> /dev/null
+        popd > /dev/null
         cp -a "$CACHE_DIR" "$DIR"
     else
         local COUNT=1
