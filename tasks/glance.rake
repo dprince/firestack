@@ -46,7 +46,7 @@ EOF_SERVER_NAME
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/bcwaldon/warlock.git"
         end
-        ENV["PROJECT_NAME"] = "python-warlock"
+        ENV["PROJECT_NAME"] = "warlock"
         ENV["SOURCE_URL"] = "git://github.com/bcwaldon/warlock.git"
         Rake::Task["fedora:build_packages"].invoke
 
