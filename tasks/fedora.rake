@@ -24,8 +24,9 @@ namespace :fedora do
         build_docs = ENV.fetch("BUILD_DOCS", "")
         raise "Please specify a SOURCE_URL." if src_url.nil?
         server_name=ENV['SERVER_NAME']
-        server_name = "login" if server_name.nil?
+        server_name = "localhost" if server_name.nil?
         cacheurl=ENV["CACHEURL"]
+        version=ENV["VERSION"] || '2012.2'
 
         puts "Building #{project} packages using: #{packager_url}:#{packager_branch} #{src_url}:#{src_branch}"
 
@@ -38,7 +39,8 @@ BUILD_LOG=$(mktemp)
 SRC_DIR="#{project}_source"
 
 CACHEURL="#{cacheurl}"
-if [ -n $CACHEURL ] ; then
+VERSION="#{version}"
+if [ -n "$CACHEURL" ] ; then
     download_cached_rpm #{project} "#{src_url}" "#{src_branch}" "#{git_revision}" "#{packager_url}" "#{packager_branch}" 
     test $? -eq 0 && { echo "Retrieved rpm's from cache" ; exit 0 ; }
 fi
@@ -68,41 +70,38 @@ else
 	[ -z "$GIT_REVISION" ] && \
 		fail "Failed to obtain #{project} revision from git."
 fi
+GIT_COMMITS_PROJECT="$(git log --pretty=format:'' | wc -l)"
+
 echo "#{project.upcase}_REVISION=$GIT_REVISION"
 
 if [ -n "#{merge_master}" ]; then
 	git merge #{merge_master_branch} || fail "Failed to merge #{merge_master_branch}."
 fi
 
-#custom version
-sed -e "s|version *=.*|version='9999.9',|" -i setup.py
-
-#write out a custom versioninfo file (now required by novaclient)
-PROJECT="#{project}"
-SHORT_PROJECT_NAME=${PROJECT##python-}
-echo $SHORT_PROJECT_NAME
-if [ ! -f "$SHORT_PROJECT_NAME/versioninfo" ]; then
-  echo "writing version info"
-  echo "9999.9" > "$SHORT_PROJECT_NAME/versioninfo"
-fi
+PROJECT_NAME="#{project}"
 
 SKIP_GENERATE_AUTHORS=1 SKIP_WRITE_GIT_CHANGELOG=1 python setup.py sdist &> $BUILD_LOG || { echo "Failed to run sdist."; cat $BUILD_LOG; exit 1; }
+
+# determine version from tarball name
+VERSION=$(ls dist/* | sed -e "s|.*$PROJECT_NAME-\\(.*\\)\\.tar.gz|\\1|")
+echo "Tarball version: $VERSION"
 
 cd 
 git_clone_with_retry "#{packager_url}" "openstack-#{project}" || { echo "Unable to clone repos : #{packager_url}"; exit 1; }
 cd openstack-#{project}
+GIT_COMMITS_INSTALLER="$(git log --pretty=format:'' | wc -l)"
 SPEC_FILE_NAME=$(ls *.spec | head -n 1)
 RPM_BASE_NAME=${SPEC_FILE_NAME:0:-5}
 [ #{packager_branch} != "master" ] && { git checkout -t -b #{packager_branch} origin/#{packager_branch} || { echo "Unable to checkout branch :  #{packager_branch}"; exit 1; } }
 cp ~/$SRC_DIR/dist/*.tar.gz .
-PACKAGE_REVISION=$(git rev-parse --short HEAD)_${GIT_REVISION:0:7} # GIT_REVISION may have been a full hash
-sed -i.bk -e "s/\\(Release:.*\\.\\).*/\\1$PACKAGE_REVISION/g" "$SPEC_FILE_NAME"
+PACKAGE_REVISION="${GIT_COMMITS_PROJECT}.${GIT_COMMITS_INSTALLER}.${GIT_REVISION:0:7}"
+sed -i.bk -e "s/Release:.*/Release:0.$PACKAGE_REVISION/g" "$SPEC_FILE_NAME"
 sed -i.bk -e "s/Source0:.*/Source0:      $(ls *.tar.gz)/g" "$SPEC_FILE_NAME"
 [ -z "#{build_docs}" ] && sed -i -e 's/%global with_doc .*/%global with_doc 0/g' "$SPEC_FILE_NAME"
 md5sum *.tar.gz > sources 
 
 # custom version
-sed -i.bk "$SPEC_FILE_NAME" -e 's/^Version:.*/Version:          9999.9/g'
+sed -i.bk "$SPEC_FILE_NAME" -e "s/^Version:.*/Version:          $VERSION/g"
 
 # Rip out patches
 sed -i.bk "$SPEC_FILE_NAME" -e 's|^%patch.*||g'
@@ -117,9 +116,12 @@ mkdir -p ~/rpms
 find . -name "*rpm" -exec cp {} ~/rpms \\;
 
 if ls ~/rpms/${RPM_BASE_NAME}*.noarch.rpm &> /dev/null; then
+  rm $BUILD_LOG
   exit 0
 else
   echo "Failed to build RPM: $RPM_BASE_NAME"
+  cat $BUILD_LOG
+  rm $BUILD_LOG
   exit 1
 fi
 EOF_SERVER_NAME
@@ -139,7 +141,7 @@ exit $RETVAL
         cacheurl=ENV["CACHEURL"]
         raise "Please specify a CACHEURL" if cacheurl.nil?
         server_name=ENV['SERVER_NAME']
-        server_name = "login" if server_name.nil?
+        server_name = "localhost" if server_name.nil?
 
         remote_exec %{
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
@@ -181,7 +183,7 @@ EOF_SERVER_NAME
     task :create_rpm_repo do
 
         server_name=ENV['SERVER_NAME']
-        server_name = "login" if server_name.nil?
+        server_name = "localhost" if server_name.nil?
 
         puts "Creating RPM repo on #{server_name}..."
         remote_exec %{
