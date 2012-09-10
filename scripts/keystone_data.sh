@@ -107,6 +107,19 @@ keystone user-role-add --tenant_id $SERVICE_TENANT \
                        --user_id $GLANCE_USER \
                        --role_id $ADMIN_ROLE
 
+# Cinder Service
+keystone service-create \
+                                 --name=cinder \
+                                 --type=image \
+                                 --description="Glance Image Service"
+CINDER_USER=`get_id keystone user-create \
+                                 --name=cinder \
+                                 --pass="$SERVICE_PASSWORD" \
+                                 --email=cinder@example.com`
+keystone user-role-add --tenant_id $SERVICE_TENANT \
+                       --user_id $CINDER_USER \
+                       --role_id $ADMIN_ROLE
+
 # Keystone Service
 keystone service-create \
                                  --name=keystone \
