@@ -136,7 +136,7 @@ function git_clone_with_retry {
     if [ -d "$CACHE_DIR" ]; then
         echo "Using git repository cache..."
         pushd "$CACHE_DIR" > /dev/null
-        git pull origin master &> /dev/null
+        git pull &> /dev/null
         popd > /dev/null
         cp -a "$CACHE_DIR" "$DIR"
     else
@@ -178,7 +178,7 @@ function download_cached_rpm {
 
     echo "Checking cache For $PKGUUID $SRCUUID"
     FILESFROMCACHE=$(curl $CACHEURL/rpmcache/$PKGUUID/$SRCUUID 2> /dev/null) \
-      || { echo "No files in cache."; return 1; }
+      || { echo "No files in RPM cache."; return 1; }
 
     mkdir -p "${PROJECT}_cached_rpms"
     echo "$FILESFROMCACHE"
