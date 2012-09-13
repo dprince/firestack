@@ -26,7 +26,6 @@ namespace :fedora do
         server_name=ENV['SERVER_NAME']
         server_name = "localhost" if server_name.nil?
         cacheurl=ENV["CACHEURL"]
-        version=ENV["VERSION"] || '2012.2'
 
         puts "Building #{project} packages using: #{packager_url}:#{packager_branch} #{src_url}:#{src_branch}"
 
@@ -39,7 +38,6 @@ BUILD_LOG=$(mktemp)
 SRC_DIR="#{project}_source"
 
 CACHEURL="#{cacheurl}"
-VERSION="#{version}"
 if [ -n "$CACHEURL" ] ; then
     download_cached_rpm #{project} "#{src_url}" "#{src_branch}" "#{git_revision}" "#{packager_url}" "#{packager_branch}" 
     test $? -eq 0 && { echo "Retrieved rpm's from cache" ; exit 0 ; }
@@ -89,13 +87,13 @@ echo "Tarball version: $VERSION"
 cd 
 git_clone_with_retry "#{packager_url}" "openstack-#{project}" || { echo "Unable to clone repos : #{packager_url}"; exit 1; }
 cd openstack-#{project}
-GIT_COMMITS_INSTALLER="$(git log --pretty=format:'' | wc -l)"
+GIT_REVISION_INSTALLER="$(git rev-parse --short HEAD)"
 SPEC_FILE_NAME=$(ls *.spec | head -n 1)
 RPM_BASE_NAME=${SPEC_FILE_NAME:0:-5}
 [ #{packager_branch} != "master" ] && { git checkout -t -b #{packager_branch} origin/#{packager_branch} || { echo "Unable to checkout branch :  #{packager_branch}"; exit 1; } }
 cp ~/$SRC_DIR/dist/*.tar.gz .
-PACKAGE_REVISION="${GIT_COMMITS_PROJECT}.${GIT_COMMITS_INSTALLER}.${GIT_REVISION:0:7}"
-sed -i.bk -e "s/Release:.*/Release:0.$PACKAGE_REVISION/g" "$SPEC_FILE_NAME"
+PACKAGE_REVISION="${GIT_COMMITS_PROJECT}.${GIT_REVISION:0:7}_${GIT_REVISION_INSTALLER:0:7}"
+sed -i.bk -e "s/Release:.*/Release:0.1.$PACKAGE_REVISION/g" "$SPEC_FILE_NAME"
 sed -i.bk -e "s/Source0:.*/Source0:      $(ls *.tar.gz)/g" "$SPEC_FILE_NAME"
 [ -z "#{build_docs}" ] && sed -i -e 's/%global with_doc .*/%global with_doc 0/g' "$SPEC_FILE_NAME"
 md5sum *.tar.gz > sources 
