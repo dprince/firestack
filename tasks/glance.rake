@@ -144,18 +144,16 @@ rm -Rf "$BUILD_TMP"
         server_name = "nova1" if server_name.nil?
         remote_exec %{
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
-if [ ! -f /var/lib/glance/images_loaded ]; then
-    mkdir -p /var/lib/glance/
-    [ -f /root/openstackrc ] && source /root/openstackrc
-    if [ ! -d "/tmp/tty_linux" ]; then
-      curl http://c3226372.r72.cf0.rackcdn.com/tty_linux.tar.gz | tar xvz -C /tmp/
-    fi
-    ARI_ID=`glance add name="ari-tty" type="ramdisk" disk_format="ari" container_format="ari" is_public=true --silent-upload < /tmp/tty_linux/ramdisk | tail -n 1 | sed 's/.*\: //g'`
-    AKI_ID=`glance add name="aki-tty" type="kernel" disk_format="aki" container_format="aki" is_public=true --silent-upload < /tmp/tty_linux/kernel | tail -n 1 | sed 's/.*\: //g'`
-    if glance add name="ami-tty" type="kernel" disk_format="ami" container_format="ami" ramdisk_id="$ARI_ID" kernel_id="$AKI_ID" is_public=true --silent-upload < /tmp/tty_linux/image; then
-       touch /var/lib/glance/images_loaded
-    fi
-fi
+  mkdir -p /var/lib/glance/
+  [ -f /root/openstackrc ] && source /root/openstackrc
+  if [ ! -d "/tmp/tty_linux" ]; then
+    curl http://c3226372.r72.cf0.rackcdn.com/tty_linux.tar.gz | tar xvz -C /tmp/
+  fi
+  ARI_ID=$(glance image-create --name "ari-tty" --disk-format="ari" --container-format="ari" --is-public=true < /tmp/tty_linux/ramdisk | awk '/ id / { print $4 }')
+  echo "ARI_ID=$ARI_ID"
+  AKI_ID=$(glance image-create --name "aki-tty" --disk-format="aki" --container-format="aki" --is-public=true < /tmp/tty_linux/kernel | awk '/ id / { print $4 }')
+  echo "AKI_ID=$AKI_ID"
+  glance image-create --name "ami-tty" --disk-format="ami" --container-format="ami" --is-public=true --property ramdisk_id=$ARI_ID --property kernel_id=$AKI_ID < /tmp/tty_linux/image
 EOF_SERVER_NAME
         } do |ok, out|
             puts out
@@ -172,17 +170,13 @@ if [ -f /images/squeeze-agent-0.0.1.31.ova ]; then
   scp /images/squeeze-agent-0.0.1.31.ova #{server_name}:/tmp/
 fi
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
-if [ ! -f /var/lib/glance/images_loaded ]; then
-    mkdir -p /var/lib/glance/
-    [ -f /root/openstackrc ] && source /root/openstackrc
-    if [ ! -f /tmp/squeeze-agent-0.0.1.31.ova ]; then
-      cd /tmp
-      curl http://c3324746.r46.cf0.rackcdn.com/squeeze-agent-0.0.1.31.ova -o /tmp/squeeze-agent-0.0.1.31.ova
-    fi
-    if glance add name="squeeze" disk_format="vhd" container_format="ovf" is_public=true --silent-upload < /tmp/squeeze-agent-0.0.1.31.ova; then
-       touch /var/lib/glance/images_loaded
-    fi
-fi
+  mkdir -p /var/lib/glance/
+  [ -f /root/openstackrc ] && source /root/openstackrc
+  if [ ! -f /tmp/squeeze-agent-0.0.1.31.ova ]; then
+    cd /tmp
+    curl http://c3324746.r46.cf0.rackcdn.com/squeeze-agent-0.0.1.31.ova -o /tmp/squeeze-agent-0.0.1.31.ova
+  fi
+  glance image-create --name "squeeze" --disk-format="vhd" --container-format="ovf" --is-public=true < /tmp/squeeze-agent-0.0.1.31.ova
 EOF_SERVER_NAME
         } do |ok, out|
             puts out
