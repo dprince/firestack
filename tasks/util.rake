@@ -35,3 +35,5 @@ done
     end
 
 end
+
+task :ssh => "kytoon:ssh"
