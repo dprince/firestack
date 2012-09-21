@@ -1,20 +1,23 @@
-OpenStack VPC
+Firestack
 =============
 
 Description
 -----------
 
-Create your own Openstack Virtual Private Cloud. Openstack VPC includes a set of rake tasks to:
+A set of rake tasks to build packages and install OpenStack.
 
- * Creates a group of servers (VPC, XenServer)
+Features:
+---------
 
- * Build packages and create an RPM repo. (Fedora)
+ * Integrates with Kytoon to create groups of servers for installation.
+
+ * Build packages and create a package repo.
 
  * Install and configure packages on nodes (via Puppet).
 
- * Configure keystone data, load glance images, etc.
+ * Tasks to configure keystone data, load glance images, etc.
 
- * Run various test suites (Torpedo, Tempest, SmokeTests)
+ * Run various test suites (Torpedo, Tempest, Nova Smoke Tests)
 
 Useful for developmental and functional testing.
 
@@ -22,14 +25,6 @@ Requirements
 ------------
 
  -Kytoon: https://github.com/dprince/kytoon
-
-For Cloud Servers VPC group types you'll also need a Cloud Servers VPC
-API to hit. See this project for details:
-
- -Cloud Servers VPC: https://github.com/rackspace/cloud_servers_vpc
-
-For XenServer you'll need a machine installed with XenServer 5.6+. See
-notes in the Kytoon XenServer provider for the required setup.
 
 Examples
 --------
@@ -40,11 +35,11 @@ Available tasks:
 	rake fedora:fill_cache        # Upload packages to the cache URL.
 	rake glance:build_packages    # Build Glance packages.
 	rake glance:install_source    # Install local Glance source code into the g...
-	rake group:create             # Create a new group of cloud servers
-	rake group:delete             # Delete a cloud server group
-	rake group:gateway_ip         # Print the VPN gateway IP address
-	rake group:list               # List existing cloud server groups.
-	rake group:show               # Print information for a cloud server group
+	rake kytoon:create             # Create a new group of cloud servers
+	rake kytoon:delete             # Delete a cloud server group
+	rake kytoon:gateway_ip         # Print the VPN gateway IP address
+	rake kytoon:list               # List existing cloud server groups.
+	rake kytoon:show               # Print information for a cloud server group
 	rake keystone:build_packages  # Build Keystone packages.
 	rake keystone:configure       # Configure keystone
 	rake nova:build_packages      # Build Nova packages.
@@ -65,7 +60,7 @@ Available tasks:
 ```bash
 
 #create a group
-rake group:create SERVER_GROUP_JSON="config/server_group_fedora.json"
+rake kytoon:create SERVER_GROUP_JSON="config/server_group_fedora.json"
 
 #build Nova packages
 rake nova:build_packages \
@@ -90,4 +85,4 @@ rake torpedo
 rake tempest
 
 ```
-See the example bash scripts in this directory for detailed examples using Cloud Servers VPC and XenServer.
+See the example bash scripts in this directory for detailed examples using libvirt and XenServer kytoon providers.
