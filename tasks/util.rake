@@ -25,6 +25,7 @@ echo "BEGIN logs for: $HOSTNAME"
 [ -d /var/log/nova ] && tail -n #{line_count} /var/log/nova/*.log || true
 [ -d /var/log/glance ] && tail -n #{line_count} /var/log/glance/*.log || true
 [ -d /var/log/keystone ] && tail -n #{line_count} /var/log/keystone/*.log || true
+[ -d /var/log/cinder ] && tail -n #{line_count} /var/log/cinder/*.log || true
 echo "END logs for: $HOSTNAME"
 fi
 EOF_SERVER_NAME
@@ -36,4 +37,11 @@ done
 
 end
 
+desc "SSH into a running server group."
 task :ssh => "kytoon:ssh"
+
+desc "List server groups."
+task :list => "kytoon:list"
+
+desc "Delete a server group."
+task :delete => "kytoon:delete"
