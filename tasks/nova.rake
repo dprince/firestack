@@ -104,6 +104,19 @@ if [ -n "#{no_volume_tests}" ]; then
   fi
 fi
 
+#patch volume tests to wait a bit longer for instances to recognize volumes
+patch --quiet test_sysadmin.py <<"EOF_PATCH"
+@@ -250,7 +250,7 @@ class VolumeTests(base.UserSmokeTestCase):
+         self.assertTrue(volume.status.startswith('in-use'))
+ 
+         # Give instance time to recognize volume.
+-        time.sleep(5)
++        time.sleep(10)
+ 
+     def test_003_can_mount_volume(self):
+         ip = self.data['instance'].private_ip_address
+EOF_PATCH
+
 IMG_ID=$(euca-describe-images | grep ami | tail -n 1 | cut -f 2)
 export PYTHONPATH=/tmp
 python run_tests.py --test_image=$IMG_ID
