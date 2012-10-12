@@ -120,6 +120,19 @@ keystone user-role-add --tenant_id $SERVICE_TENANT \
                        --user_id $CINDER_USER \
                        --role_id $ADMIN_ROLE
 
+# Quantum Service
+keystone service-create \
+                                 --name=quantum \
+                                 --type=network \
+                                 --description="Quantum Service"
+QUANTUM_USER=`get_id keystone user-create \
+                                 --name=quantum \
+                                 --pass="$SERVICE_PASSWORD" \
+                                 --email=quantum@example.com`
+keystone user-role-add --tenant_id $SERVICE_TENANT \
+                       --user_id $QUANTUM_USER \
+                       --role_id $ADMIN_ROLE
+
 # Keystone Service
 keystone service-create \
                                  --name=keystone \
