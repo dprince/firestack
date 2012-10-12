@@ -20,96 +20,19 @@ EOF_SERVER_NAME
     end
 
     desc "Build Glance packages."
-    task :build_packages do
-        if ENV['RPM_PACKAGER_URL'].nil? then
-            Rake::Task["glance:build_ubuntu_packages"].invoke
-        else
-            Rake::Task["glance:build_fedora_packages"].invoke
-        end
+    task :build_packages => :distro_name do
+        Rake::Task["#{ENV['DISTRO_NAME']}:build_glance"].invoke
     end
 
-    task :build_fedora_packages do
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://pkgs.fedoraproject.org/openstack-glance.git")
-        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
-        if ENV["GIT_MASTER"].nil?
-            ENV["GIT_MASTER"] = "git://github.com/openstack/glance.git"
-        end
-        ENV["PROJECT_NAME"] = "glance"
-        Rake::Task["fedora:build_packages"].invoke
+    # Warlock is a fairly new Glance requirement so we provide a builder
+    # in FireStack for now until stable releases of distros pick it up
+    task :build_python_warlock => :distro_name do
+        Rake::Task["#{ENV['DISTRO_NAME']}:build_python_warlock"].invoke
     end
 
-    task :build_python_warlock do
-
-        # First we build warlock here until it gets into Fedora
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/python-warlock.git")
-        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
-        if ENV["GIT_MASTER"].nil?
-            ENV["GIT_MASTER"] = "git://github.com/bcwaldon/warlock.git"
-        end
-        ENV["PROJECT_NAME"] = "warlock"
-        ENV["SOURCE_URL"] = "git://github.com/bcwaldon/warlock.git"
-        Rake::Task["fedora:build_packages"].invoke
-
-    end
-
-    task :build_python_glanceclient do
-
-        # Now build python-glanceclient
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://pkgs.fedoraproject.org/python-glanceclient.git")
-        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
-        if ENV["GIT_MASTER"].nil?
-            ENV["GIT_MASTER"] = "git://github.com/openstack/python-glanceclient.git"
-        end
-        ENV["PROJECT_NAME"] = "python-glanceclient"
-        Rake::Task["fedora:build_packages"].invoke
-
-    end
-
-    task :build_ubuntu_packages => :tarball do
-
-        deb_packager_url=ENV['DEB_PACKAGER_URL']
-        if deb_packager_url.nil? then
-            deb_packager_url="lp:~openstack-ubuntu-packagers/glance/ubuntu"
-        end
-        pwd=Dir.pwd
-        glance_revision=get_revision(src_dir)
-        raise "Failed to get glance revision." if glance_revision.empty?
-
-        puts "Building glance packages using: #{deb_packager_url}"
-
-        remote_exec %{
-DEBIAN_FRONTEND=noninteractive apt-get -y -q install dpkg-dev bzr git quilt debhelper python-m2crypto python-all python-setuptools python-sphinx python-distutils-extra python-twisted-web python-gflags python-mox python-carrot python-boto python-amqplib python-ipy python-sqlalchemy-ext  python-eventlet python-routes python-webob python-cheetah python-nose python-paste python-pastedeploy python-tempita python-migrate python-netaddr python-glance python-lockfile pep8 python-sphinx &> /dev/null || { echo "Failed to install prereq packages."; exit 1; }
-
-BUILD_TMP=$(mktemp -d)
-cd "$BUILD_TMP"
-mkdir glance && cd glance
-tar xzf /tmp/glance.tar.gz 2> /dev/null || { echo "Falied to extract glance source tar."; exit 1; }
-rm -rf .bzr
-rm -rf .git
-cd ..
-bzr checkout --lightweight #{deb_packager_url} glance &> /tmp/bzrglance.log || { echo "Failed checkout glance builder: #{deb_packager_url}."; cat /tmp/bzrglance.log; exit 1; }
-rm -rf glance/.bzr
-rm -rf glance/.git
-cd glance
-#No jsonschema packages for Oneiric.... so lets do this for now (HACK!)
-sed -e 's|^import jsonschema||' -i glance/schema.py
-sed -e 's|jsonschema.validate.*|pass|' -i glance/schema.py
-sed -e 's|jsonschema.ValidationError|Exception|' -i glance/schema.py
-echo "glance (9999.1-vpc#{glance_revision}) $(lsb_release -sc); urgency=high" > debian/changelog
-echo " -- Dev Null <dev@null.com>  $(date +\"%a, %e %b %Y %T %z\")" >> debian/changelog
-BUILD_LOG=$(mktemp)
-DEB_BUILD_OPTIONS=nocheck,nodocs dpkg-buildpackage -rfakeroot -b -uc -us -d \
- &> $BUILD_LOG || { echo "Failed to build packages."; cat $BUILD_LOG; exit 1; }
-cd /tmp
-[ -d /root/openstack-packages ] || mkdir -p /root/openstack-packages
-rm -f /root/openstack-packages/glance*
-cp $BUILD_TMP/*.deb /root/openstack-packages
-rm -Rf "$BUILD_TMP"
-        } do |ok, out|
-            puts out
-            fail "Build packages failed!" unless ok
-        end
-
+    desc "Build Python Glanceclient packages."
+    task :build_python_glanceclient => :distro_name do
+        Rake::Task["#{ENV['DISTRO_NAME']}:build_python_glanceclient"].invoke
     end
 
     task :tarball do
@@ -138,6 +61,7 @@ rm -Rf "$BUILD_TMP"
         end
     end
 
+    desc "Load images into Glance."
     task :load_images do
         server_name=ENV['SERVER_NAME']
         # default to nova1 if SERVER_NAME is unset

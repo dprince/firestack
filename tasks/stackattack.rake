@@ -1,6 +1,6 @@
 namespace :stackattack do
 
-    desc "Install stack attack and dependencies on SERVER_NAME or nova1 in /usr/local/bin"
+    #desc "Install stack attack and dependencies on SERVER_NAME or nova1 in /usr/local/bin"
     task :install do
         server_name=ENV['SERVER_NAME']
         server_name = "nova1" if server_name.nil?

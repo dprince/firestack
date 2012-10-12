@@ -1,3 +1,27 @@
+task :distro_name do
+
+    # only run this if it isn't already set
+    if ENV['DISTRO_NAME'].nil? or ENV['DISTRO_NAME'] == "" then
+        remote_exec %{
+# try to install lsb-release if not present (preinstall would be best)
+if [ -f /etc/fedora-release ]; then
+  rpm -q redhat-lsb-core &> /dev/null || yum -y -q install redhat-lsb-core
+elif [ -f /usr/bin/dpkg ]; then
+  dpkg -l lsb-release &> /dev/null || apt-get -y -q install lsb-release &> /dev/null
+fi
+lsb_release -is
+    } do |ok, out|
+            if ok then
+                ENV['DISTRO_NAME'] = out.chomp.downcase
+            else
+                puts ok
+                fail "Unable to set distro name with 'lsb_release'!"
+            end
+        end
+    end
+
+end
+
 desc "Tail nova, glance, keystone logs."
 task :tail_logs do
 
@@ -40,8 +64,8 @@ end
 desc "SSH into a running server group."
 task :ssh => "kytoon:ssh"
 
-desc "List server groups."
+#desc "List server groups."
 task :list => "kytoon:list"
 
-desc "Delete a server group."
+#desc "Delete a server group."
 task :delete => "kytoon:delete"

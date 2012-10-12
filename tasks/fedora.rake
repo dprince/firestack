@@ -181,7 +181,6 @@ exit $RETVAL
     end
 
     # uploader to rpm cache
-    desc "Upload packages to the cache URL."
     task :fill_cache do
 
         cacheurl=ENV["CACHEURL"]
@@ -225,7 +224,7 @@ EOF_SERVER_NAME
         end
     end
 
-    desc "Create an RPM repo."
+    desc "Create a local RPM repo using built packages."
     task :create_rpm_repo do
 
         server_name=ENV['SERVER_NAME']
@@ -267,6 +266,177 @@ echo -e "[openstack]\\nname=OpenStack RPM repo\\nbaseurl=http://#{server_name}/r
         end
         fail err_msg unless err_msg == ""
 
+    end
+
+    desc "Configure instances to use a remote RPM repo."
+    task :configure_rpm_repo do
+
+        # Default to using the upstream packages built by SmokeStack:
+        #  http://repos.fedorapeople.org/repos/openstack/openstack-trunk/README
+        repo_file_url=ENV['REPO_FILE_URL'] || "http://repos.fedorapeople.org/repos/openstack/openstack-trunk/fedora-openstack-trunk.repo"
+
+        sg=ServerGroup.get()
+        puts "Creating yum repo config files..."
+        results = remote_multi_exec sg.server_names, %{
+rpm -q yum-priorities &> /dev/null || yum -y -q install yum-priorities
+cd /etc/yum.repos.d
+wget #{repo_file_url}
+        }
+
+        err_msg = ""
+        results.each_pair do |hostname, data|
+            ok = data[0]
+            out = data[1]
+            err_msg += "Errors creating Yum conf on #{hostname}. \n #{out}\n" unless ok
+        end
+        fail err_msg unless err_msg == ""
+
+    end
+
+    task :build_nova do
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-nova.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/openstack/nova.git"
+        end
+        ENV["PROJECT_NAME"] = "nova"
+        Rake::Task["fedora:build_packages"].invoke
+    end
+
+    task :build_python_novaclient do
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-python-novaclient.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/openstack/python-novaclient.git"
+        end
+        ENV["PROJECT_NAME"] = "python-novaclient"
+        Rake::Task["fedora:build_packages"].invoke
+    end
+
+    task :build_glance do
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-glance.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/openstack/glance.git"
+        end
+        ENV["PROJECT_NAME"] = "glance"
+        Rake::Task["fedora:build_packages"].invoke
+    end
+
+    task :build_python_glanceclient do
+
+        # Now build python-glanceclient
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-python-glanceclient.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/openstack/python-glanceclient.git"
+        end
+        ENV["PROJECT_NAME"] = "python-glanceclient"
+        Rake::Task["fedora:build_packages"].invoke
+
+    end
+
+    # Warlock is a fairly new Glance requirement so we provide a builder
+    # in FireStack for now until stable releases of distros pick it up
+    task :build_python_warlock do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/python-warlock.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/bcwaldon/warlock.git"
+        end
+        ENV["PROJECT_NAME"] = "warlock"
+        ENV["SOURCE_URL"] = "git://github.com/bcwaldon/warlock.git"
+        Rake::Task["fedora:build_packages"].invoke
+
+    end
+
+    task :build_keystone do
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-keystone.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/openstack/keystone.git"
+        end
+        ENV["PROJECT_NAME"] = "keystone"
+        Rake::Task["fedora:build_packages"].invoke
+    end
+
+    task :build_python_keystoneclient do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-python-keystoneclient.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/openstack/python-keystoneclient.git"
+        end
+        ENV["PROJECT_NAME"] = "python-keystoneclient"
+        Rake::Task["fedora:build_packages"].invoke
+    end
+
+    task :build_swift do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-swift.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/openstack/swift.git"
+        end
+        ENV["PROJECT_NAME"] = "swift"
+        Rake::Task["fedora:build_packages"].invoke
+    end
+
+    task :build_python_swiftclient do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-python-swiftclient.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/openstack/python-swiftclient.git"
+        end
+        ENV["PROJECT_NAME"] = "python-swiftclient"
+        Rake::Task["fedora:build_packages"].invoke
+
+    end
+
+    task :build_cinder do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-cinder.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/openstack/cinder.git"
+        end
+        ENV["PROJECT_NAME"] = "cinder"
+        Rake::Task["fedora:build_packages"].invoke
+
+    end
+
+    task :build_python_cinderclient do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-python-cinderclient.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/openstack/python-cinderclient.git"
+        end
+        ENV["PROJECT_NAME"] = "python-cinderclient"
+        Rake::Task["fedora:build_packages"].invoke
+
+    end
+
+    task :build_quantum do
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-quantum.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/openstack/quantum.git"
+        end
+        ENV["PROJECT_NAME"] = "quantum"
+        Rake::Task["fedora:build_packages"].invoke
+    end
+
+    task :build_python_quantumclient do
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-python-quantumclient.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/openstack/python-quantumclient.git"
+        end
+        ENV["PROJECT_NAME"] = "python-quantumclient"
+        Rake::Task["fedora:build_packages"].invoke
     end
 
 end
