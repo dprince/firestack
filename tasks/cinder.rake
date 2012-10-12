@@ -48,7 +48,7 @@ namespace :cinder do
         end
     end
 
-    desc "Build Keystone packages."
+    desc "Build Cinder packages."
     task :build_packages do
         Rake::Task["cinder:build_fedora_packages"].invoke
     end
