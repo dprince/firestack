@@ -18,7 +18,7 @@ include Kytoon
 
 require 'tempfile'
 require 'fileutils'
-def mktempdir(prefix="vpc")
+def mktempdir(prefix="firestack")
     tmp_file=Tempfile.new(prefix)
     path=tmp_file.path
     tmp_file.close(true)
@@ -149,53 +149,6 @@ function git_clone_with_retry {
         done
         cp -a "$DIR" "$CACHE_DIR"
     fi
-}
-
-# Test if the rpms we require are in the cache allready
-# If present this function downloads them to ~/rpms
-function download_cached_rpm {
-    rpm -q git &> /dev/null || yum install -q -y git
-    local PROJECT="$1"
-    local SRC_URL="$2"
-    local SRC_BRANCH="$3"
-    local SRC_REVISION="$4"
-    local PKG_URL="$5"
-    local PKG_BRANCH="$6"
-   
-    SRCUUID=$SRC_REVISION
-    if [ -z $SRCUUID ] ; then
-        SRCUUID=$(git ls-remote "$SRC_URL" "$SRC_BRANCH" | cut -f 1)
-        if [ -z $SRCUUID ] ; then
-            echo "Invalid source URL:BRANCH $SRC_URL:$SRC_BRANCH"
-            return 1
-        fi
-    fi
-    PKGUUID=$(git ls-remote "$PKG_URL" "$PKG_BRANCH" | cut -f 1)
-    if [ -z $PKGUUID ] ; then
-        echo "Invalid package URL:BRANCH $SPEC_URL:$SRC_BRANCH"
-        return 1
-    fi
-
-    echo "Checking cache For $PKGUUID $SRCUUID"
-    FILESFROMCACHE=$(curl $CACHEURL/rpmcache/$PKGUUID/$SRCUUID 2> /dev/null) \
-      || { echo "No files in RPM cache."; return 1; }
-
-    mkdir -p "${PROJECT}_cached_rpms"
-    echo "$FILESFROMCACHE"
-    for file in $FILESFROMCACHE ; do
-        HADFILE=1
-        filename="${PROJECT}_cached_rpms/$(echo $file | sed -e 's/.*\\///g')"
-        echo Downloading $file -\\> $filename
-        curl $CACHEURL/$file 2> /dev/null > "$filename" || HADERROR=1
-    done
-
-    if [ -z "$HADERROR" -a -n "$HADFILE" ] ; then
-        mkdir -p rpms
-        cp "${PROJECT}_cached_rpms"/* rpms 
-        echo "$(echo $PROJECT | tr [:lower:] [:upper:])_REVISION=${SRCUUID:0:7}"
-        return 0
-    fi
-    return 1
 }
 
 }
