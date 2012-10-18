@@ -1,6 +1,6 @@
 namespace :nova do
 
-    desc "Install local Nova source code into the group."
+    #desc "Install local Nova source code into the group."
     task :install_source => :tarball do
 
         src_dir=ENV['SOURCE_DIR']

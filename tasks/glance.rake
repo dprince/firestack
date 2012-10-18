@@ -1,6 +1,6 @@
 namespace :glance do
 
-    desc "Install local Glance source code into the group."
+    #desc "Install local Glance source code into the group."
     task :install_source => :tarball do
         server_name=ENV['SERVER_NAME']
         server_name = "glance1" if server_name.nil?
