@@ -36,7 +36,7 @@ namespace :keystone do
         end
     end
 
-    desc "Configure keystone"
+    desc "Configure Keystone tenants, services, etc."
     task :configure do
 
         server_name=ENV['SERVER_NAME']
