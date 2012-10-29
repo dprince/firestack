@@ -439,4 +439,20 @@ wget #{repo_file_url}
         Rake::Task["fedora:build_packages"].invoke
     end
 
+    # Fedora 17 includes python-prettytable 0.5
+    # Most openstack projects require > 0.6 so we build our own here.
+    task :build_python_prettytable do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/fedora-python-prettytable.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/dprince/python-prettytable.git"
+        end
+        ENV["PROJECT_NAME"] = "prettytable"
+        ENV["SOURCE_BRANCH"] = "0.6"
+        ENV["SOURCE_URL"] = "git://github.com/dprince/python-prettytable.git"
+        Rake::Task["fedora:build_packages"].invoke
+
+    end
+
 end
