@@ -61,6 +61,17 @@ done
 
 end
 
+task :scp => 'kytoon:init' do
+  sg=ServerGroup.get(ENV['GROUP_ID'])
+  args=ARGV[1, ARGV.length].join(" ")
+  if (ARGV[1] and ARGV[1] =~ /^GROUP_.*/) and (ARGV[2] and ARGV[2] =~ /^GROUP_.*/)
+    args=ARGV[3, ARGV.length].join(" ")
+  elsif ARGV[1] and ARGV[1] =~ /^GROUP_.*/
+    args=ARGV[2, ARGV.length].join(" ")
+  end
+  exec("scp -o \"StrictHostKeyChecking no\" #{args} root@#{sg.gateway_ip}:")
+end
+
 desc "SSH into a running server group."
 task :ssh => "kytoon:ssh"
 
