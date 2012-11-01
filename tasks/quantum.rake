@@ -32,7 +32,6 @@ function get_field() {
     done
 }
 
-set -x
 export EDITOR=vim
 FLOATING_RANGE="#{floating_range}"
 FIXED_RANGE="#{fixed_range}"
@@ -42,6 +41,7 @@ NET_ID=$(quantum net-create public --shared | grep ' id ' | get_field 2)
 SUBNET_ID=$(quantum subnet-create --ip_version 4 --gateway $NETWORK_GATEWAY $NET_ID $FIXED_RANGE | grep ' id ' | get_field 2)
 ROUTER_ID=$(quantum router-create router1 | grep ' id ' | get_field 2)
 quantum router-interface-add $ROUTER_ID $SUBNET_ID
+
 if [ -f /etc/quantum/l3_agent.ini ]; then
   sed -e "s|.*router_id *=|router_id=$ROUTER_ID|g" -i /etc/quantum/l3_agent.ini
   service quantum-l3-agent restart
