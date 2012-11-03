@@ -5,7 +5,22 @@ task :torpedo do
 	server_name = "nova1" if server_name.nil?
 	mode=ENV['MODE'] # set to 'xen' or 'libvirt'
 	mode = "libvirt" if mode.nil?
-	xunit_output=ENV['XUNIT_OUTPUT'] # set if you want Xunit style output
+
+	server_build_timeout=ENV['TORPEDO_SERVER_BUILD_TIMEOUT'] || '180'
+	ssh_timeout=ENV['TORPEDO_SSH_TIMEOUT'] || '60'
+	ping_timeout=ENV['TORPEDO_PING_TIMEOUT'] || '60'
+	use_keypairs=ENV['TORPEDO_USE_KEYPAIRS'] || 'true'
+	image_name=ENV['TORPEDO_IMAGE_NAME'] || '' #defaults to 1st in list
+	test_create_image=ENV['TORPEDO_TEST_CREATE_IMAGE'] || 'false'
+	test_rebuild_server=ENV['TORPEDO_TEST_REBUILD_SERVER'] || 'false'
+	test_soft_reboot_server=ENV['TORPEDO_TEST_SOFT_REBOOT_SERVER'] || 'false'
+	test_hard_reboot_server=ENV['TORPEDO_TEST_HARD_REBOOT_SERVER'] || 'false'
+	test_admin_password=ENV['TORPEDO_TEST_ADMIN_PASSWORD'] || 'false'
+	test_resize_server=ENV['TORPEDO_TEST_RESIZE_SERVER'] || 'false'
+	test_revert_resize_server=ENV['TORPEDO_TEST_REVERT_RESIZE_SERVER'] || 'false'
+	test_hostid_on_resize=ENV['TORPEDO_TEST_HOSTID_ON_RESIZE'] || 'false'
+	flavor_ref=ENV['TORPEDO_FLAVOR_REF'] || '' #defaults to 2 (m1.small)
+	sleep_after_image_create=ENV['TORPEDO_SLEEP_AFTER_IMAGE_CREATE'] || '10'
 
 	remote_exec %{
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
@@ -19,7 +34,7 @@ if [ -f /bin/rpm ]; then
 fi
 if ! gem list | grep torpedo &> /dev/null; then
 	gem install --no-rdoc --no-ri torpedo
-	# Ubuntu fails to link it into /bin
+	# link it into /bin (some distros don't do this...)
 	[ ! -f /usr/bin/torpedo ] && ln -sf /var/lib/gems/1.8/gems/torpedo-*/bin/torpedo /usr/bin/torpedo
 fi
 if [ -f /root/openstackrc ]; then
@@ -28,56 +43,43 @@ else
   configure_noauth
   source ~/novarc
 fi
+
 if [ ! -f ~/.ssh/id_rsa ]; then
 	   [ -d ~/.ssh ] || mkdir ~/.ssh
 	   ssh-keygen -q -t rsa -f ~/.ssh/id_rsa -N "" || \
 			   echo "Failed to create private key."
 fi
-if [[ "#{mode}" == "libvirt" ]]; then
-	# When using libvirt we use an AMI style image which require keypairs
+
+cat > ~/.torpedo.conf <<-EOF_CAT
+	server_build_timeout: #{server_build_timeout}
+	ssh_timeout: #{ssh_timeout}
+	ping_timeout: #{ping_timeout}
+	image_name: #{image_name}
+	test_rebuild_server: #{test_rebuild_server}
+	test_create_image: #{test_create_image}
+	test_resize_server: #{test_resize_server}
+	test_revert_resize_server: #{test_revert_resize_server}
+	test_soft_reboot_server: #{test_soft_reboot_server}
+	test_hard_reboot_server: #{test_hard_reboot_server}
+	test_admin_password: #{test_admin_password}
+	flavor_ref: #{flavor_ref}
+	sleep_after_image_create: #{sleep_after_image_create}
+EOF_CAT
+
+if [[ "#{use_keypairs}" == "true" ]]; then
 	export KEYPAIR="/root/test.pem"
 	export KEYNAME="test"
-	if [ -f /bin/rpm ]; then
-		rpm -q euca2ools &> /dev/null || yum install -y euca2ools &> /dev/null
-	else
-		dpkg -l euca2ools &> /dev/null || apt-get install -q -y euca2ools &> /dev/null
-	fi
-	[ -f "$KEYPAIR" ] || euca-add-keypair "$KEYNAME" > "$KEYPAIR"
-	chmod 600 /root/test.pem
-	cat > ~/.torpedo.conf <<-EOF_CAT
-		server_build_timeout: 180
-		ssh_timeout: 60
-		ping_timeout: 60
+	[ -f "$KEYPAIR" ] || nova keypair-add "$KEYNAME" > "$KEYPAIR"
+	chmod 600 "$KEYPAIR"
+
+	cat >> ~/.torpedo.conf <<-EOF_CAT
 		keypair: $KEYPAIR
 		keyname: $KEYNAME
-		image_name: ami-tty
-		test_rebuild_server: true
-		test_create_image: false
-		test_resize_server: false
-		flavor_ref: 1
-		sleep_after_image_create: 10
 	EOF_CAT
-elif [[ "#{mode}" == "xen" ]]; then
-	cat > ~/.torpedo.conf <<-EOF_CAT
-		ssh_timeout: 60
-		ping_timeout: 60
-		server_build_timeout: 420
-		test_create_image: true
-		test_rebuild_server: true
-		test_resize_server: true
-		test_admin_password: true
-		test_soft_reboot_server: true
-		test_hard_reboot_server: true
-		sleep_after_image_create: 10
-	EOF_CAT
-else
-	echo "Invalid mode specified."
 fi
-if [ -n "#{xunit_output}" ]; then
-	torpedo fire --xml-report=torpedo.xml
-else
-	torpedo fire
-fi
+
+torpedo fire
+
 EOF_SERVER_NAME
         } do |ok, out|
             puts out
