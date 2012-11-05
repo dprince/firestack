@@ -85,4 +85,4 @@ rake torpedo
 rake tempest
 
 ```
-See the example bash scripts in this directory for detailed examples using libvirt and XenServer kytoon providers.
+See the example bash script in this directory for detailed example using libvirt.
