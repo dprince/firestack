@@ -26,8 +26,8 @@ Requirements
 
  -Kytoon: https://github.com/dprince/kytoon
 
-Examples
---------
+Tasks
+-----
 
 Available tasks:
 
@@ -57,8 +57,80 @@ Available tasks:
 	rake xen:install_plugins      # Install plugins into the XenServer dom0.
 
 
-```bash
 
+## Quickstart on Fedora 17 and RHEL 6
+
+```bash
+# Before using Firestack w/ Libvirt you need to have an image and a libvirt
+# XML dom file on disk that will be used to clone new VM's for each 
+# Firestack group.
+LIBVIRT_XML_FILE=/path/to/libvirt/dom/xml
+
+set -x
+
+# install rubygems, rubygem-json, and Git, make, gcc, etc
+for X in rubygems rubygem-bundler git make gcc; do
+  rpm -q $X &> /dev/null || yum install -q -y $X
+done
+
+# Some older RHEL/Fedora distro don't have a bundler package
+if ! gem list | grep bundler &> /dev/null; then
+  gem install --no-rdoc --no-ri bundler
+fi
+
+git clone git://github.com/dprince/firestack.git
+cd firestack
+bundle install
+
+# Configure the server group XML for Kytoon
+cat >> config/server_group_libvirt.json <<EOF_CAT
+{
+    "name": "Fedora",
+    "servers": [
+	{
+	    "hostname": "nova1",
+	    "memory": "4",
+	    "gateway": "true",
+	    "original_xml": "$LIBVIRT_XML_FILE",
+	    "create_cow": "true"
+	}
+    ]
+}
+EOF_CAT
+
+# Configure kytoon.conf
+# NOTE: This config assumes you have configured libvirt to run with your
+# username. Alternately you can have Kytoon use sudo via the libvirt_use_sudo.
+#
+# See this puppet module if you are interested in quickly configuring worker
+# nodes to allow a 'smokestack' user to make use of libvirt:
+# https://github.com/dprince/smokestack-puppet/blob/master/modules/smokestack/manifests/libvirt.pp
+cat >> ~/.kytoon.conf <<EOF_CAT
+# The default group type.
+# Set to one of: openstack, libvirt, xenserver
+group_type: libvirt
+
+# Libvirt settings
+# Whether commands to create local group should use sudo
+libvirt_use_sudo: False
+EOF_CAT
+
+# Generate an ssh keypair if you don't already have one
+if [ ! -f ~/.ssh/id_rsa ]; then
+  ssh-keygen -q -t rsa -f ~/.ssh/id_rsa -N ""
+fi
+
+# Now you are ready to run the example_libvirt.bash
+# From here on out just run this directly!
+bash example_libvirt.bash
+```
+
+Example Commands
+----------------
+
+Typically you'll want to create a runner script that creates a new group, builds packages, installs them, etc. See example_libvirt.bash as an example. The following commands are commonly used:
+
+```bash
 #create a group
 rake kytoon:create SERVER_GROUP_JSON="config/server_group_fedora.json"
 
@@ -85,4 +157,5 @@ rake torpedo
 rake tempest
 
 ```
+
 See the example bash script in this directory for detailed example using libvirt.
