@@ -79,17 +79,39 @@ if [ -n "#{no_volume_tests}" ]; then
   fi
 fi
 
-#patch volume tests to wait a bit longer for instances to recognize volumes
+# Patch volume tests to wait for partition to show up correctly
+# FIXME: testing this out for a bit here... if it works will send it
+# upstream into Nova soon
 patch --quiet test_sysadmin.py <<"EOF_PATCH"
-@@ -250,7 +250,7 @@ class VolumeTests(base.UserSmokeTestCase):
+@@ -249,12 +249,24 @@ class VolumeTests(base.UserSmokeTestCase):
+ 
          self.assertTrue(volume.status.startswith('in-use'))
  
-         # Give instance time to recognize volume.
+-        # Give instance time to recognize volume.
 -        time.sleep(5)
-+        time.sleep(10)
- 
+-
      def test_003_can_mount_volume(self):
          ip = self.data['instance'].private_ip_address
+         conn = self.connect_ssh(ip, TEST_KEY)
++
++        # NOTE(dprince): give some time for volume to show up in partitions
++        stdin, stdout, stderr = conn.exec_command(
++                'COUNT="0";'
++                'until cat /proc/partitions | grep "%s\\$"; do '
++                '[ "$COUNT" -eq "60" ] && exit 1;'
++                'COUNT=$(( $COUNT + 1 ));'
++                'sleep 1; '
++                'done'
++                % self.device.rpartition('/')[2])
++        out = stdout.read()
++        if not out.strip().endswith(self.device.rpartition('/')[2]):
++            self.fail('Timeout waiting for volume partition in instance. %s %s'
++                        % (out, stderr.read()))
++
+         # NOTE(vish): this will create a dev for images that don't have
+         #             udev rules
+         stdin, stdout, stderr = conn.exec_command(
+
 EOF_PATCH
 
 IMG_ID=$(euca-describe-images | grep ami | tail -n 1 | cut -f 2)
