@@ -21,11 +21,9 @@ rake cinder:build_packages \
 	SOURCE_URL="git://github.com/openstack/cinder.git" \
 	SOURCE_BRANCH="master" GIT_MERGE="master"
 
-# Uncomment to build quantum
-#
-#rake quantum:build_packages \
-	#SOURCE_URL="git://github.com/openstack/quantum.git" \
-	#SOURCE_BRANCH="master" GIT_MERGE="master"
+rake quantum:build_packages \
+	SOURCE_URL="git://github.com/openstack/quantum.git" \
+	SOURCE_BRANCH="master" GIT_MERGE="master"
 
 rake nova:build_python_novaclient \
 	SOURCE_URL="git://github.com/openstack/python-novaclient.git"
@@ -45,10 +43,8 @@ rake cinder:build_python_cinderclient \
 rake swift:build_python_swiftclient \
 	SOURCE_URL="git://github.com/openstack/python-swiftclient.git"
 
-# Uncomment to build quantumclient
-#
-#rake quantum:build_python_quantumclient \
-	#SOURCE_URL="git://github.com/openstack/python-quantumclient.git"
+rake quantum:build_python_quantumclient \
+	SOURCE_URL="git://github.com/openstack/python-quantumclient.git"
 
 rake fedora:create_rpm_repo
 
