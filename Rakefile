@@ -131,7 +131,9 @@ function git_clone_with_retry {
     rpm -q git &> /dev/null || yum install -q -y git
     local URL=${1:?"Please specify a URL."}
     local DIR=${2:?"Please specify a DIR."}
-    local CACHE_DIR="$GIT_CACHE_DIR/$(echo \"$DIR\" | md5sum | cut -f 1 -d ' ')"
+    local URLSHA=$(echo \"$URL\" | sha1sum | cut -f 1 -d ' ')
+    local SHORT_REPO_NAME=${URL/#*\\//}
+    local CACHE_DIR="${GIT_CACHE_DIR}/${SHORT_REPO_NAME}-${URLSHA}"
     [ -d "$GIT_CACHE_DIR" ] || mkdir -p "$GIT_CACHE_DIR"
     if [ -d "$CACHE_DIR" ]; then
         echo "Using git repository cache..."
