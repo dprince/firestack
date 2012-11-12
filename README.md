@@ -69,7 +69,7 @@ LIBVIRT_XML_FILE=/path/to/libvirt/dom/xml
 set -x
 
 # install rubygems, rubygem-json, and Git, make, gcc, etc
-for X in rubygems rubygem-bundler git make gcc; do
+for X in rubygems ruby-devel rubygem-bundler git make gcc; do
   rpm -q $X &> /dev/null || yum install -q -y $X
 done
 
