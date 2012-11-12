@@ -59,6 +59,7 @@ cat > ~/.torpedo.conf <<-EOF_CAT
 	test_create_image: #{test_create_image}
 	test_resize_server: #{test_resize_server}
 	test_revert_resize_server: #{test_revert_resize_server}
+	test_hostid_on_resize: #{test_hostid_on_resize}
 	test_soft_reboot_server: #{test_soft_reboot_server}
 	test_hard_reboot_server: #{test_hard_reboot_server}
 	test_admin_password: #{test_admin_password}
