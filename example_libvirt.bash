@@ -28,7 +28,6 @@ rake quantum:build_packages \
 rake nova:build_python_novaclient \
 	SOURCE_URL="git://github.com/openstack/python-novaclient.git"
 
-rake glance:build_python_warlock
 rake fedora:build_python_prettytable
 
 rake glance:build_python_glanceclient \
