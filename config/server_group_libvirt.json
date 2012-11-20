@@ -1,0 +1,12 @@
+{
+    "name": "Fedora",
+    "servers": [
+        {
+            "hostname": "nova1",
+            "memory": "1",
+            "gateway": "true",
+            "original_xml": "/path/to/libvirt/xml/file",
+            "create_cow": "true"
+        }
+    ]
+}
