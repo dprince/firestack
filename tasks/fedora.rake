@@ -63,7 +63,6 @@ function download_cached_rpm {
       || { echo "No files in RPM cache."; return 1; }
 
     mkdir -p "${PROJECT}_cached_rpms"
-    echo "$FILESFROMCACHE"
     for file in $FILESFROMCACHE ; do
         HADFILE=1
         filename="${PROJECT}_cached_rpms/$(echo $file | sed -e 's/.*\\///g')"
