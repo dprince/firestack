@@ -299,7 +299,7 @@ wget #{repo_file_url}
             ENV["GIT_MASTER"] = "git://github.com/openstack/nova.git"
         end
         ENV["PROJECT_NAME"] = "nova"
-        Rake::Task["fedora:build_packages"].invoke
+        Rake::Task["fedora:build_packages"].execute
     end
 
     task :build_python_novaclient do
@@ -309,7 +309,7 @@ wget #{repo_file_url}
             ENV["GIT_MASTER"] = "git://github.com/openstack/python-novaclient.git"
         end
         ENV["PROJECT_NAME"] = "python-novaclient"
-        Rake::Task["fedora:build_packages"].invoke
+        Rake::Task["fedora:build_packages"].execute
     end
 
     task :build_glance do
@@ -319,7 +319,7 @@ wget #{repo_file_url}
             ENV["GIT_MASTER"] = "git://github.com/openstack/glance.git"
         end
         ENV["PROJECT_NAME"] = "glance"
-        Rake::Task["fedora:build_packages"].invoke
+        Rake::Task["fedora:build_packages"].execute
     end
 
     task :build_python_glanceclient do
@@ -331,7 +331,7 @@ wget #{repo_file_url}
             ENV["GIT_MASTER"] = "git://github.com/openstack/python-glanceclient.git"
         end
         ENV["PROJECT_NAME"] = "python-glanceclient"
-        Rake::Task["fedora:build_packages"].invoke
+        Rake::Task["fedora:build_packages"].execute
 
     end
 
@@ -342,7 +342,7 @@ wget #{repo_file_url}
             ENV["GIT_MASTER"] = "git://github.com/openstack/keystone.git"
         end
         ENV["PROJECT_NAME"] = "keystone"
-        Rake::Task["fedora:build_packages"].invoke
+        Rake::Task["fedora:build_packages"].execute
     end
 
     task :build_python_keystoneclient do
@@ -353,7 +353,7 @@ wget #{repo_file_url}
             ENV["GIT_MASTER"] = "git://github.com/openstack/python-keystoneclient.git"
         end
         ENV["PROJECT_NAME"] = "python-keystoneclient"
-        Rake::Task["fedora:build_packages"].invoke
+        Rake::Task["fedora:build_packages"].execute
     end
 
     task :build_swift do
@@ -364,7 +364,7 @@ wget #{repo_file_url}
             ENV["GIT_MASTER"] = "git://github.com/openstack/swift.git"
         end
         ENV["PROJECT_NAME"] = "swift"
-        Rake::Task["fedora:build_packages"].invoke
+        Rake::Task["fedora:build_packages"].execute
     end
 
     task :build_python_swiftclient do
@@ -375,7 +375,7 @@ wget #{repo_file_url}
             ENV["GIT_MASTER"] = "git://github.com/openstack/python-swiftclient.git"
         end
         ENV["PROJECT_NAME"] = "python-swiftclient"
-        Rake::Task["fedora:build_packages"].invoke
+        Rake::Task["fedora:build_packages"].execute
 
     end
 
@@ -387,7 +387,7 @@ wget #{repo_file_url}
             ENV["GIT_MASTER"] = "git://github.com/openstack/cinder.git"
         end
         ENV["PROJECT_NAME"] = "cinder"
-        Rake::Task["fedora:build_packages"].invoke
+        Rake::Task["fedora:build_packages"].execute
 
     end
 
@@ -399,7 +399,7 @@ wget #{repo_file_url}
             ENV["GIT_MASTER"] = "git://github.com/openstack/python-cinderclient.git"
         end
         ENV["PROJECT_NAME"] = "python-cinderclient"
-        Rake::Task["fedora:build_packages"].invoke
+        Rake::Task["fedora:build_packages"].execute
 
     end
 
@@ -410,7 +410,7 @@ wget #{repo_file_url}
             ENV["GIT_MASTER"] = "git://github.com/openstack/quantum.git"
         end
         ENV["PROJECT_NAME"] = "quantum"
-        Rake::Task["fedora:build_packages"].invoke
+        Rake::Task["fedora:build_packages"].execute
     end
 
     task :build_python_quantumclient do
@@ -420,7 +420,7 @@ wget #{repo_file_url}
             ENV["GIT_MASTER"] = "git://github.com/openstack/python-quantumclient.git"
         end
         ENV["PROJECT_NAME"] = "python-quantumclient"
-        Rake::Task["fedora:build_packages"].invoke
+        Rake::Task["fedora:build_packages"].execute
     end
 
     # Warlock is a fairly new Glance requirement so we provide a builder
@@ -434,7 +434,7 @@ wget #{repo_file_url}
         end
         ENV["PROJECT_NAME"] = "warlock"
         ENV["SOURCE_URL"] = "git://github.com/bcwaldon/warlock.git"
-        Rake::Task["fedora:build_packages"].invoke
+        Rake::Task["fedora:build_packages"].execute
 
     end
 
@@ -450,7 +450,7 @@ wget #{repo_file_url}
         ENV["PROJECT_NAME"] = "prettytable"
         ENV["SOURCE_BRANCH"] = "0.6"
         ENV["SOURCE_URL"] = "git://github.com/dprince/python-prettytable.git"
-        Rake::Task["fedora:build_packages"].invoke
+        Rake::Task["fedora:build_packages"].execute
 
     end
 
@@ -465,14 +465,14 @@ wget #{repo_file_url}
         end
         ENV["PROJECT_NAME"] = "stevedore"
         ENV["SOURCE_URL"] = "git://github.com/dreamhost/stevedore.git"
-        Rake::Task["fedora:build_packages"].invoke
+        Rake::Task["fedora:build_packages"].execute
 
     end
 
     task :build_misc do
 
-        Rake::Task["fedora:build_python_stevedore"].invoke
-        Rake::Task["fedora:build_python_prettytable"].invoke
+        Rake::Task["fedora:build_python_stevedore"].execute
+        Rake::Task["fedora:build_python_prettytable"].execute
 
     end
 
