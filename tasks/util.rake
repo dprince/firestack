@@ -22,6 +22,12 @@ lsb_release -is
 
 end
 
+# hook to build distro specific packages required for upstream
+desc "Build Misc packages."
+task :build_misc => :distro_name do
+  Rake::Task["#{ENV['DISTRO_NAME']}:build_misc"].invoke
+end
+
 desc "Tail nova, glance, keystone logs."
 task :tail_logs do
 

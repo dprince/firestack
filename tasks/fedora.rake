@@ -335,21 +335,6 @@ wget #{repo_file_url}
 
     end
 
-    # Warlock is a fairly new Glance requirement so we provide a builder
-    # in FireStack for now until stable releases of distros pick it up
-    task :build_python_warlock do
-
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/python-warlock.git")
-        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
-        if ENV["GIT_MASTER"].nil?
-            ENV["GIT_MASTER"] = "git://github.com/bcwaldon/warlock.git"
-        end
-        ENV["PROJECT_NAME"] = "warlock"
-        ENV["SOURCE_URL"] = "git://github.com/bcwaldon/warlock.git"
-        Rake::Task["fedora:build_packages"].invoke
-
-    end
-
     task :build_keystone do
         packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-keystone.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
@@ -438,6 +423,21 @@ wget #{repo_file_url}
         Rake::Task["fedora:build_packages"].invoke
     end
 
+    # Warlock is a fairly new Glance requirement so we provide a builder
+    # in FireStack for now until stable releases of distros pick it up
+    task :build_python_warlock do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/python-warlock.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/bcwaldon/warlock.git"
+        end
+        ENV["PROJECT_NAME"] = "warlock"
+        ENV["SOURCE_URL"] = "git://github.com/bcwaldon/warlock.git"
+        Rake::Task["fedora:build_packages"].invoke
+
+    end
+
     # Fedora 17 includes python-prettytable 0.5
     # Most openstack projects require > 0.6 so we build our own here.
     task :build_python_prettytable do
@@ -451,6 +451,28 @@ wget #{repo_file_url}
         ENV["SOURCE_BRANCH"] = "0.6"
         ENV["SOURCE_URL"] = "git://github.com/dprince/python-prettytable.git"
         Rake::Task["fedora:build_packages"].invoke
+
+    end
+
+    # Warlock is a fairly new Nova requirement so we provide a builder
+    # in FireStack for now until stable releases of distros pick it up
+    task :build_python_stevedore do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/python-stevedore.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/dreamhost/stevedore.git"
+        end
+        ENV["PROJECT_NAME"] = "stevedore"
+        ENV["SOURCE_URL"] = "git://github.com/dreamhost/stevedore.git"
+        Rake::Task["fedora:build_packages"].invoke
+
+    end
+
+    task :build_misc do
+
+        Rake::Task["fedora:build_python_stevedore"].invoke
+        Rake::Task["fedora:build_python_prettytable"].invoke
 
     end
 
