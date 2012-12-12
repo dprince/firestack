@@ -28,8 +28,6 @@ rake quantum:build_packages \
 rake nova:build_python_novaclient \
 	SOURCE_URL="git://github.com/openstack/python-novaclient.git"
 
-rake fedora:build_python_prettytable
-
 rake glance:build_python_glanceclient \
 	SOURCE_URL="git://github.com/openstack/python-glanceclient.git"
 
@@ -44,6 +42,9 @@ rake swift:build_python_swiftclient \
 
 rake quantum:build_python_quantumclient \
 	SOURCE_URL="git://github.com/openstack/python-quantumclient.git"
+
+# hook to build distro specific packages
+rake build_misc
 
 rake fedora:create_rpm_repo
 
