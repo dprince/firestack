@@ -138,7 +138,7 @@ rake kytoon:create SERVER_GROUP_JSON="config/server_group_fedora.json"
 rake nova:build_packages \
     RPM_PACKAGER_URL="git://github.com/fedora-openstack/openstack-nova.git" \
     SOURCE_URL="git://github.com/openstack/nova.git" \
-    SOURCE_BRANCH="master" GIT_MERGE="master"
+    SOURCE_BRANCH="master"
 
 #create an RPM repo
 rake fedora:create_rpm_repo
