@@ -54,7 +54,7 @@ function download_cached_rpm {
     fi
     PKGUUID=$(git ls-remote "$PKG_URL" "$PKG_BRANCH" | cut -f 1)
     if [ -z $PKGUUID ] ; then
-        echo "Invalid package URL:BRANCH $SPEC_URL:$SRC_BRANCH"
+        echo "Invalid package URL:BRANCH $PKG_URL:$PKG_BRANCH"
         return 1
     fi
 
@@ -454,7 +454,7 @@ wget #{repo_file_url}
 
     end
 
-    # Warlock is a fairly new Nova requirement so we provide a builder
+    # Stevedore is a fairly new Nova requirement so we provide a builder
     # in FireStack for now until stable releases of distros pick it up
     task :build_python_stevedore do
 
