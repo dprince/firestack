@@ -470,14 +470,13 @@ wget #{repo_file_url}
     end
 
     task :build_misc do
+        saved_env = ENV.to_hash
 
         Rake::Task["fedora:build_python_stevedore"].execute
 
-        ENV["PROJECT_NAME"] = "prettytable"
-        ENV["SOURCE_BRANCH"] = "0.6"
-        ENV["SOURCE_URL"] = "git://github.com/dprince/python-prettytable.git"
-        ENV["RPM_PACKAGER_URL"] = "git://github.com/dprince/fedora-python-prettytable.git"
-        ENV["GIT_MASTER"] = "git://github.com/dprince/python-prettytable.git"
+        ENV.clear
+        ENV.update(saved_env)
+
         Rake::Task["fedora:build_python_prettytable"].execute
 
     end
