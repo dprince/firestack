@@ -149,7 +149,7 @@ md5sum *.tar.gz > sources
 sed -i.bk "$SPEC_FILE_NAME" -e "s/^Version:.*/Version:          $VERSION/g"
 
 # Rip out patches
-sed -i.bk "$SPEC_FILE_NAME" -e 's|^%patch.*||g'
+#sed -i.bk "$SPEC_FILE_NAME" -e 's|^%patch.*||g'
 
 # install dependency projects
 fedpkg --dist master srpm &> $BUILD_LOG || { echo "Failed to build srpm."; cat $BUILD_LOG; exit 1; }
