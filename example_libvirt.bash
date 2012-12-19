@@ -3,27 +3,27 @@ rake kytoon:create GROUP_CONFIG="config/server_group_libvirt.json"
 
 rake nova:build_packages \
 	SOURCE_URL="git://github.com/openstack/nova.git" \
-	SOURCE_BRANCH="master" GIT_MERGE="master"
+	SOURCE_BRANCH="master"
 
 rake glance:build_packages \
 	SOURCE_URL="git://github.com/openstack/glance.git" \
-	SOURCE_BRANCH="master" GIT_MERGE="master"
+	SOURCE_BRANCH="master"
 
 rake swift:build_packages \
 	SOURCE_URL="git://github.com/openstack/swift.git" \
-	SOURCE_BRANCH="master" GIT_MERGE="master"
+	SOURCE_BRANCH="master"
 
 rake keystone:build_packages \
         SOURCE_URL="git://github.com/openstack/keystone.git" \
-	SOURCE_BRANCH="master" GIT_MERGE="master"
+	SOURCE_BRANCH="master"
 
 rake cinder:build_packages \
 	SOURCE_URL="git://github.com/openstack/cinder.git" \
-	SOURCE_BRANCH="master" GIT_MERGE="master"
+	SOURCE_BRANCH="master"
 
 rake quantum:build_packages \
 	SOURCE_URL="git://github.com/openstack/quantum.git" \
-	SOURCE_BRANCH="master" GIT_MERGE="master"
+	SOURCE_BRANCH="master"
 
 rake nova:build_python_novaclient \
 	SOURCE_URL="git://github.com/openstack/python-novaclient.git"
