@@ -221,7 +221,7 @@ export OS_AUTH_STRATEGY=keystone
 export EC2_ACCESS_KEY=$ADMIN_ACCESS
 export EC2_SECRET_KEY=$ADMIN_SECRET
 
-source .openstackrc
+source $HOME/.openstackrc
 EOF
 
 #user1
@@ -235,7 +235,7 @@ export OS_AUTH_STRATEGY=keystone
 export EC2_ACCESS_KEY=$USER1_ACCESS
 export EC2_SECRET_KEY=$USER1_SECRET
 
-source .openstackrc
+source $HOME/.openstackrc
 EOF
 
 #user2
@@ -249,5 +249,5 @@ export OS_AUTH_STRATEGY=keystone
 export EC2_ACCESS_KEY=$USER2_ACCESS
 export EC2_SECRET_KEY=$USER2_SECRET
 
-source .openstackrc
+source $HOME/.openstackrc
 EOF
