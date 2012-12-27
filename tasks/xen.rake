@@ -80,7 +80,7 @@ if [ -n "#{merge_master}" ]; then
         git merge #{merge_master_branch} || fail "Failed to merge #{merge_master_branch}."
 fi
 
-[ -f nova/flags.py ] || { echo "Please specify a top level nova project dir."; exit 1; }
+[ -f nova/config.py ] || { echo "Please specify a top level nova project dir."; exit 1; }
 cd plugins/xenserver/xenapi
 tar czf $MY_TMP/plugins.tar.gz ./etc 2> /dev/null || { echo "Failed to create plugins source tar."; exit 1; }
 cd /

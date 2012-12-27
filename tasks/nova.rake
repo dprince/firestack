@@ -208,7 +208,7 @@ EOF_SERVER_NAME
         shh %{
             set -e
             cd #{src_dir}
-            [ -f nova/flags.py ] \
+            [ -f nova/config.py ] \
                 || { echo "Please specify a valid nova project dir."; exit 1; }
             MY_TMP="#{mktempdir}"
             cp -r "#{src_dir}" $MY_TMP/src
