@@ -200,6 +200,7 @@ class { 'cinder':
   qpid_username => $cinder_qpid_user,
   qpid_password => $cinder_qpid_password,
   auth_strategy => 'keystone',
+  lock_path => "/var/lib/cinder/tmp",
   scheduler_driver => 'cinder.scheduler.chance.ChanceScheduler',
   require => [Class["cinder::mysql"], Class["mysql::server"]]
 }
