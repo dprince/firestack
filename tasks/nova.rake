@@ -79,6 +79,19 @@ if [ -n "#{no_volume_tests}" ]; then
   fi
 fi
 
+# FIXME: Adding immediate fix for wait_for_delete function
+patch --quiet base.py <<"EOF_PATCH"
+@@ -78,7 +78,7 @@ class SmokeTestCase(unittest.TestCase):
+             try:
+                 #NOTE(dprince): raises exception when instance id disappears
+                 instance.update(validate=True)
+-            except ValueError:
++            except Exception, e:
+                 return True
+             time.sleep(wait)
+         else:
+EOF_PATCH
+
 IMG_ID=$(euca-describe-images | grep ami | tail -n 1 | cut -f 2)
 export PYTHONPATH=/tmp
 python run_tests.py --test_image=$IMG_ID
