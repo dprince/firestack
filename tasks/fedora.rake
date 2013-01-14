@@ -469,9 +469,30 @@ wget #{repo_file_url}
 
     end
 
+    # Extras is a fairly new OpenStack common requirement so we provide a
+    # builder in FireStack for now until stable releases of distros pick it up
+    task :build_python_extras do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/python-extras.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/testing-cabal/extras.git"
+        end
+        ENV["PROJECT_NAME"] = "extras"
+        ENV["SOURCE_URL"] = "git://github.com/testing-cabal/extras.git"
+        Rake::Task["fedora:build_packages"].execute
+
+    end
+
     task :build_misc do
 
         Rake::Task["fedora:build_python_stevedore"].execute
+
+        ENV["PROJECT_NAME"] = "extras"
+        ENV["SOURCE_URL"] = "git://github.com/testing-cabal/extras.git"
+        ENV["RPM_PACKAGER_URL"] = "git://github.com/dprince/python-extras.git"
+        ENV["GIT_MASTER"] = "git://github.com/testing-cabal/extras.git"
+        Rake::Task["fedora:build_python_extras"].execute
 
         ENV["PROJECT_NAME"] = "prettytable"
         ENV["SOURCE_BRANCH"] = "0.6"
