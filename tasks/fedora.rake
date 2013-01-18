@@ -488,11 +488,11 @@ wget #{repo_file_url}
 
         Rake::Task["fedora:build_python_stevedore"].execute
 
-        ENV["PROJECT_NAME"] = "extras"
-        ENV["SOURCE_URL"] = "git://github.com/testing-cabal/extras.git"
-        ENV["RPM_PACKAGER_URL"] = "git://github.com/dprince/python-extras.git"
-        ENV["GIT_MASTER"] = "git://github.com/testing-cabal/extras.git"
-        Rake::Task["fedora:build_python_extras"].execute
+        #ENV["PROJECT_NAME"] = "extras"
+        #ENV["SOURCE_URL"] = "git://github.com/testing-cabal/extras.git"
+        #ENV["RPM_PACKAGER_URL"] = "git://github.com/dprince/python-extras.git"
+        #ENV["GIT_MASTER"] = "git://github.com/testing-cabal/extras.git"
+        #Rake::Task["fedora:build_python_extras"].execute
 
         ENV["PROJECT_NAME"] = "prettytable"
         ENV["SOURCE_BRANCH"] = "0.6"
