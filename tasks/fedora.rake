@@ -223,8 +223,58 @@ EOF_SERVER_NAME
         end
     end
 
-    desc "Create a local RPM repo using built packages."
-    task :create_rpm_repo do
+    #desc "Configure the server group to use a set of mirrors."
+    task :configure_package_mirrors do
+
+        # Fedora mirror URLs
+        fedora_updates_url=ENV['FEDORA_UPDATES_MIRROR']
+        fedora_release_url=ENV['FEDORA_RELEASE_MIRROR']
+
+        if fedora_updates_url or fedora_release_url then
+          sg=ServerGroup.get()
+          puts "Configuring RPM mirrors..."
+          results = remote_multi_exec sg.server_names, %{
+if [ -n "#{fedora_updates_url}" ]; then
+cat > /etc/yum.repos.d/fedora-updates.repo <<-"EOF_YUM_UPDATES"
+[updates]
+name=Fedora $releasever - $basearch - Updates
+failovermethod=priority
+baseurl=#{fedora_updates_url}
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-$basearch
+EOF_YUM_UPDATES
+fi
+
+if [ -n "#{fedora_release_url}" ]; then
+cat > /etc/yum.repos.d/fedora.repo <<-"EOF_YUM_RELEASE"
+[fedora]
+name=Fedora $releasever - $basearch
+failovermethod=priority
+baseurl=#{fedora_release_url}
+enabled=1
+metadata_expire=7d
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-$basearch
+EOF_YUM_RELEASE
+fi
+          }
+          err_msg = ""
+          results.each_pair do |hostname, data|
+              ok = data[0]
+              out = data[1]
+              err_msg += "Errors configuring Yum mirror on #{hostname}. \n #{out}\n" unless ok
+          end
+          fail err_msg unless err_msg == ""
+        end
+
+    end
+
+    # alias to :create_package_repo for compat
+    task :create_rpm_repo => :create_package_repo
+
+    #desc "Create a local RPM repo using built packages."
+    task :create_package_repo do
 
         server_name=ENV['SERVER_NAME']
         server_name = "localhost" if server_name.nil?
@@ -252,7 +302,7 @@ EOF_SERVER_NAME
         end
 
         sg=ServerGroup.get()
-        puts "Creating yum repo config files..."
+        puts "Creating yum client repo config files..."
         results = remote_multi_exec sg.server_names, %{
 echo -e "[openstack]\\nname=OpenStack RPM repo\\nbaseurl=http://#{server_name}/repos\\nenabled=1\\ngpgcheck=0\\npriority=1" > /etc/yum.repos.d/openstack.repo
         }
@@ -267,7 +317,7 @@ echo -e "[openstack]\\nname=OpenStack RPM repo\\nbaseurl=http://#{server_name}/r
 
     end
 
-    desc "Configure instances to use a remote RPM repo."
+    #desc "Configure instances to use a remote RPM repo."
     task :configure_rpm_repo do
 
         # Default to using the upstream packages built by SmokeStack:

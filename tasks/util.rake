@@ -28,6 +28,18 @@ task :build_misc => :distro_name do
   Rake::Task["#{ENV['DISTRO_NAME']}:build_misc"].invoke
 end
 
+# hook to build create a local package repository within the group
+desc "Configure package repo (Yum/Apt repo config)."
+task :create_package_repo => :distro_name do
+  Rake::Task["#{ENV['DISTRO_NAME']}:create_package_repo"].invoke
+end
+
+# hook to setup/configure package mirrors within the group
+desc "Configure package mirrors."
+task :configure_package_mirrors => :distro_name do
+  Rake::Task["#{ENV['DISTRO_NAME']}:configure_package_mirrors"].invoke
+end
+
 desc "Tail nova, glance, keystone logs."
 task :tail_logs do
 
