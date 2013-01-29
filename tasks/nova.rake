@@ -50,7 +50,7 @@ tar -xzf nova*.tar.gz
 scp -r /root/rpmbuild/SOURCES/*/smoketests  #{server_name}:/tmp
 
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
-#{BASH_COMMON_PKG}
+#{BASH_COMMON}
 
 install_package python-pip python-nose python-paramiko python-nova-adminclient
 
