@@ -36,7 +36,7 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 # Test if the rpms we require are in the cache allready
 # If present this function downloads them to ~/rpms
 function download_cached_rpm {
-    rpm -q git &> /dev/null || yum install -q -y git
+    install_package git
     local PROJECT="$1"
     local SRC_URL="$2"
     local SRC_BRANCH="$3"
@@ -79,7 +79,7 @@ function download_cached_rpm {
     return 1
 }
 
-rpm -q fedpkg &> /dev/null || yum install -q -y git fedpkg python-setuptools
+install_package git fedpkg python-setuptools
 
 BUILD_LOG=$(mktemp)
 SRC_DIR="#{project}_source"
@@ -283,7 +283,7 @@ fi
         remote_exec %{
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 #{BASH_COMMON}
-yum -q -y install httpd
+install_package httpd
 
 mkdir -p /var/www/html/repos/
 rm -rf /var/www/html/repos/*
@@ -327,7 +327,8 @@ echo -e "[openstack]\\nname=OpenStack RPM repo\\nbaseurl=http://#{server_name}/r
         sg=ServerGroup.get()
         puts "Creating yum repo config files..."
         results = remote_multi_exec sg.server_names, %{
-rpm -q yum-priorities &> /dev/null || yum -y -q install yum-priorities
+#{BASH_COMMON_PKG}
+install_package yum-priorities
 cd /etc/yum.repos.d
 wget #{repo_file_url}
         }

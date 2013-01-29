@@ -24,10 +24,13 @@ task :torpedo do
 
 	remote_exec %{
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
+#{BASH_COMMON_PKG}
 
 if [ -f /bin/rpm ]; then
-	rpm -q rubygems &> /dev/null || yum install -y rubygems &> /dev/null
-	rpm -q rubygem-json &> /dev/null || yum install -y rubygem-json &> /dev/null
+	if [ -f /etc/fedora-release ]; then
+		install_package rubygems
+	fi
+	install_package rubygem-json
 	if ruby -v | grep 1\.9\. &> /dev/null; then
 		gem install --no-rdoc --no-ri test-unit
 	fi
