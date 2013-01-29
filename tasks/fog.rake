@@ -15,10 +15,8 @@ task :fog do
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 #{BASH_COMMON}
 
-if [ -f /bin/rpm ]; then
-  for NAME in rubygems rubygem-builder rubygem-formatador rubygem-multi_json rubygem-nokogiri rubygem-shindo; do
-    rpm -q $NAME &> /dev/null || yum install -y $NAME &> /dev/null
-  done
+if [ -f /etc/fedora-release ]; then
+  install_package rubygems rubygem-builder rubygem-formatador rubygem-multi_json rubygem-nokogiri rubygem-shindo
 fi
 
 #install most recent excon (we want EXCON_DEBUG=1 support)

@@ -3,11 +3,12 @@ task :distro_name do
     # only run this if it isn't already set
     if ENV['DISTRO_NAME'].nil? or ENV['DISTRO_NAME'] == "" then
         remote_exec %{
+#{BASH_COMMON_PKG}
 # try to install lsb-release if not present (preinstall would be best)
 if [ -f /etc/fedora-release ]; then
-  rpm -q redhat-lsb-core &> /dev/null || yum -y -q install redhat-lsb-core
-elif [ -f /usr/bin/dpkg ]; then
-  dpkg -l lsb-release &> /dev/null || apt-get -y -q install lsb-release &> /dev/null
+  install_package redhat-lsb-core
+else
+  install_package lsb-release
 fi
 lsb_release -is
     } do |ok, out|

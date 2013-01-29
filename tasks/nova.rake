@@ -50,8 +50,9 @@ tar -xzf nova*.tar.gz
 scp -r /root/rpmbuild/SOURCES/*/smoketests  #{server_name}:/tmp
 
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
+#{BASH_COMMON_PKG}
 
-yum install -q -y python-pip python-nose python-paramiko python-nova-adminclient
+install_package python-pip python-nose python-paramiko python-nova-adminclient
 
 if [ -n "#{xunit_output}" ]; then
 pip-python install nosexunit > /dev/null
@@ -113,6 +114,7 @@ EOF_SERVER_NAME
         remote_exec %{
 [ -f /tmp/nova.tar.gz ] && scp /tmp/nova.tar.gz #{server_name}:/tmp
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
+#{BASH_COMMON_PKG}
 
 if [ ! -d /root/nova_source ]; then
   if [ -f /tmp/nova.tar.gz ]; then
@@ -120,13 +122,12 @@ if [ ! -d /root/nova_source ]; then
     tar xzf /tmp/nova.tar.gz 2> /dev/null || { echo "Failed to extract nova source tar."; exit 1; }
     cd ..
   else
-    dpkg -l git &> /dev/null || apt-get -y -q install git &> /dev/null
+    install_package git
     git clone https://github.com/openstack/nova.git /root/nova_source
   fi
 fi
 
-dpkg -l euca2ools &> /dev/null || apt-get -y -q install euca2ools &> /dev/null
-dpkg -l python-pip &> /dev/null || apt-get -y -q install python-pip &> /dev/null
+install_package euca2ools python-pip
 pip install nova-adminclient > /dev/null
 
 # FIXME: need to update nova-adminclient so it doesn't pip install boto 1.9

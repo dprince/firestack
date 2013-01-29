@@ -117,8 +117,48 @@ if File.exist?(File.join(KYTOON_PROJECT, 'tasks')) then
   end
 end
 
+#functions to help install packages
+BASH_COMMON_PKG=%{
+function is_package_installed {
+    local PKG=$1
+    if [ -f /etc/fedora-release ]; then
+        rpm -q ${PKG} &> /dev/null
+        return $?
+    elif [ -f /usr/bin/dpkg ]; then
+        dpkg -l ${PKG} &> /dev/null
+        return $?
+    else
+        return 1
+    fi
+}
+
+function install_package {
+    local PKGS=
+    for PKG in $*; do
+        is_package_installed "${PKG}" || PKGS="${PKGS} ${PKG}"
+    done
+    if [ -n "${PKGS}" ]; then
+        if [ -f /etc/fedora-release ]; then
+            yum -y -q install ${PKGS}
+        elif [ -f /usr/bin/dpkg ]; then
+            apt-get -y -q install ${PKGS} &> /dev/null
+        fi
+    fi
+}
+
+function install_git {
+    if [ -f /etc/fedora-release ]; then
+        install_package git
+    else
+        install_package git-core
+    fi
+}
+}
+
 #git clone w/ retry
 BASH_COMMON=%{
+#{BASH_COMMON_PKG}
+
 function fail {
     local MSG=$1
     echo "FAILURE_MSG=$MSG"
@@ -128,12 +168,12 @@ function fail {
 GIT_CACHE_DIR=/root/.git_repo_cache
 
 function git_clone_with_retry {
-    rpm -q git &> /dev/null || yum install -q -y git
     local URL=${1:?"Please specify a URL."}
     local DIR=${2:?"Please specify a DIR."}
     local URLSHA=$(echo \"$URL\" | sha1sum | cut -f 1 -d ' ')
     local SHORT_REPO_NAME=${URL/#*\\//}
     local CACHE_DIR="${GIT_CACHE_DIR}/${SHORT_REPO_NAME}-${URLSHA}"
+    install_git
     [ -d "$GIT_CACHE_DIR" ] || mkdir -p "$GIT_CACHE_DIR"
     if [ -d "$CACHE_DIR" ]; then
         echo "Using git repository cache..."
