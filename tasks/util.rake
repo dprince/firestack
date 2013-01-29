@@ -14,6 +14,9 @@ lsb_release -is
     } do |ok, out|
             if ok then
                 ENV['DISTRO_NAME'] = out.chomp.downcase
+                if ENV['DISTRO_NAME'] == 'suse linux'
+                    ENV['DISTRO_NAME'] = 'opensuse'
+                end
             else
                 puts ok
                 fail "Unable to set distro name with 'lsb_release'!"
@@ -30,7 +33,7 @@ task :build_misc => :distro_name do
 end
 
 # hook to build create a local package repository within the group
-desc "Configure package repo (Yum/Apt repo config)."
+desc "Configure package repo (Yum/Zypp/Apt repo config)."
 task :create_package_repo => :distro_name do
   Rake::Task["#{ENV['DISTRO_NAME']}:create_package_repo"].invoke
 end

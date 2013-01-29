@@ -121,7 +121,7 @@ end
 BASH_COMMON_PKG=%{
 function is_package_installed {
     local PKG=$1
-    if [ -f /etc/fedora-release ]; then
+    if [ -f /etc/fedora-release -o /etc/SuSE-release ]; then
         rpm -q ${PKG} &> /dev/null
         return $?
     elif [ -f /usr/bin/dpkg ]; then
@@ -140,6 +140,8 @@ function install_package {
     if [ -n "${PKGS}" ]; then
         if [ -f /etc/fedora-release ]; then
             yum -y -q install ${PKGS}
+        elif [ -f /etc/SuSE-release ]; then
+            zypper -q --non-interactive install ${PKGS}
         elif [ -f /usr/bin/dpkg ]; then
             apt-get -y -q install ${PKGS} &> /dev/null
         fi

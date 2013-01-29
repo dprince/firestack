@@ -105,6 +105,63 @@ EOF_SERVER_NAME
 
     end
 
+    task :smoke_tests_opensuse do
+        server_name=ENV['SERVER_NAME']
+        # default to nova1 if SERVER_NAME is unset
+        server_name = "nova1" if server_name.nil?
+        xunit_output=ENV['XUNIT_OUTPUT'] # set if you want Xunit style output
+        no_volume_tests=ENV['NO_VOLUME'] # set if you want disable Volume tests
+        remote_exec %{
+echo rm -rf /tmp/smoketests | ssh #{server_name}
+
+rpm -i rpms/openstack-nova*.src.rpm
+cd /usr/src/packages/SOURCES/
+tar -xzf nova*.tar.gz
+scp -r /usr/src/packages/SOURCES/*/smoketests  #{server_name}:/tmp
+
+ssh #{server_name} bash <<-"EOF_SERVER_NAME"
+#{BASH_COMMON}
+
+install_package euca2ools python-pip python-nose python-paramiko python-python-gflags python-novaclient
+
+if [ -n "#{xunit_output}" ]; then
+pip install nosexunit > /dev/null
+export NOSE_WITH_NOSEXUNIT=true
+fi
+
+if [ -f /root/openstackrc ]; then
+  source /root/openstackrc
+else
+  configure_noauth
+  source ~/novarc
+fi
+
+[ -f "$HOME/cacert.pem" ] || nova x509-get-root-cert "$HOME/cacert.pem"
+[ -f "$HOME/pk.pem" ] || nova x509-create-cert "$HOME/pk.pem" "$HOME/cert.pem"
+
+cd /tmp/smoketests
+
+#DISABLE_VOLUME_TESTS
+if [ -n "#{no_volume_tests}" ]; then
+  if grep -c "VolumeTests" test_sysadmin.py &> /dev/null; then
+    sed -e '/class Volume/q' test_sysadmin.py \
+     | sed -e 's/^class VolumeTests.*//g' > tmp_test_sysadmin.py
+    mv tmp_test_sysadmin.py test_sysadmin.py
+  fi
+fi
+
+IMG_ID=$(euca-describe-images | grep ami | tail -n 1 | cut -f 2)
+export PYTHONPATH=/tmp
+python run_tests.py --test_image=$IMG_ID
+
+EOF_SERVER_NAME
+        } do |ok, out|
+            puts out
+            fail "Test task failed!" unless ok
+        end
+
+    end
+
     task :smoke_tests_ubuntu do
 
         server_name=ENV['SERVER_NAME']
