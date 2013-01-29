@@ -3,16 +3,20 @@ task :distro_name do
     # only run this if it isn't already set
     if ENV['DISTRO_NAME'].nil? or ENV['DISTRO_NAME'] == "" then
         remote_exec %{
+#{BASH_COMMON_PKG}
 # try to install lsb-release if not present (preinstall would be best)
 if [ -f /etc/fedora-release ]; then
-  rpm -q redhat-lsb-core &> /dev/null || yum -y -q install redhat-lsb-core
-elif [ -f /usr/bin/dpkg ]; then
-  dpkg -l lsb-release &> /dev/null || apt-get -y -q install lsb-release &> /dev/null
+  install_package redhat-lsb-core
+else
+  install_package lsb-release
 fi
 lsb_release -is
     } do |ok, out|
             if ok then
                 ENV['DISTRO_NAME'] = out.chomp.downcase
+                if ENV['DISTRO_NAME'] == 'suse linux'
+                    ENV['DISTRO_NAME'] = 'opensuse'
+                end
             else
                 puts ok
                 fail "Unable to set distro name with 'lsb_release'!"
@@ -29,7 +33,7 @@ task :build_misc => :distro_name do
 end
 
 # hook to build create a local package repository within the group
-desc "Configure package repo (Yum/Apt repo config)."
+desc "Configure package repo (Yum/Zypp/Apt repo config)."
 task :create_package_repo => :distro_name do
   Rake::Task["#{ENV['DISTRO_NAME']}:create_package_repo"].invoke
 end
