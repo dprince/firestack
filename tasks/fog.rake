@@ -16,7 +16,7 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 #{BASH_COMMON}
 
 if [ -f /bin/rpm ]; then
-  for NAME in rubygems rubygem-builder rubygem-formatador rubygem-multi_json rubygem-nokogiri rubygem-shindo; do
+  for NAME in rubygems rubygem-builder rubygem-formatador rubygem-multi_json rubygem-nokogiri rubygem-shindo rubygem-mime-types; do
     rpm -q $NAME &> /dev/null || yum install -y $NAME &> /dev/null
   done
 fi
