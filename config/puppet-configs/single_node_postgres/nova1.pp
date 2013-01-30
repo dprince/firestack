@@ -1,4 +1,4 @@
-ver     = 'postgresql'
+$db_driver     = 'postgresql'
 $db_host     = 'localhost'
 $db_name     = 'nova'
 $db_user = 'nova'
@@ -12,7 +12,6 @@ $glance_host        = 'localhost'
 $glance_port        = '9292'
 
 $nova_network = '192.168.0.0/24'
-$available_ips = '256'
 $floating_network = '172.20.0.0/24'
 
 $lock_path = '/var/lib/nova/tmp'
@@ -33,22 +32,10 @@ $keystone_db_user = 'keystone'
 $keystone_db_password = 'password'
 $keystone_sql_connection = "postgresql://${keystone_db_user}:${keystone_db_password}@${keystone_db_host}/${keystone_db_name}"
 
-$cinder_db_driver     = 'postgresql'
-$cinder_db_host     = 'localhost'
-$cinder_db_name     = 'cinder'
-$cinder_db_user = 'cinder'
-$cinder_db_password = 'password'
-
-$cinder_lock_path = '/var/lib/cinder/tmp'
-
-$cinder_qpid_password = 'p@ssw0rd'
-$cinder_qpid_user = 'cinder_qpid'
-$cinder_qpid_realm = 'OPENSTACK'
-
-
 resources { 'nova_config':
   purge => true,
 }
+
 class { 'qpid::server':
   realm => $qpid_realm,
 }
@@ -65,7 +52,6 @@ class { 'postgresql::python': }
 
 class { 'keystone': }
 
-
 class { 'keystone::postgresql':
   db_password      => $keystone_db_password,
   db_name        => $keystone_db_name,
@@ -78,7 +64,6 @@ class { 'keystone::api':
   require => [Class["keystone::postgresql"], Class["postgresql::python"]]
 }
 
-
 class { 'nova::postgresql':
   db_password      => $db_password,
   db_name        => $db_name,
@@ -87,11 +72,13 @@ class { 'nova::postgresql':
   require => Class["postgresql::python"]
 }
 
-class { 'cinder::client': }
+class { 'nova::controller':
+  db_driver => $db_driver,
+  db_password => $db_password,
+  db_name => $db_name,
+  db_user => $db_user,
+  db_host => $db_host,
 
-
-class { 'nova':
-  sql_connection => "${db_driver}://${db_user}:${db_password}@${db_host}/${db_name}",
   image_service => 'nova.image.glance.GlanceImageService',
 
   glance_api_servers => $glance_api_servers,
@@ -100,49 +87,18 @@ class { 'nova':
 
   libvirt_type => 'qemu',
 
+  nova_network => $nova_network,
+  floating_network => $floating_network,
   force_dhcp_release => true,
+  keystone_enabled => true,
   scheduler_default_filters => 'AvailabilityZoneFilter,ComputeFilter',
   allow_resize_to_same_host => true,
   libvirt_wait_soft_reboot_seconds => 15,
   rpc_backend => 'nova.rpc.impl_qpid',
   qpid_username => $qpid_user,
   qpid_password => $qpid_password,
-  enabled_apis => 'ec2,osapi_compute,metadata',
-  volume_api_class => 'nova.volume.cinder.API',
-  require => [Class["keystone"], Class["nova::postgresql"], Class["postgresql::server"], Class["cinder::client"]]
+  require => [Class["keystone"], Class["nova::postgresql"], Class["postgresql::python"]]
 }
-
-  class { "nova::api": enabled => true, keystone_enabled => true }
-
-  $flat_network_bridge  = 'br100'
-  $flat_network_bridge_ip  = '11.0.0.1'
-  $flat_network_bridge_netmask  = '255.255.255.0'
-  class { "nova::network::flat":
-    enabled                     => true,
-    flat_network_bridge         => $flat_network_bridge,
-    flat_network_bridge_ip      => $flat_network_bridge_ip,
-    flat_network_bridge_netmask => $flat_network_bridge_netmask,
-  }
-
-  class { "nova::objectstore":
-    enabled => true,
-  }
-
-  class { "nova::cert":
-    enabled => true,
-  }
-
-  class { "nova::scheduler": enabled => true }
-
-
-  nova::manage::network { "net-${nova_network}":
-    network       => $nova_network,
-    available_ips => $available_ips
-  }
-
-  nova::manage::floating { "floating-${floating_network}":
-    network       => $floating_network
-  }
 
 class { 'nova::compute':
   enabled        => true
@@ -166,39 +122,3 @@ class { 'glance::api':
   sql_connection => $glance_sql_connection,
   require => [Class["keystone"], Class["glance::postgresql"], Class["postgresql::python"], Class["glance::registry"]]
 }
-
-resources { 'cinder_config':
-  purge => true,
-}
-
-class { 'cinder::qpid':
-  user => $cinder_qpid_user,
-  password => $cinder_qpid_password,
-  realm => $cinder_qpid_realm,
-}
-
-class { 'cinder::postgresql':
-  db_password      => $cinder_db_password,
-  db_name        => $cinder_db_name,
-  db_user          => $cinder_db_username,
-  db_host          => $cinder_db_host,
-  require => Class["postgresql::python"],
-}
-
-class { 'cinder':
-  db_driver => $cinder_db_driver,
-  db_password => $cinder_db_password,
-  db_name => $cinder_db_name,
-  db_user => $cinder_db_user,
-  db_host => $cinder_db_host,
-  rpc_backend => 'cinder.openstack.common.rpc.impl_qpid',
-  qpid_username => $cinder_qpid_user,
-  qpid_password => $cinder_qpid_password,
-  auth_strategy => 'keystone',
-  scheduler_driver => 'cinder.scheduler.chance.ChanceScheduler',
-  require => [Class["cinder::postgresql"], Class["postgresql::server"]]
-}
-
-class { 'cinder::api': }
-class { 'cinder::scheduler': }
-class { 'cinder::volume': }
