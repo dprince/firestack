@@ -114,7 +114,7 @@ tenant_name=admin
 EOF_CAT
 
 cd /root/tempest
-nosetests tempest $NOSE_ARGS
+nosetests tempest $NOSE_ARGS | tee out.log
 
 EOF_SERVER_NAME
 } do |ok, out|
