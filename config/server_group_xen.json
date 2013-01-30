@@ -7,6 +7,7 @@
     "network_type": "static",
     "public_ip_bridge": "xenbr0",
     "bridge": "xenbr1",
+    "cleanup_before_create": "true",
     "servers": [
         {
             "hostname": "login",
