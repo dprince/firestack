@@ -478,7 +478,7 @@ wget #{repo_file_url}
     # in FireStack for now until stable releases of distros pick it up
     task :build_python_warlock do
 
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/python-warlock.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/python-warlock.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/bcwaldon/warlock.git"
@@ -542,6 +542,9 @@ wget #{repo_file_url}
         ENV.clear
         ENV.update(saved_env)
         Rake::Task["fedora:build_python_prettytable"].execute
+        ENV.clear
+        ENV.update(saved_env)
+        Rake::Task["fedora:build_python_warlock"].execute
 
     end
 
