@@ -489,6 +489,48 @@ wget #{repo_file_url}
 
     end
 
+    task :build_python_jsonpatch do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/python-jsonpatch.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/stefankoegl/python-json-patch.git"
+        end
+        ENV["PROJECT_NAME"] = "jsonpatch"
+        ENV["SOURCE_URL"] = "git://github.com/stefankoegl/python-json-patch.git"
+        ENV["SOURCE_BRANCH"] = "v0.12"
+        Rake::Task["fedora:build_packages"].execute
+
+    end
+
+    task :build_python_jsonpointer do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/python-jsonpointer.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/stefankoegl/python-json-pointer.git"
+        end
+        ENV["PROJECT_NAME"] = "jsonpointer"
+        ENV["SOURCE_URL"] = "git://github.com/stefankoegl/python-json-pointer.git"
+        ENV["SOURCE_BRANCH"] = "v0.6"
+        Rake::Task["fedora:build_packages"].execute
+
+    end
+
+    task :build_python_jsonschema do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/python-jsonschema.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/Julian/jsonschema.git"
+        end
+        ENV["PROJECT_NAME"] = "jsonschema"
+        ENV["SOURCE_URL"] = "git://github.com/Julian/jsonschema.git"
+        ENV["SOURCE_BRANCH"] = "v0.8.0"
+        Rake::Task["fedora:build_packages"].execute
+
+    end
+
     # Fedora 17 includes python-prettytable 0.5
     # Most openstack projects require > 0.6 so we build our own here.
     task :build_python_prettytable do
@@ -539,9 +581,25 @@ wget #{repo_file_url}
 
         saved_env = ENV.to_hash
         Rake::Task["fedora:build_python_stevedore"].execute
+
         ENV.clear
         ENV.update(saved_env)
         Rake::Task["fedora:build_python_prettytable"].execute
+
+        # Latest glanceclient requires the following for Warlock:
+        # jsonpointer, jsonpatch, jsonschema (updated from 0.2)
+        ENV.clear
+        ENV.update(saved_env)
+        Rake::Task["fedora:build_python_jsonschema"].execute
+
+        ENV.clear
+        ENV.update(saved_env)
+        Rake::Task["fedora:build_python_jsonpointer"].execute
+
+        ENV.clear
+        ENV.update(saved_env)
+        Rake::Task["fedora:build_python_jsonpatch"].execute
+
         ENV.clear
         ENV.update(saved_env)
         Rake::Task["fedora:build_python_warlock"].execute
