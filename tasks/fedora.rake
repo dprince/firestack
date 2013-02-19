@@ -418,6 +418,16 @@ wget #{repo_file_url}
         Rake::Task["fedora:build_packages"].execute
     end
 
+    task :build_oslo_config do
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-python-oslo-config.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/openstack/oslo-config.git"
+        end
+        ENV["PROJECT_NAME"] = "oslo-config"
+        Rake::Task["fedora:build_packages"].execute
+    end
+
     task :build_python_swiftclient do
 
         packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-python-swiftclient.git")
@@ -603,6 +613,10 @@ wget #{repo_file_url}
         ENV.clear
         ENV.update(saved_env)
         Rake::Task["fedora:build_python_warlock"].execute
+
+        ENV.clear
+        ENV.update(saved_env)
+        Rake::Task["fedora:build_oslo_config"].execute
 
     end
 
