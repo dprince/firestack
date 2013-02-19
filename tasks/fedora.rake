@@ -616,6 +616,7 @@ wget #{repo_file_url}
 
         ENV.clear
         ENV.update(saved_env)
+        ENV['SOURCE_URL'] = 'git://github.com/openstack/oslo-config.git'
         Rake::Task["fedora:build_oslo_config"].execute
 
     end
