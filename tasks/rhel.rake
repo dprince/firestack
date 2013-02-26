@@ -300,6 +300,49 @@ wget #{repo_file_url}
 
     end
 
+    task :provision_vm do
+        server_name=ENV['SERVER_NAME']
+        server_name = "localhost" if server_name.nil?
+
+        puts "Installing basic packages on #{server_name}..."
+        remote_exec %{
+bash <<-"EOF_SERVER_NAME"
+#{BASH_COMMON}
+cat > /etc/yum.repos.d/rhel.repo  <<-"EOF_RHEL_REPO"
+[rhel]
+name=Red Hat Enterprise Linux \$releasever - \$basearch - Base
+baseurl=http://download.eng.blr.redhat.com/pub/rhel/rel-eng/RHEL6.4-20130123.0/6.4/Server/x86_64/os/
+enabled=1
+gpgcheck=0
+
+[rhel-optional]
+name=Red Hat Enterprise Linux \$releasever - \$basearch - Optional
+baseurl=http://download.eng.blr.redhat.com/pub/rhel/rel-eng/RHEL6.4-20130123.0/6.4/Server/optional/x86_64/os/
+enabled=1
+gpgcheck=0
+
+EOF_RHEL_REPO
+
+cat > /etc/yum.repos.d/epel.repo  <<-"EOF_EPEL_REPO"
+[epel]
+name=Extra Packages for Enterprise Linux 6 - $basearch
+#baseurl=http://download.fedoraproject.org/pub/epel/6/$basearch
+mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=epel-6&arch=$basearch
+failovermethod=priority
+enabled=1
+gpgcheck=0
+
+EOF_EPEL_REPO
+
+rpm -q openssh-clients &> /dev/null || yum -q -y install openssh-clients
+rpm -q yum-utils &> /dev/null || yum -q -y install yum-utils
+
+EOF_SERVER_NAME
+        } do |ok, out|
+            fail "Failed to install basic packages!" unless ok
+        end
+    end 
+
     task :build_nova do
         packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/rhel-openstack/openstack-nova.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
