@@ -139,12 +139,14 @@ git_clone_with_retry "#{packager_url}" "openstack-#{project}" || { echo "Unable 
 cd openstack-#{project}
 GIT_REVISION_INSTALLER="$(git rev-parse --short HEAD)"
 SPEC_FILE_NAME=$(ls *.spec | head -n 1)
-RPM_BASE_NAME=${SPEC_FILE_NAME:0:-5}
+RPM_BASE_NAME=${SPEC_FILE_NAME:0:${#SPEC_FILE_NAME}-5}
+
 [ #{packager_branch} != "master" ] && { git checkout -t -b #{packager_branch} origin/#{packager_branch} || { echo "Unable to checkout branch :  #{packager_branch}"; exit 1; } }
 cp ~/$SRC_DIR/dist/*.tar.gz .
 PACKAGE_REVISION="${GIT_COMMITS_PROJECT}.${GIT_REVISION:0:7}_${GIT_REVISION_INSTALLER:0:7}"
 sed -i.bk -e "s/Release:.*/Release:0.1.$PACKAGE_REVISION/g" "$SPEC_FILE_NAME"
 sed -i.bk -e "s/Source0:.*/Source0:      $(ls *.tar.gz)/g" "$SPEC_FILE_NAME"
+sed -i.bk -e "s/%setup .*/%setup -q -n $PROJECT_NAME-$VERSION/g" "$SPEC_FILE_NAME"
 [ -z "#{build_docs}" ] && sed -i -e 's/%global with_doc .*/%global with_doc 0/g' "$SPEC_FILE_NAME"
 md5sum *.tar.gz > sources 
 
@@ -161,10 +163,10 @@ cp * ~/rpmbuild/SOURCES/
 
 # install dependency projects
 rpmbuild -bs $SPEC_FILE_NAME &> $BUILD_LOG || { echo "Failed to build srpm."; cat $BUILD_LOG; exit 1; }
-yum-builddep -y ~/rpmbuild/SRPMS/*.src.rpm &> $BUILD_LOG || { echo "Failed to yum-builddep."; cat $BUILD_LOG; exit 1; }
+yum-builddep --nogpgcheck -y ~/rpmbuild/SRPMS/${RPM_BASE_NAME}-${VERSION}-*.src.rpm &> $BUILD_LOG || { echo "Failed to yum-builddep."; cat $BUILD_LOG; exit 1; }
 
 # build rpm's
-rpmbuild -bb $SPEC_FILE_NAME&> $BUILD_LOG || { echo "Failed to build #{project} packages."; cat $BUILD_LOG; exit 1; }
+rpmbuild -bb $SPEC_FILE_NAME &> $BUILD_LOG || { echo "Failed to build #{project} packages."; cat $BUILD_LOG; exit 1; }
 mkdir -p ~/rpms
 find ~/rpmbuild -name "*rpm" -exec cp {} ~/rpms \\;
 
@@ -336,6 +338,7 @@ EOF_EPEL_REPO
 
 rpm -q openssh-clients &> /dev/null || yum -q -y install openssh-clients
 rpm -q yum-utils &> /dev/null || yum -q -y install yum-utils
+rpm -q make &> /dev/null || yum -q -y install make
 
 EOF_SERVER_NAME
         } do |ok, out|
