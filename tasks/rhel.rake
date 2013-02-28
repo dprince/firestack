@@ -478,6 +478,18 @@ EOF_SERVER_NAME
         Rake::Task["rhel:build_packages"].execute
     end
 
+    task :build_python_oslo_config do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-python-oslo-config.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/openstack/oslo-config.git"
+        end
+        ENV["PROJECT_NAME"] = "oslo-config"
+        Rake::Task["rhel:build_packages"].execute
+
+    end
+
     # Warlock is a fairly new Glance requirement so we provide a builder
     # in FireStack for now until stable releases of distros pick it up
     task :build_python_warlock do

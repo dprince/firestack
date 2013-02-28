@@ -2,7 +2,7 @@
     "name": "Red Hat",
     "servers": [
         {
-            "hostname": "rhel6",
+            "hostname": "nova1",
             "memory": "20",
             "gateway": "true",
             "original_xml": "/home/rhos/rhel6.xml",
