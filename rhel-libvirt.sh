@@ -78,16 +78,24 @@ rake quantum:build_python_quantumclient \
         RPM_PACKAGER_URL="git://github.com/fedora-openstack/openstack-python-quantumclient.git" \
         RPM_PACKAGER_BRANCH="el6"
 
+rake oslo_config:build_packages \
+	SOURCE_URL="git://github.com/openstack/oslo-config.git" \
+	SOURCE_BRANCH="master" \
+        RPM_PACKAGER_URL="git://github.com/fedora-openstack/openstack-python-oslo-config.git" \
+        RPM_PACKAGER_BRANCH="el6"
+
 # hook to build distro specific packages
 #rake build_misc
 
 rake rhel:create_rpm_repo
 
 rake puppet:install \
-        SOURCE_URL="git://github.com/fedora-openstack/openstack-puppet.git" \
+        SOURCE_URL="git://github.com/nunofsantos/openstack-puppet.git" \
+        SOURCE_BRANCH="master" \
         PUPPET_CONFIG="single_node_mysql"
 
 #rake keystone:configure
+
 #rake glance:load_images
 # Uncomment to configure quantum
 #
