@@ -339,6 +339,7 @@ EOF_EPEL_REPO
 rpm -q openssh-clients &> /dev/null || yum -q -y install openssh-clients
 rpm -q yum-utils &> /dev/null || yum -q -y install yum-utils
 rpm -q make &> /dev/null || yum -q -y install make
+rpm -q createrepo &> /dev/null || yum -q -y install createrepo
 
 EOF_SERVER_NAME
         } do |ok, out|
