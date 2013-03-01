@@ -85,7 +85,7 @@ rake oslo_config:build_packages \
         RPM_PACKAGER_BRANCH="el6"
 
 # hook to build distro specific packages
-#rake build_misc
+rake build_misc
 
 rake rhel:create_rpm_repo
 

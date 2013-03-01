@@ -494,11 +494,9 @@ EOF_SERVER_NAME
     # in FireStack for now until stable releases of distros pick it up
     task :build_python_warlock do
 
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/python-warlock.git")
-        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
-        if ENV["GIT_MASTER"].nil?
-            ENV["GIT_MASTER"] = "git://github.com/bcwaldon/warlock.git"
-        end
+        ENV["RPM_PACKAGER_URL"] = "git://github.com/dprince/python-warlock.git"
+	#ENV["RPM_PACKAGER_BRANCH"] = "el6"
+        ENV["GIT_MASTER"] = "git://github.com/bcwaldon/warlock.git"
         ENV["PROJECT_NAME"] = "warlock"
         ENV["SOURCE_URL"] = "git://github.com/bcwaldon/warlock.git"
         Rake::Task["rhel:build_packages"].execute
@@ -538,14 +536,7 @@ EOF_SERVER_NAME
 
     task :build_misc do
 
-        # Rake::Task["rhel:build_python_stevedore"].execute
-
-#        ENV["PROJECT_NAME"] = "prettytable"
-#        ENV["SOURCE_BRANCH"] = "0.6"
-#        ENV["SOURCE_URL"] = "git://github.com/dprince/python-prettytable.git"
-#        ENV["RPM_PACKAGER_URL"] = "git://github.com/dprince/fedora-python-prettytable.git"
-#        ENV["GIT_MASTER"] = "git://github.com/dprince/python-prettytable.git"
-#        Rake::Task["rhel:build_python_prettytable"].execute
+    	Rake::Task["rhel:build_python_warlock"].execute
 
     end
 
