@@ -94,7 +94,7 @@ rake puppet:install \
         SOURCE_BRANCH="master" \
         PUPPET_CONFIG="single_node_mysql"
 
-#rake keystone:configure
+rake keystone:configure
 
 #rake glance:load_images
 # Uncomment to configure quantum
