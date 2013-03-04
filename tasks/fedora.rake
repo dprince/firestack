@@ -36,7 +36,7 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 # Test if the rpms we require are in the cache allready
 # If present this function downloads them to ~/rpms
 function download_cached_rpm {
-    rpm -q git &> /dev/null || yum install -q -y git
+    install_package git
     local PROJECT="$1"
     local SRC_URL="$2"
     local SRC_BRANCH="$3"
@@ -79,7 +79,7 @@ function download_cached_rpm {
     return 1
 }
 
-rpm -q fedpkg &> /dev/null || yum install -q -y git fedpkg python-setuptools
+install_package git fedpkg python-setuptools
 
 BUILD_LOG=$(mktemp)
 SRC_DIR="#{project}_source"
@@ -223,8 +223,58 @@ EOF_SERVER_NAME
         end
     end
 
-    desc "Create a local RPM repo using built packages."
-    task :create_rpm_repo do
+    #desc "Configure the server group to use a set of mirrors."
+    task :configure_package_mirrors do
+
+        # Fedora mirror URLs
+        fedora_updates_url=ENV['FEDORA_UPDATES_MIRROR']
+        fedora_release_url=ENV['FEDORA_RELEASE_MIRROR']
+
+        if fedora_updates_url or fedora_release_url then
+          sg=ServerGroup.get()
+          puts "Configuring RPM mirrors..."
+          results = remote_multi_exec sg.server_names, %{
+if [ -n "#{fedora_updates_url}" ]; then
+cat > /etc/yum.repos.d/fedora-updates.repo <<-"EOF_YUM_UPDATES"
+[updates]
+name=Fedora $releasever - $basearch - Updates
+failovermethod=priority
+baseurl=#{fedora_updates_url}
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-$basearch
+EOF_YUM_UPDATES
+fi
+
+if [ -n "#{fedora_release_url}" ]; then
+cat > /etc/yum.repos.d/fedora.repo <<-"EOF_YUM_RELEASE"
+[fedora]
+name=Fedora $releasever - $basearch
+failovermethod=priority
+baseurl=#{fedora_release_url}
+enabled=1
+metadata_expire=7d
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-$basearch
+EOF_YUM_RELEASE
+fi
+          }
+          err_msg = ""
+          results.each_pair do |hostname, data|
+              ok = data[0]
+              out = data[1]
+              err_msg += "Errors configuring Yum mirror on #{hostname}. \n #{out}\n" unless ok
+          end
+          fail err_msg unless err_msg == ""
+        end
+
+    end
+
+    # alias to :create_package_repo for compat
+    task :create_rpm_repo => :create_package_repo
+
+    #desc "Create a local RPM repo using built packages."
+    task :create_package_repo do
 
         server_name=ENV['SERVER_NAME']
         server_name = "localhost" if server_name.nil?
@@ -233,7 +283,7 @@ EOF_SERVER_NAME
         remote_exec %{
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 #{BASH_COMMON}
-yum -q -y install httpd
+install_package httpd
 
 mkdir -p /var/www/html/repos/
 rm -rf /var/www/html/repos/*
@@ -252,7 +302,7 @@ EOF_SERVER_NAME
         end
 
         sg=ServerGroup.get()
-        puts "Creating yum repo config files..."
+        puts "Creating yum client repo config files..."
         results = remote_multi_exec sg.server_names, %{
 echo -e "[openstack]\\nname=OpenStack RPM repo\\nbaseurl=http://#{server_name}/repos\\nenabled=1\\ngpgcheck=0\\npriority=1" > /etc/yum.repos.d/openstack.repo
         }
@@ -267,7 +317,7 @@ echo -e "[openstack]\\nname=OpenStack RPM repo\\nbaseurl=http://#{server_name}/r
 
     end
 
-    desc "Configure instances to use a remote RPM repo."
+    #desc "Configure instances to use a remote RPM repo."
     task :configure_rpm_repo do
 
         # Default to using the upstream packages built by SmokeStack:
@@ -277,7 +327,8 @@ echo -e "[openstack]\\nname=OpenStack RPM repo\\nbaseurl=http://#{server_name}/r
         sg=ServerGroup.get()
         puts "Creating yum repo config files..."
         results = remote_multi_exec sg.server_names, %{
-rpm -q yum-priorities &> /dev/null || yum -y -q install yum-priorities
+#{BASH_COMMON_PKG}
+install_package yum-priorities
 cd /etc/yum.repos.d
 wget #{repo_file_url}
         }
@@ -367,6 +418,16 @@ wget #{repo_file_url}
         Rake::Task["fedora:build_packages"].execute
     end
 
+    task :build_oslo_config do
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-python-oslo-config.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/openstack/oslo-config.git"
+        end
+        ENV["PROJECT_NAME"] = "oslo-config"
+        Rake::Task["fedora:build_packages"].execute
+    end
+
     task :build_python_swiftclient do
 
         packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-python-swiftclient.git")
@@ -427,13 +488,55 @@ wget #{repo_file_url}
     # in FireStack for now until stable releases of distros pick it up
     task :build_python_warlock do
 
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/python-warlock.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/python-warlock.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/bcwaldon/warlock.git"
         end
         ENV["PROJECT_NAME"] = "warlock"
         ENV["SOURCE_URL"] = "git://github.com/bcwaldon/warlock.git"
+        Rake::Task["fedora:build_packages"].execute
+
+    end
+
+    task :build_python_jsonpatch do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/python-jsonpatch.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/stefankoegl/python-json-patch.git"
+        end
+        ENV["PROJECT_NAME"] = "jsonpatch"
+        ENV["SOURCE_URL"] = "git://github.com/stefankoegl/python-json-patch.git"
+        ENV["SOURCE_BRANCH"] = "v0.12"
+        Rake::Task["fedora:build_packages"].execute
+
+    end
+
+    task :build_python_jsonpointer do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/python-jsonpointer.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/stefankoegl/python-json-pointer.git"
+        end
+        ENV["PROJECT_NAME"] = "jsonpointer"
+        ENV["SOURCE_URL"] = "git://github.com/stefankoegl/python-json-pointer.git"
+        ENV["SOURCE_BRANCH"] = "v0.6"
+        Rake::Task["fedora:build_packages"].execute
+
+    end
+
+    task :build_python_jsonschema do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/python-jsonschema.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/Julian/jsonschema.git"
+        end
+        ENV["PROJECT_NAME"] = "jsonschema"
+        ENV["SOURCE_URL"] = "git://github.com/Julian/jsonschema.git"
+        ENV["SOURCE_BRANCH"] = "v0.8.0"
         Rake::Task["fedora:build_packages"].execute
 
     end
@@ -486,20 +589,35 @@ wget #{repo_file_url}
 
     task :build_misc do
 
+        saved_env = ENV.to_hash
         Rake::Task["fedora:build_python_stevedore"].execute
 
-        #ENV["PROJECT_NAME"] = "extras"
-        #ENV["SOURCE_URL"] = "git://github.com/testing-cabal/extras.git"
-        #ENV["RPM_PACKAGER_URL"] = "git://github.com/dprince/python-extras.git"
-        #ENV["GIT_MASTER"] = "git://github.com/testing-cabal/extras.git"
-        #Rake::Task["fedora:build_python_extras"].execute
-
-        ENV["PROJECT_NAME"] = "prettytable"
-        ENV["SOURCE_BRANCH"] = "0.6"
-        ENV["SOURCE_URL"] = "git://github.com/dprince/python-prettytable.git"
-        ENV["RPM_PACKAGER_URL"] = "git://github.com/dprince/fedora-python-prettytable.git"
-        ENV["GIT_MASTER"] = "git://github.com/dprince/python-prettytable.git"
+        ENV.clear
+        ENV.update(saved_env)
         Rake::Task["fedora:build_python_prettytable"].execute
+
+        # Latest glanceclient requires the following for Warlock:
+        # jsonpointer, jsonpatch, jsonschema (updated from 0.2)
+        ENV.clear
+        ENV.update(saved_env)
+        Rake::Task["fedora:build_python_jsonschema"].execute
+
+        ENV.clear
+        ENV.update(saved_env)
+        Rake::Task["fedora:build_python_jsonpointer"].execute
+
+        ENV.clear
+        ENV.update(saved_env)
+        Rake::Task["fedora:build_python_jsonpatch"].execute
+
+        ENV.clear
+        ENV.update(saved_env)
+        Rake::Task["fedora:build_python_warlock"].execute
+
+        ENV.clear
+        ENV.update(saved_env)
+        ENV['SOURCE_URL'] = 'git://github.com/openstack/oslo-config.git'
+        Rake::Task["fedora:build_oslo_config"].execute
 
     end
 
