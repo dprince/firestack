@@ -140,7 +140,6 @@ cd openstack-#{project}
 GIT_REVISION_INSTALLER="$(git rev-parse --short HEAD)"
 SPEC_FILE_NAME=$(ls *.spec | head -n 1)
 RPM_BASE_NAME=${SPEC_FILE_NAME:0:${#SPEC_FILE_NAME}-5}
-
 [ #{packager_branch} != "master" ] && { git checkout -t -b #{packager_branch} origin/#{packager_branch} || { echo "Unable to checkout branch :  #{packager_branch}"; exit 1; } }
 cp ~/$SRC_DIR/dist/*.tar.gz .
 PACKAGE_REVISION="${GIT_COMMITS_PROJECT}.${GIT_REVISION:0:7}_${GIT_REVISION_INSTALLER:0:7}"
@@ -282,7 +281,7 @@ echo -e "[openstack]\\nname=OpenStack RPM repo\\nbaseurl=http://#{server_name}/r
 
         # Default to using the upstream packages built by SmokeStack:
         #  http://repos.fedorapeople.org/repos/openstack/openstack-trunk/README
-        repo_file_url=ENV['REPO_FILE_URL'] || "http://repos.fedorapeople.org/repos/openstack/openstack-trunk/fedora-openstack-trunk.repo"
+        repo_file_url=ENV['REPO_FILE_URL'] || "http://repos.fedorapeople.org/repos/openstack/openstack-trunk/redhat-openstack-trunk.repo"
 
         sg=ServerGroup.get()
         puts "Creating yum repo config files..."
@@ -358,7 +357,7 @@ EOF_SERVER_NAME
     end
 
     task :build_python_novaclient do
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-python-novaclient.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/redhat-openstack/openstack-python-novaclient.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/python-novaclient.git"
@@ -368,7 +367,7 @@ EOF_SERVER_NAME
     end
 
     task :build_glance do
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-glance.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/redhat-openstack/openstack-glance.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/glance.git"
@@ -380,7 +379,7 @@ EOF_SERVER_NAME
     task :build_python_glanceclient do
 
         # Now build python-glanceclient
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-python-glanceclient.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/redhat-openstack/openstack-python-glanceclient.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/python-glanceclient.git"
@@ -402,7 +401,7 @@ EOF_SERVER_NAME
 
     task :build_python_keystoneclient do
 
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-python-keystoneclient.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/redhat-openstack/openstack-python-keystoneclient.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/python-keystoneclient.git"
@@ -413,7 +412,7 @@ EOF_SERVER_NAME
 
     task :build_swift do
 
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-swift.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/redhat-openstack/openstack-swift.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/swift.git"
@@ -424,7 +423,7 @@ EOF_SERVER_NAME
 
     task :build_python_swiftclient do
 
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-python-swiftclient.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/redhat-openstack/openstack-python-swiftclient.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/python-swiftclient.git"
@@ -436,7 +435,7 @@ EOF_SERVER_NAME
 
     task :build_cinder do
 
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-cinder.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/redhat-openstack/openstack-cinder.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/cinder.git"
@@ -448,7 +447,7 @@ EOF_SERVER_NAME
 
     task :build_python_cinderclient do
 
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-python-cinderclient.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/redhat-openstack/openstack-python-cinderclient.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/python-cinderclient.git"
@@ -459,7 +458,7 @@ EOF_SERVER_NAME
     end
 
     task :build_quantum do
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-quantum.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/redhat-openstack/openstack-quantum.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/quantum.git"
@@ -469,7 +468,7 @@ EOF_SERVER_NAME
     end
 
     task :build_python_quantumclient do
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-python-quantumclient.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/redhat-openstack/openstack-python-quantumclient.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/python-quantumclient.git"
@@ -478,14 +477,15 @@ EOF_SERVER_NAME
         Rake::Task["rhel:build_packages"].execute
     end
 
-    task :build_python_oslo_config do
+    task :build_oslo_config do
 
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-python-oslo-config.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/redhat-openstack/openstack-python-oslo-config.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+	ENV["RPM_PACKAGER_BRANCH"]="el6"
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/oslo-config.git"
         end
-        ENV["PROJECT_NAME"] = "oslo-config"
+        ENV["PROJECT_NAME"] = "oslo.config"
         Rake::Task["rhel:build_packages"].execute
 
     end
@@ -499,6 +499,48 @@ EOF_SERVER_NAME
         ENV["GIT_MASTER"] = "git://github.com/bcwaldon/warlock.git"
         ENV["PROJECT_NAME"] = "warlock"
         ENV["SOURCE_URL"] = "git://github.com/bcwaldon/warlock.git"
+        Rake::Task["rhel:build_packages"].execute
+
+    end
+
+    task :build_python_jsonpatch do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/python-jsonpatch.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/stefankoegl/python-json-patch.git"
+        end
+        ENV["PROJECT_NAME"] = "jsonpatch"
+        ENV["SOURCE_URL"] = "git://github.com/stefankoegl/python-json-patch.git"
+        ENV["SOURCE_BRANCH"] = "master" #"v0.12"
+        Rake::Task["rhel:build_packages"].execute
+
+    end
+
+    task :build_python_jsonpointer do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/python-jsonpointer.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/stefankoegl/python-json-pointer.git"
+        end
+        ENV["PROJECT_NAME"] = "jsonpointer"
+        ENV["SOURCE_URL"] = "git://github.com/stefankoegl/python-json-pointer.git"
+        ENV["SOURCE_BRANCH"] = "master" #"v0.6"
+        Rake::Task["rhel:build_packages"].execute
+
+    end
+
+    task :build_python_jsonschema do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/python-jsonschema.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/Julian/jsonschema.git"
+        end
+        ENV["PROJECT_NAME"] = "jsonschema"
+        ENV["SOURCE_URL"] = "git://github.com/Julian/jsonschema.git"
+        ENV["SOURCE_BRANCH"] = "master" #"v0.8.0"
         Rake::Task["rhel:build_packages"].execute
 
     end
@@ -523,7 +565,7 @@ EOF_SERVER_NAME
     # in FireStack for now until stable releases of distros pick it up
     task :build_python_stevedore do
 
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/python-stevedore.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/redhat-openstack/python-stevedore.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/dreamhost/stevedore.git"
@@ -536,7 +578,28 @@ EOF_SERVER_NAME
 
     task :build_misc do
 
-    	Rake::Task["rhel:build_python_warlock"].execute
+        saved_env = ENV.to_hash
+
+        # Latest glanceclient requires the following for Warlock:
+        # jsonpointer, jsonpatch, jsonschema (updated from 0.2)
+        Rake::Task["rhel:build_python_jsonschema"].execute
+
+        ENV.clear
+        ENV.update(saved_env)
+        Rake::Task["rhel:build_python_jsonpointer"].execute
+
+        ENV.clear
+        ENV.update(saved_env)
+        Rake::Task["rhel:build_python_jsonpatch"].execute
+
+        ENV.clear
+        ENV.update(saved_env)
+        Rake::Task["rhel:build_python_warlock"].execute
+
+        ENV.clear
+        ENV.update(saved_env)
+        ENV['SOURCE_URL'] = 'git://github.com/openstack/oslo-config.git'
+        Rake::Task["rhel:build_oslo_config"].execute
 
     end
 
