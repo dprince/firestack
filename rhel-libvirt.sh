@@ -93,4 +93,4 @@ rake glance:load_images
 # Uncomment to configure quantum
 #
 #rake quantum:configure
-#rake torpedo
+rake torpedo
