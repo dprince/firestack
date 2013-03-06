@@ -6,20 +6,20 @@ task :torpedo do
 	mode=ENV['MODE'] # set to 'xen' or 'libvirt'
 	mode = "libvirt" if mode.nil?
 
-	server_build_timeout=ENV['TORPEDO_SERVER_BUILD_TIMEOUT'] || '180'
-	ssh_timeout=ENV['TORPEDO_SSH_TIMEOUT'] || '60'
-	ping_timeout=ENV['TORPEDO_PING_TIMEOUT'] || '60'
+	server_build_timeout=ENV['TORPEDO_SERVER_BUILD_TIMEOUT'] || '240'
+	ssh_timeout=ENV['TORPEDO_SSH_TIMEOUT'] || '120'
+	ping_timeout=ENV['TORPEDO_PING_TIMEOUT'] || '120'
 	use_keypairs=ENV['TORPEDO_USE_KEYPAIRS'] || 'true'
 	image_name=ENV['TORPEDO_IMAGE_NAME'] || '' #defaults to 1st in list
-	test_create_image=ENV['TORPEDO_TEST_CREATE_IMAGE'] || 'false'
-	test_rebuild_server=ENV['TORPEDO_TEST_REBUILD_SERVER'] || 'false'
-	test_soft_reboot_server=ENV['TORPEDO_TEST_SOFT_REBOOT_SERVER'] || 'false'
-	test_hard_reboot_server=ENV['TORPEDO_TEST_HARD_REBOOT_SERVER'] || 'false'
+	test_create_image=ENV['TORPEDO_TEST_CREATE_IMAGE'] || 'true'
+	test_rebuild_server=ENV['TORPEDO_TEST_REBUILD_SERVER'] || 'true'
+	test_soft_reboot_server=ENV['TORPEDO_TEST_SOFT_REBOOT_SERVER'] || 'true'
+	test_hard_reboot_server=ENV['TORPEDO_TEST_HARD_REBOOT_SERVER'] || 'true'
 	test_admin_password=ENV['TORPEDO_TEST_ADMIN_PASSWORD'] || 'false'
 	test_resize_server=ENV['TORPEDO_TEST_RESIZE_SERVER'] || 'false'
 	test_revert_resize_server=ENV['TORPEDO_TEST_REVERT_RESIZE_SERVER'] || 'false'
 	test_hostid_on_resize=ENV['TORPEDO_TEST_HOSTID_ON_RESIZE'] || 'false'
-	flavor_ref=ENV['TORPEDO_FLAVOR_REF'] || '' #defaults to 2 (m1.small)
+	flavor_ref=ENV['TORPEDO_FLAVOR_REF'] || '1' #defaults to 2 (m1.small)
 	sleep_after_image_create=ENV['TORPEDO_SLEEP_AFTER_IMAGE_CREATE'] || '10'
 
 	remote_exec %{
@@ -27,10 +27,9 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 #{BASH_COMMON_PKG}
 
 if [ -f /bin/rpm ]; then
-	if [ -f /etc/fedora-release ]; then
-		install_package rubygems
+	if [ -f /etc/redhat-release ]; then
+		yum install -y -q rubygems ruby-devel make gcc rubygem-json
 	fi
-	install_package rubygem-json
 	if ruby -v | grep 1\.9\. &> /dev/null; then
 		gem install --no-rdoc --no-ri test-unit
 	fi
@@ -81,6 +80,9 @@ if [[ "#{use_keypairs}" == "true" ]]; then
 		keyname: $KEYNAME
 	EOF_CAT
 fi
+
+#ruby 1.8.7 doesn't support to_time so we remove these
+sed -e 's|^.*to_time.*||' -i /usr/lib/ruby/gems/1.8/gems/openstack-compute-1.1.10/lib/openstack/compute/server.rb
 
 torpedo fire
 
