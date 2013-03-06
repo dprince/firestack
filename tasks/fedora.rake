@@ -426,7 +426,7 @@ wget #{repo_file_url}
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/oslo-config.git"
         end
-        ENV["PROJECT_NAME"] = "oslo-config"
+        ENV["PROJECT_NAME"] = "oslo.config"
         Rake::Task["fedora:build_packages"].execute
     end
 
