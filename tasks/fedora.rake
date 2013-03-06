@@ -1,5 +1,7 @@
 namespace :fedora do
 
+    FEDORA_GIT_BASE="git://github.com/redhat-openstack"
+
     #generic package builder to build RPMs for all Openstack projects
     task :build_packages do
 
@@ -344,7 +346,7 @@ wget #{repo_file_url}
     end
 
     task :build_nova do
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-nova.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-nova.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/nova.git"
@@ -354,7 +356,7 @@ wget #{repo_file_url}
     end
 
     task :build_python_novaclient do
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-python-novaclient.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-python-novaclient.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/python-novaclient.git"
@@ -364,7 +366,7 @@ wget #{repo_file_url}
     end
 
     task :build_glance do
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-glance.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-glance.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/glance.git"
@@ -376,7 +378,7 @@ wget #{repo_file_url}
     task :build_python_glanceclient do
 
         # Now build python-glanceclient
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-python-glanceclient.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-python-glanceclient.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/python-glanceclient.git"
@@ -387,7 +389,7 @@ wget #{repo_file_url}
     end
 
     task :build_keystone do
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-keystone.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-keystone.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/keystone.git"
@@ -398,7 +400,7 @@ wget #{repo_file_url}
 
     task :build_python_keystoneclient do
 
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-python-keystoneclient.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-python-keystoneclient.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/python-keystoneclient.git"
@@ -409,7 +411,7 @@ wget #{repo_file_url}
 
     task :build_swift do
 
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-swift.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-swift.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/swift.git"
@@ -419,18 +421,18 @@ wget #{repo_file_url}
     end
 
     task :build_oslo_config do
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-python-oslo-config.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-python-oslo-config.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/oslo-config.git"
         end
-        ENV["PROJECT_NAME"] = "oslo-config"
+        ENV["PROJECT_NAME"] = "oslo.config"
         Rake::Task["fedora:build_packages"].execute
     end
 
     task :build_python_swiftclient do
 
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-python-swiftclient.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-python-swiftclient.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/python-swiftclient.git"
@@ -442,7 +444,7 @@ wget #{repo_file_url}
 
     task :build_cinder do
 
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-cinder.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-cinder.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/cinder.git"
@@ -454,7 +456,7 @@ wget #{repo_file_url}
 
     task :build_python_cinderclient do
 
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-python-cinderclient.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-python-cinderclient.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/python-cinderclient.git"
@@ -465,7 +467,7 @@ wget #{repo_file_url}
     end
 
     task :build_quantum do
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-quantum.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-quantum.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/quantum.git"
@@ -475,7 +477,7 @@ wget #{repo_file_url}
     end
 
     task :build_python_quantumclient do
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/openstack-python-quantumclient.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-python-quantumclient.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/python-quantumclient.git"
@@ -561,7 +563,7 @@ wget #{repo_file_url}
     # in FireStack for now until stable releases of distros pick it up
     task :build_python_stevedore do
 
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/fedora-openstack/python-stevedore.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/python-stevedore.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/dreamhost/stevedore.git"
