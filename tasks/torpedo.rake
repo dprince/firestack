@@ -42,7 +42,7 @@ if ! gem list | grep torpedo &> /dev/null; then
 	[ ! -f /usr/bin/torpedo ] && ln -sf /var/lib/gems/1.8/gems/torpedo-*/bin/torpedo /usr/bin/torpedo
 fi
 
-if [ -f /etc/redhat-release ]; then
+if [ -f /usr/lib/ruby/gems/1.8/gems/openstack-compute-1.1.10/lib/openstack/compute/server.rb ]; then
 	#FIXME: ruby 1.8.7 doesn't support to_time so we remove these
 	sed -e 's|^.*to_time.*||' -i /usr/lib/ruby/gems/1.8/gems/openstack-compute-1.1.10/lib/openstack/compute/server.rb
 fi
