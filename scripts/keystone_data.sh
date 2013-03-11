@@ -45,50 +45,50 @@ NETADMIN_ROLE=`get_id keystone role-create --name=netadmin`
 
 # Add Roles to Users in Tenants
 
-keystone user-role-add --user="$ADMIN_USER" \
-                       --role="$ADMIN_ROLE" \
+keystone user-role-add --user_id="$ADMIN_USER" \
+                       --role_id="$ADMIN_ROLE" \
                        --tenant_id="$ADMIN_TENANT"
 
 #user1
-keystone user-role-add --user="$USER1_USER" \
-                       --role="$MEMBER_ROLE" \
+keystone user-role-add --user_id="$USER1_USER" \
+                       --role_id="$MEMBER_ROLE" \
                        --tenant_id="$USER1_TENANT"
-keystone user-role-add --user="$USER1_USER" \
-                       --role="$SYSADMIN_ROLE" \
+keystone user-role-add --user_id="$USER1_USER" \
+                       --role_id="$SYSADMIN_ROLE" \
                        --tenant_id="$USER1_TENANT"
-keystone user-role-add --user="$USER1_USER" \
-                       --role="$NETADMIN_ROLE" \
+keystone user-role-add --user_id="$USER1_USER" \
+                       --role_id="$NETADMIN_ROLE" \
                        --tenant_id="$USER1_TENANT"
-keystone user-role-add --user="$USER1_USER" \
-                       --role="$MEMBER_ROLE" \
+keystone user-role-add --user_id="$USER1_USER" \
+                       --role_id="$MEMBER_ROLE" \
                        --tenant_id="$INVIS_TENANT"
-keystone user-role-add --user="$ADMIN_USER" \
-                       --role="$ADMIN_ROLE" \
+keystone user-role-add --user_id="$ADMIN_USER" \
+                       --role_id="$ADMIN_ROLE" \
                        --tenant_id="$USER1_TENANT"
 
 #user2
-keystone user-role-add --user="$USER2_USER" \
-                       --role="$MEMBER_ROLE" \
+keystone user-role-add --user_id="$USER2_USER" \
+                       --role_id="$MEMBER_ROLE" \
                        --tenant_id="$USER2_TENANT"
-keystone user-role-add --user="$USER2_USER" \
-                       --role="$SYSADMIN_ROLE" \
+keystone user-role-add --user_id="$USER2_USER" \
+                       --role_id="$SYSADMIN_ROLE" \
                        --tenant_id="$USER2_TENANT"
-keystone user-role-add --user="$USER2_USER" \
-                       --role="$NETADMIN_ROLE" \
+keystone user-role-add --user_id="$USER2_USER" \
+                       --role_id="$NETADMIN_ROLE" \
                        --tenant_id="$USER2_TENANT"
-keystone user-role-add --user="$USER2_USER" \
-                       --role="$MEMBER_ROLE" \
+keystone user-role-add --user_id="$USER2_USER" \
+                       --role_id="$MEMBER_ROLE" \
                        --tenant_id="$INVIS_TENANT"
-keystone user-role-add --user="$ADMIN_USER" \
-                       --role="$ADMIN_ROLE" \
+keystone user-role-add --user_id="$ADMIN_USER" \
+                       --role_id="$ADMIN_ROLE" \
                        --tenant_id="$USER2_TENANT"
 
 #keystone admin
-keystone user-role-add --user="$ADMIN_USER" \
-                       --role="$KEYSTONEADMIN_ROLE" \
+keystone user-role-add --user_id="$ADMIN_USER" \
+                       --role_id="$KEYSTONEADMIN_ROLE" \
                        --tenant_id="$ADMIN_TENANT"
-keystone user-role-add --user="$ADMIN_USER" \
-                       --role="$KEYSTONESERVICE_ROLE" \
+keystone user-role-add --user_id="$ADMIN_USER" \
+                       --role_id="$KEYSTONESERVICE_ROLE" \
                        --tenant_id="$ADMIN_TENANT"
 
 # Nova Service
@@ -101,8 +101,8 @@ NOVA_USER=`get_id keystone user-create \
                                  --pass="$SERVICE_PASSWORD" \
                                  --email=nova@example.com`
 keystone user-role-add --tenant_id $SERVICE_TENANT \
-                       --user=$NOVA_USER \
-                       --role=$ADMIN_ROLE
+                       --user_id $NOVA_USER \
+                       --role_id $ADMIN_ROLE
 
 # EC2 Service (no user required)
 keystone service-create \
@@ -120,8 +120,8 @@ GLANCE_USER=`get_id keystone user-create \
                                  --pass="$SERVICE_PASSWORD" \
                                  --email=glance@example.com`
 keystone user-role-add --tenant_id $SERVICE_TENANT \
-                       --user $GLANCE_USER \
-                       --role $ADMIN_ROLE
+                       --user_id $GLANCE_USER \
+                       --role_id $ADMIN_ROLE
 
 # Cinder Service
 keystone service-create \
@@ -133,8 +133,8 @@ CINDER_USER=`get_id keystone user-create \
                                  --pass="$SERVICE_PASSWORD" \
                                  --email=cinder@example.com`
 keystone user-role-add --tenant_id $SERVICE_TENANT \
-                       --user $CINDER_USER \
-                       --role $ADMIN_ROLE
+                       --user_id $CINDER_USER \
+                       --role_id $ADMIN_ROLE
 
 # Quantum Service
 keystone service-create \
@@ -146,8 +146,8 @@ QUANTUM_USER=`get_id keystone user-create \
                                  --pass="$SERVICE_PASSWORD" \
                                  --email=quantum@example.com`
 keystone user-role-add --tenant_id $SERVICE_TENANT \
-                       --user $QUANTUM_USER \
-                       --role $ADMIN_ROLE
+                       --user_id $QUANTUM_USER \
+                       --role_id $ADMIN_ROLE
 
 # Keystone Service
 keystone service-create \
@@ -165,21 +165,21 @@ SWIFT_USER=`get_id keystone user-create \
                              --pass="$SERVICE_PASSWORD" \
                              --email=swift@example.com`
 keystone user-role-add --tenant_id $SERVICE_TENANT \
-                             --user $SWIFT_USER \
-                             --role $ADMIN_ROLE
+                             --user_id $SWIFT_USER \
+                             --role_id $ADMIN_ROLE
 
 # create ec2 creds and parse the secret and access key returned
-RESULT=`keystone ec2-credentials-create --tenant_id=$ADMIN_TENANT --user-id=$ADMIN_USER`
+RESULT=`keystone ec2-credentials-create --tenant_id=$ADMIN_TENANT --user_id=$ADMIN_USER`
     echo `$@ | grep id | awk '{print $4}'`
 ADMIN_ACCESS=`echo "$RESULT" | grep access | awk '{print $4}'`
 ADMIN_SECRET=`echo "$RESULT" | grep secret | awk '{print $4}'`
 
 
-RESULT=`keystone ec2-credentials-create --tenant_id=$USER1_TENANT --user-id=$USER1_USER`
+RESULT=`keystone ec2-credentials-create --tenant_id=$USER1_TENANT --user_id=$USER1_USER`
 USER1_ACCESS=`echo "$RESULT" | grep access | awk '{print $4}'`
 USER1_SECRET=`echo "$RESULT" | grep secret | awk '{print $4}'`
 
-RESULT=`keystone ec2-credentials-create --tenant_id=$USER2_TENANT --user-id=$USER2_USER`
+RESULT=`keystone ec2-credentials-create --tenant_id=$USER2_TENANT --user_id=$USER2_USER`
 USER2_ACCESS=`echo "$RESULT" | grep access | awk '{print $4}'`
 USER2_SECRET=`echo "$RESULT" | grep secret | awk '{print $4}'`
 
