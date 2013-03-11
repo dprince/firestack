@@ -140,6 +140,8 @@ function install_package {
     if [ -n "${PKGS}" ]; then
         if [ -f /etc/fedora-release ]; then
             yum -y -q install ${PKGS}
+        if [ -f /etc/redhat-release ]; then
+            yum -y -q install ${PKGS}
         elif [ -f /etc/SuSE-release ]; then
             zypper -q --non-interactive install ${PKGS}
         elif [ -f /usr/bin/dpkg ]; then
