@@ -81,7 +81,7 @@ function download_cached_rpm {
     return 1
 }
 
-install_package git fedpkg python-setuptools
+install_package git fedpkg python-setuptools make
 
 BUILD_LOG=$(mktemp)
 SRC_DIR="#{project}_source"
@@ -574,6 +574,20 @@ wget #{repo_file_url}
 
     end
 
+    task :build_python_cliff do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/python-cliff.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/dreamhost/cliff.git"
+        end
+        ENV["PROJECT_NAME"] = "cliff"
+        ENV["SOURCE_BRANCH"] = "1.3"
+        ENV["SOURCE_URL"] = "git://github.com/dreamhost/cliff.git"
+        Rake::Task["fedora:build_packages"].execute
+
+    end
+
     task :build_misc do
 
         saved_env = ENV.to_hash
@@ -605,6 +619,10 @@ wget #{repo_file_url}
         ENV.update(saved_env)
         ENV['SOURCE_URL'] = 'git://github.com/openstack/oslo-config.git'
         Rake::Task["fedora:build_oslo_config"].execute
+
+        #ENV.clear
+        #ENV.update(saved_env)
+        #Rake::Task["fedora:build_python_cliff"].execute
 
     end
 
