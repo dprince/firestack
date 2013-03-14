@@ -52,7 +52,7 @@ scp -r /root/rpmbuild/SOURCES/*/smoketests  #{server_name}:/tmp
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 #{BASH_COMMON}
 
-install_package python-pip python-nose python-paramiko python-nova-adminclient
+install_package python-pip python-nose python-paramiko python-nova-adminclient python-gflags
 
 if [ -n "#{xunit_output}" ]; then
 pip-python install nosexunit > /dev/null
