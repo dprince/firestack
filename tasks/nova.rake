@@ -122,7 +122,7 @@ scp -r /usr/src/packages/SOURCES/*/smoketests  #{server_name}:/tmp
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 #{BASH_COMMON}
 
-install_package euca2ools python-pip python-nose python-paramiko python-python-gflags python-novaclient
+install_package euca2ools python-pip python-nose python-paramiko python-gflags python-novaclient
 
 if [ -n "#{xunit_output}" ]; then
 pip install nosexunit > /dev/null
