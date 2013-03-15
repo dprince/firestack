@@ -81,7 +81,7 @@ function download_cached_rpm {
     return 1
 }
 
-install_package git fedpkg python-setuptools make
+install_package git rpm-build python-setuptools
 
 BUILD_LOG=$(mktemp)
 SRC_DIR="#{project}_source"
@@ -154,13 +154,18 @@ sed -i.bk "$SPEC_FILE_NAME" -e "s/^Version:.*/Version:          $VERSION/g"
 #sed -i.bk "$SPEC_FILE_NAME" -e 's|^%patch.*||g'
 
 # install dependency projects
-fedpkg --dist master srpm &> $BUILD_LOG || { echo "Failed to build srpm."; cat $BUILD_LOG; exit 1; }
-yum-builddep -y *.src.rpm &> $BUILD_LOG || { echo "Failed to yum-builddep."; cat $BUILD_LOG; exit 1; }
+mkdir -p ~/rpmbuild/SPECS
+cp $SPEC_FILE_NAME ~/rpmbuild/SPECS/
+mkdir -p ~/rpmbuild/SOURCES
+cp * ~/rpmbuild/SOURCES/
+rpmbuild -bs $SPEC_FILE_NAME &> $BUILD_LOG || { echo "Failed to build srpm."; cat $BUILD_LOG; exit 1; }
+yum-builddep --nogpgcheck -y ~/rpmbuild/SRPMS/${RPM_BASE_NAME}-${VERSION}-*.src.rpm &> $BUILD_LOG || { echo "Failed to yum-builddep."; cat $BUILD_LOG; exit 1; }
 
 # build rpm's
-fedpkg --dist master local &> $BUILD_LOG || { echo "Failed to build #{project} packages."; cat $BUILD_LOG; exit 1; }
+rpmbuild -bb $SPEC_FILE_NAME &> $BUILD_LOG || { echo "Failed to build srpm."; cat $BUILD_LOG; exit 1; }
+
 mkdir -p ~/rpms
-find . -name "*rpm" -exec cp {} ~/rpms \\;
+find ~/rpmbuild -name "${RPM_BASE_NAME}*rpm" -exec cp {} ~/rpms \\;
 
 if ls ~/rpms/${RPM_BASE_NAME}*.noarch.rpm &> /dev/null; then
   rm $BUILD_LOG
