@@ -165,7 +165,8 @@ yum-builddep --nogpgcheck -y ~/rpmbuild/SRPMS/${RPM_BASE_NAME}-${VERSION}-*.src.
 rpmbuild -bb $SPEC_FILE_NAME &> $BUILD_LOG || { echo "Failed to build srpm."; cat $BUILD_LOG; exit 1; }
 
 mkdir -p ~/rpms
-find ~/rpmbuild -name "${RPM_BASE_NAME}*rpm" -exec cp {} ~/rpms \\;
+find ~/rpmbuild -name "*rpm" -exec cp {} ~/rpms \\;
+rm -Rf ~/rpmbuild/RPMS
 
 if ls ~/rpms/${RPM_BASE_NAME}*.noarch.rpm &> /dev/null; then
   rm $BUILD_LOG
