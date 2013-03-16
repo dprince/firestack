@@ -430,8 +430,9 @@ wget #{repo_file_url}
         packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-python-oslo-config.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
-            ENV["GIT_MASTER"] = "git://github.com/openstack/oslo-config.git"
+            ENV["GIT_MASTER"] = "git://github.com/openstack/oslo.config.git"
         end
+        ENV['SOURCE_URL'] = 'git://github.com/openstack/oslo.config.git'
         ENV["PROJECT_NAME"] = "oslo.config"
         Rake::Task["fedora:build_packages"].execute
     end
@@ -623,7 +624,6 @@ wget #{repo_file_url}
 
         ENV.clear
         ENV.update(saved_env)
-        ENV['SOURCE_URL'] = 'git://github.com/openstack/oslo-config.git'
         Rake::Task["fedora:build_oslo_config"].execute
 
         #ENV.clear
