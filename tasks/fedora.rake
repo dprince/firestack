@@ -153,12 +153,19 @@ sed -i.bk "$SPEC_FILE_NAME" -e "s/^Version:.*/Version:          $VERSION/g"
 # Rip out patches
 #sed -i.bk "$SPEC_FILE_NAME" -e 's|^%patch.*||g'
 
-# install dependency projects
+# clean any pre-existing RPMS dir (from previous build caching)
+rm -Rf RPMS
+
+# prep our rpmbuild tree
 mkdir -p ~/rpmbuild/SPECS
 cp $SPEC_FILE_NAME ~/rpmbuild/SPECS/
 mkdir -p ~/rpmbuild/SOURCES
 cp * ~/rpmbuild/SOURCES/
+
+#build source RPM
 rpmbuild -bs $SPEC_FILE_NAME &> $BUILD_LOG || { echo "Failed to build srpm."; cat $BUILD_LOG; exit 1; }
+
+# install dependency projects
 yum-builddep --nogpgcheck -y ~/rpmbuild/SRPMS/${RPM_BASE_NAME}-${VERSION}-*.src.rpm &> $BUILD_LOG || { echo "Failed to yum-builddep."; cat $BUILD_LOG; exit 1; }
 
 # build rpm's
@@ -166,7 +173,8 @@ rpmbuild -bb $SPEC_FILE_NAME &> $BUILD_LOG || { echo "Failed to build srpm."; ca
 
 mkdir -p ~/rpms
 find ~/rpmbuild -name "*rpm" -exec cp {} ~/rpms \\;
-rm -Rf ~/rpmbuild/RPMS
+# keep a backup of RPMs within this project build dir for caching (if enabled)
+mv ~/rpmbuild/RPMS .
 
 if ls ~/rpms/${RPM_BASE_NAME}*.noarch.rpm &> /dev/null; then
   rm $BUILD_LOG
