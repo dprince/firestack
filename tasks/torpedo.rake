@@ -60,6 +60,12 @@ if [ ! -f ~/.ssh/id_rsa ]; then
 			   echo "Failed to create private key."
 fi
 
+#enable iptables ping/ssh in default security group
+if ! nova secgroup-list-rules default | grep -c icmp &> /dev/null; then
+  nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0
+  nova secgroup-add-rule default tcp 22 22 0.0.0.0/0
+fi
+
 cat > ~/.torpedo.conf <<-EOF_CAT
 	server_build_timeout: #{server_build_timeout}
 	ssh_timeout: #{ssh_timeout}
