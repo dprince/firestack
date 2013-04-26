@@ -41,7 +41,6 @@ namespace :puppet do
 
 puts "Downloading puppet modules..."
         remote_exec %{
-set -x
 rm -rf puppet-modules
 echo Getting Puppet modules from #{source_url}
 git_clone_with_retry "#{source_url}" puppet-modules
