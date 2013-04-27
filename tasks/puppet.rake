@@ -111,7 +111,7 @@ fi
         results.each_pair do |hostname, data|
             ok = data[0]
             out = data[1]
-            err_msg += "Puppet errors on #{hostname}! \n #{out}\n"
+            err_msg += "Puppet errors on #{hostname}! \n #{out}\n" unless ok
         end
         fail err_msg unless err_msg == ""
          
