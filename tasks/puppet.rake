@@ -100,9 +100,10 @@ rpm -q puppet &> /dev/null || yum -q -y install puppet yum-plugin-priorities sys
 ln -sf /root/puppet-modules/modules /etc/puppet/modules
 puppet apply --verbose --detailed-exitcodes manifest.pp &> /var/log/puppet/puppet.log
 RETVAL=$?
-echo $RETVAL
 if [ "$RETVAL" -eq 1 -o "$RETVAL" -gt 2 ]; then
     cat /var/log/puppet/puppet.log; exit 1;
+else
+    exit 0;
 fi
         }
 
