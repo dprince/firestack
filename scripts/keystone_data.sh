@@ -1,5 +1,12 @@
 #!/bin/bash
 # Tenants
+export GLANCE_HOST=${GLANCE_HOST:-"localhost"}
+export NOVA_HOST=${NOVA_HOST:-"localhost"}
+export KEYSTONE_HOST=${KEYSTONE_HOST:-"localhost"}
+export SWIFT_HOST=${SWIFT_HOST:-"localhost"}
+export CINDER_HOST=${CINDER_HOST:-"localhost"}
+export QUANTUM_HOST=${QUANTUM_HOST:-"localhost"}
+
 export SERVICE_TOKEN=$SERVICE_TOKEN
 export SERVICE_ENDPOINT=$SERVICE_ENDPOINT
 export AUTH_ENDPOINT=$AUTH_ENDPOINT
@@ -91,11 +98,6 @@ keystone user-role-add --user_id="$ADMIN_USER" \
                        --role_id="$KEYSTONESERVICE_ROLE" \
                        --tenant_id="$ADMIN_TENANT"
 
-# Nova Service
-keystone service-create \
-                                 --name=nova \
-                                 --type=compute \
-                                 --description="Nova Compute Service"
 NOVA_USER=`get_id keystone user-create \
                                  --name=nova \
                                  --pass="$SERVICE_PASSWORD" \
@@ -104,17 +106,32 @@ keystone user-role-add --tenant_id $SERVICE_TENANT \
                        --user_id $NOVA_USER \
                        --role_id $ADMIN_ROLE
 
+NOVA_SERVICE=$(get_id keystone service-create \
+            --name=nova \
+            --type=compute \
+            --description="Compute")
+keystone endpoint-create \
+            --region RegionOne \
+            --service_id $NOVA_SERVICE \
+            --publicurl "http://$NOVA_HOST:8774/v2/\$(tenant_id)s" \
+            --adminurl "http://$NOVA_HOST:8774/v2/\$(tenant_id)s" \
+            --internalurl "http://$NOVA_HOST:8774/v2/\$(tenant_id)s"
+
+
 # EC2 Service (no user required)
-keystone service-create \
-                                 --name=ec2 \
-                                 --type=ec2 \
-                                 --description="EC2 Compatibility Layer"
+NOVA_EC2_SERVICE=$(get_id keystone service-create \
+            --name=ec2 \
+            --type=ec2 \
+            --description="EC2")
+keystone endpoint-create \
+            --region RegionOne \
+            --service_id $NOVA_EC2_SERVICE \
+            --publicurl "http://$NOVA_HOST:8773/services/Cloud" \
+            --adminurl "http://$NOVA_HOST:8773/services/Admin" \
+            --internalurl "http://$NOVA_HOST:8773/services/Cloud"
+
 
 # Glance Service
-keystone service-create \
-                                 --name=glance \
-                                 --type=image \
-                                 --description="Glance Image Service"
 GLANCE_USER=`get_id keystone user-create \
                                  --name=glance \
                                  --pass="$SERVICE_PASSWORD" \
@@ -123,11 +140,18 @@ keystone user-role-add --tenant_id $SERVICE_TENANT \
                        --user_id $GLANCE_USER \
                        --role_id $ADMIN_ROLE
 
+GLANCE_SERVICE=$(get_id keystone service-create \
+            --name=glance \
+            --type=image \
+            --description="Image")
+keystone endpoint-create \
+            --region RegionOne \
+            --service_id $GLANCE_SERVICE \
+            --publicurl "http://$GLANCE_HOST:9292" \
+            --adminurl "http://$GLANCE_HOST:9292" \
+            --internalurl "http://$GLANCE_HOST:9292"
+
 # Cinder Service
-keystone service-create \
-                                 --name=cinder \
-                                 --type=image \
-                                 --description="Glance Image Service"
 CINDER_USER=`get_id keystone user-create \
                                  --name=cinder \
                                  --pass="$SERVICE_PASSWORD" \
@@ -135,12 +159,19 @@ CINDER_USER=`get_id keystone user-create \
 keystone user-role-add --tenant_id $SERVICE_TENANT \
                        --user_id $CINDER_USER \
                        --role_id $ADMIN_ROLE
+CINDER_SERVICE=$(get_id keystone service-create \
+            --name=cinder \
+            --type=volume \
+            --description="Volume")
+keystone endpoint-create \
+            --region RegionOne \
+            --service_id $CINDER_SERVICE \
+            --publicurl "http://$CINDER_HOST:8776/v1/\$(tenant_id)s" \
+            --adminurl "http://$CINDER_HOST:8776/v1/\$(tenant_id)s" \
+            --internalurl "http://$CINDER_HOST:8776/v1/\$(tenant_id)s"
+
 
 # Quantum Service
-keystone service-create \
-                                 --name=quantum \
-                                 --type=network \
-                                 --description="Quantum Service"
 QUANTUM_USER=`get_id keystone user-create \
                                  --name=quantum \
                                  --pass="$SERVICE_PASSWORD" \
@@ -149,17 +180,30 @@ keystone user-role-add --tenant_id $SERVICE_TENANT \
                        --user_id $QUANTUM_USER \
                        --role_id $ADMIN_ROLE
 
+QUANTUM_SERVICE=$(get_id keystone service-create \
+            --name=network \
+            --type=network \
+            --description="Network")
+keystone endpoint-create \
+            --region RegionOne \
+            --service_id $QUANTUM_SERVICE \
+            --publicurl "http://$QUANTUM_HOST:9696" \
+            --adminurl "http://$QUANTUM_HOST:9696" \
+            --internalurl "http://$QUANTUM_HOST:9696"
+
 # Keystone Service
-keystone service-create \
-                                 --name=keystone \
-                                 --type=identity \
-                                 --description="Keystone Identity Service"
+KEYSTONE_SERVICE=$(get_id keystone service-create \
+            --name=keystone \
+            --type=identity \
+            --description="Identity")
+keystone endpoint-create \
+            --region RegionOne \
+            --service_id $KEYSTONE_SERVICE \
+            --publicurl "http://$KEYSTONE_HOST:5000" \
+            --adminurl "http://$KEYSTONE_HOST:35357" \
+            --internalurl "http://$KEYSTONE_HOST:35357"
 
 # Swift Service
-keystone service-create \
-                             --name=swift \
-                             --type="object-store" \
-                             --description="Swift Service"
 SWIFT_USER=`get_id keystone user-create \
                              --name=swift \
                              --pass="$SERVICE_PASSWORD" \
@@ -167,6 +211,17 @@ SWIFT_USER=`get_id keystone user-create \
 keystone user-role-add --tenant_id $SERVICE_TENANT \
                              --user_id $SWIFT_USER \
                              --role_id $ADMIN_ROLE
+
+SWIFT_SERVICE=$(get_id keystone service-create \
+            --name=swift \
+            --type=object-store \
+            --description="Object")
+keystone endpoint-create \
+            --region RegionOne \
+            --service_id $SWIFT_SERVICE \
+            --publicurl "http://$SWIFT_HOST:8080/v1/AUTH_\$(tenant_id)s" \
+            --adminurl "http://$SWIFT_HOST:8080/" \
+            --internalurl "http://$SWIFT_HOST:8080/v1/AUTH_\$(tenant_id)s"
 
 # create ec2 creds and parse the secret and access key returned
 RESULT=`keystone ec2-credentials-create --tenant_id=$ADMIN_TENANT --user_id=$ADMIN_USER`
