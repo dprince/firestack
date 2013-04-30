@@ -75,7 +75,7 @@ function checkout_module {
   echo "${PROJ_NAME^^}_CONFIG_MODULE_REVISION=$GIT_REVISION"
 
   if [ -n "$MERGE_MASTER" ]; then
-    git merge "$GIT_MASTER" || fail "Failed to merge $GIT_MASTER."
+    git merge master || fail "Failed to merge $GIT_MASTER."
   fi
 
 }
