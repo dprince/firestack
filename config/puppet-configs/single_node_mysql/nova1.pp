@@ -1,21 +1,16 @@
 $db_driver     = 'mysql'
-$db_host     = 'localhost'
+$db_host     = '127.0.0.1'
 $db_name     = 'nova'
 $db_user = 'nova'
 $db_password = 'password'
-
-$old_root_password = ''
-$root_password = ''
 
 $glance_api_servers = 'localhost:9292'
 $glance_host        = 'localhost'
 $glance_port        = '9292'
 
 $nova_network = '192.168.0.0/24'
-$available_ips = '256'
+$network_size = '256'
 $floating_network = '172.20.0.0/24'
-
-$lock_path = '/var/lib/nova/tmp'
 
 $qpid_password = 'p@ssw0rd'
 $qpid_user = 'nova_qpid'
@@ -34,24 +29,11 @@ $keystone_db_password = 'password'
 $keystone_sql_connection = "mysql://${keystone_db_user}:${keystone_db_password}@${keystone_db_host}/${keystone_db_name}"
 
 $cinder_db_driver     = 'mysql'
-$cinder_db_host     = 'localhost'
+$cinder_db_host     = '127.0.0.1'
 $cinder_db_name     = 'cinder'
 $cinder_db_user = 'cinder'
 $cinder_db_password = 'password'
-
-$cinder_lock_path = '/var/lib/cinder/tmp'
-
-$cinder_qpid_password = 'p@ssw0rd'
-$cinder_qpid_user = 'cinder_qpid'
-$cinder_qpid_realm = 'OPENSTACK'
-
-
-resources { 'nova_config':
-  purge => true,
-}
-class { 'qpid::server':
-  realm => $qpid_realm,
-}
+$cinder_sql_connection = "mysql://${cinder_db_user}:${cinder_db_password}@${cinder_db_host}/${cinder_db_name}"
 
 class { 'nova::qpid':
   user => $qpid_user,
@@ -62,8 +44,6 @@ class { 'nova::qpid':
 class { 'mysql::server':
   config_hash => {
                   'bind_address' => '0.0.0.0',
-                   #'root_password' => '',
-                   #'etc_root_password' => true
                  }
 }
 
@@ -72,139 +52,209 @@ class { 'mysql::ruby':
   package_name => 'ruby-mysql',
 }
 
-class { 'keystone': }
-
-class { 'keystone::mysql':
+class { 'keystone::db::mysql':
   password      => $keystone_db_password,
   dbname        => $keystone_db_name,
   user          => $keystone_db_user,
   host          => $keystone_db_host
 }
 
-class { 'keystone::api':
-  sql_connection => $keystone_sql_connection,
-  require => [Class["keystone::mysql"], Class["mysql::server"]]
+class { 'keystone':
+  admin_token => 'ADMIN',
+  sql_connection => $keystone_sql_connection
 }
 
-class { 'nova::mysql':
-  password      => $db_password,
-  dbname        => $db_name,
-  user          => $db_username,
-  host          => $db_host,
+class { 'nova::db::mysql':
+  password => $db_password,
+  allowed_hosts => ['%', $hostname],
 }
-
-
-class { 'cinder::client': }
 
 class { 'nova':
   sql_connection => "${db_driver}://${db_user}:${db_password}@${db_host}/${db_name}",
   image_service => 'nova.image.glance.GlanceImageService',
-
   glance_api_servers => $glance_api_servers,
-  glance_host => $glance_host,
-  glance_port => $glance_port,
+  rpc_backend => 'nova.openstack.common.rpc.impl_qpid',
+  qpid_username => $qpid_user,
+  qpid_password => $qpid_password
+}
 
-  libvirt_type => 'qemu',
+class {"nova::compute::libvirt":
+  libvirt_type => 'qemu'
+}
 
-  force_dhcp_release => true,
-  scheduler_default_filters => 'AvailabilityZoneFilter,ComputeFilter',
-  allow_resize_to_same_host => true,
-  libvirt_wait_soft_reboot_seconds => 15,
-  rpc_backend => 'nova.rpc.impl_qpid',
+class { "nova::api":
+  enabled => true,
+  admin_user          => 'nova',
+  admin_tenant_name   => 'service',
+  admin_password      => 'SERVICE_PASSWORD',
+  auth_host           => '127.0.0.1',
+  auth_port           => '35357',
+  auth_protocol       => 'http',
+  volume_api_class => 'nova.volume.cinder.API',
+  enabled_apis => 'ec2,osapi_compute,metadata'
+}
+
+$flat_network_bridge_ip  = '11.0.0.1'
+$flat_network_bridge_netmask  = '255.255.255.0'
+
+nova_config {
+  'conductor/use_local': value => true;
+  'DEFAULT/glance_host': value => $glance_host;
+  'DEFAULT/glance_port': value => $glance_port;
+  'DEFAULT/flat_network_bridge_ip': value => $flat_network_bridge_ip;
+  'DEFAULT/flat_network_bridge_netmask': value => $flat_network_bridge_netmask;
+  'DEFAULT/scheduler_default_filters': value => 'AvailabilityZoneFilter,ComputeFilter';
+  'DEFAULT/allow_resize_to_same_host': value => true;
+  'DEFAULT/libvirt_wait_soft_reboot_seconds': value => 15;
+}
+
+class { "nova::objectstore": enabled => true }
+
+class { "nova::cert": enabled => true }
+
+class { "nova::network":
+  create_networks => false,
+  fixed_range => $nova_network,
+  enabled => true
+}
+
+class { "nova::scheduler": enabled => true }
+
+nova::manage::network { "net-${nova_network}":
+  label        => 'public',
+  network      => $nova_network,
+  network_size => $network_size
+}
+
+nova::manage::floating { "floating-${floating_network}":
+  network       => $floating_network
+}
+
+class { 'nova::compute': enabled => true }
+
+class { 'cinder::db::mysql':
+  password => $cinder_db_password,
+  allowed_hosts => ['%', $hostname],
+}
+
+class { "cinder::api":
+  keystone_user => 'cinder',
+  keystone_tenant => 'service',
+  keystone_password => 'SERVICE_PASSWORD',
+  keystone_auth_host => '127.0.0.1'
+}
+
+class { 'cinder':
+  rpc_backend => 'cinder.openstack.common.rpc.impl_qpid',
   qpid_username => $qpid_user,
   qpid_password => $qpid_password,
-  enabled_apis => 'ec2,osapi_compute,metadata',
-  volume_api_class => 'nova.volume.cinder.API',
-  require => [Class["keystone"], Class["nova::mysql"], Class["mysql::server"], Class["cinder::client"]]
+  sql_connection => $cinder_sql_connection
 }
 
-  class { "nova::api": enabled => true, keystone_enabled => true }
-
-  $flat_network_bridge  = 'br100'
-  $flat_network_bridge_ip  = '11.0.0.1'
-  $flat_network_bridge_netmask  = '255.255.255.0'
-  class { "nova::network::flat":
-    enabled                     => true,
-    flat_network_bridge         => $flat_network_bridge,
-    flat_network_bridge_ip      => $flat_network_bridge_ip,
-    flat_network_bridge_netmask => $flat_network_bridge_netmask,
-  }
-
-  class { "nova::objectstore":
-    enabled => true,
-  }
-
-  class { "nova::cert":
-    enabled => true,
-  }
-
-
-  class { "nova::scheduler": enabled => true }
-
-  nova::manage::network { "net-${nova_network}":
-    network       => $nova_network,
-    available_ips => $available_ips
-  }
-
-  nova::manage::floating { "floating-${floating_network}":
-    network       => $floating_network
-  }
-
-class { 'nova::compute':
-  enabled        => true
+class { 'cinder::scheduler':
+  scheduler_driver => 'cinder.scheduler.chance.ChanceScheduler',
 }
 
-class { 'glance::mysql':
+class { 'cinder::volume': }
+class { 'cinder::volume::iscsi':
+  iscsi_ip_address => '127.0.0.1',
+}
+class { 'cinder::setup_test_volume':
+  size => '1G',
+}
+
+# Swift All In One
+$swift_local_net_ip='127.0.0.1'
+
+$swift_shared_secret='changeme'
+
+class { 'ssh::server::install': }
+
+class { 'memcached':
+  listen_ip => $swift_local_net_ip,
+}
+
+class { 'swift':
+  swift_hash_suffix => $swift_shared_secret,
+  package_ensure => latest,
+}
+
+class { 'swift::storage':
+  storage_local_net_ip => $swift_local_net_ip
+}
+
+swift::storage::loopback { '2':
+  require => Class['swift'],
+  seek => '250000',
+}
+
+swift::storage::node { '2':
+  mnt_base_dir         => '/srv/node',
+  weight               => 1,
+  manage_ring          => true,
+  zone                 => '2',
+  storage_local_net_ip => $swift_local_net_ip,
+  require              => Swift::Storage::Loopback[2] ,
+}
+
+class { 'swift::ringbuilder':
+  part_power     => '18',
+  replicas       => '1',
+  min_part_hours => 1,
+  require        => Class['swift'],
+}
+
+class { 'swift::proxy':
+  proxy_local_net_ip => $swift_local_net_ip,
+  pipeline           => ['healthcheck', 'cache', 'ratelimit', 'authtoken', 'keystone', 'proxy-server'],
+  account_autocreate => true,
+  require            => Class['swift::ringbuilder'],
+}
+
+class { 'swift::proxy::authtoken':
+  admin_user          => 'swift',
+  admin_tenant_name   => 'service',
+  admin_password      => 'SERVICE_PASSWORD',
+  auth_host           => '127.0.0.1',
+  auth_port           => '35357',
+  auth_protocol       => 'http',
+  delay_auth_decision => false,
+  admin_token         => false
+}
+
+class { 'swift::proxy::keystone':
+  operator_roles => ['admin']
+}
+
+class { ['swift::proxy::healthcheck', 'swift::proxy::cache', 'swift::proxy::ratelimit']: }
+
+class { 'glance::db::mysql':
   password      => $glance_db_password,
   dbname        => $glance_db_name,
   user          => $glance_db_user,
   host          => $glance_db_host,
 }
 
+class { 'glance::backend::swift':
+  swift_store_auth_version => '2',
+  swift_store_auth_address => 'http://127.0.0.1:5000/v2.0/',
+  swift_store_user => 'admin:admin',
+  swift_store_key => 'AABBCC112233',
+  swift_store_create_container_on_put => 'True'
+}
+
 class { 'glance::registry':
-  registry_flavor => 'keystone',
+  auth_type         => 'keystone',
+  keystone_tenant   => 'service',
+  keystone_user     => 'glance',
+  keystone_password => 'SERVICE_PASSWORD',
   sql_connection => $glance_sql_connection,
-  require => [Class["keystone"], Class["glance::mysql"], Class["mysql::server"]]
 }
 
 class { 'glance::api':
-  api_flavor => 'keystone+cachemanagement',
+  auth_type         => 'keystone',
+  keystone_tenant   => 'service',
+  keystone_user     => 'glance',
+  keystone_password => 'SERVICE_PASSWORD',
   sql_connection => $glance_sql_connection,
-  require => [Class["keystone"], Class["glance::mysql"], Class["mysql::server"], Class["glance::registry"]]
 }
-
-resources { 'cinder_config':
-  purge => true,
-}
-class { 'cinder::qpid':
-  user => $cinder_qpid_user,
-  password => $cinder_qpid_password,
-  realm => $cinder_qpid_realm,
-}
-
-
-class { 'cinder::mysql':
-  password      => $cinder_db_password,
-  dbname        => $cinder_db_name,
-  user          => $cinder_db_username,
-  host          => $cinder_db_host,
-}
-
-class { 'cinder':
-  db_driver => $cinder_db_driver,
-  db_password => $cinder_db_password,
-  db_name => $cinder_db_name,
-  db_user => $cinder_db_user,
-  db_host => $cinder_db_host,
-  rpc_backend => 'cinder.openstack.common.rpc.impl_qpid',
-  qpid_username => $cinder_qpid_user,
-  qpid_password => $cinder_qpid_password,
-  auth_strategy => 'keystone',
-  lock_path => "/var/lib/cinder/tmp",
-  scheduler_driver => 'cinder.scheduler.chance.ChanceScheduler',
-  require => [Class["cinder::mysql"], Class["mysql::server"]]
-}
-
-class { 'cinder::api': }
-class { 'cinder::scheduler': }
-class { 'cinder::volume': }

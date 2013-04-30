@@ -1,3 +1,0 @@
-nodes:
-    - name: nova1
-      manifest: nova1.pp
