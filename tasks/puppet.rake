@@ -34,10 +34,9 @@ namespace :puppet do
             branch = mod["branch"]
             git_master = mod["git_master"]
             revision = mod["revision"]
-            merge_master = mod["merge_master"] == "true" ? "true" : ""
+            merge_master = mod["merge_master"] == true ? "true" : ""
             module_cmds += "checkout_module '#{name}' '#{git_master}' '#{url}' '#{branch}' '#{revision}' '#{merge_master}'\n"
         end
-
         scp("#{KYTOON_PROJECT}/config/puppet-configs", "")
 
 puts "Downloading puppet modules..."
