@@ -1,8 +1,10 @@
-desc "Install and run Fog tests for OpenStack"
-task :fog do
+namespace :fog do
 
-	server_name=ENV['SERVER_NAME']
-	server_name = "nova1" if server_name.nil?
+  desc "Install and run Fog tests for OpenStack"
+  task :test do
+
+        server_name=ENV['SERVER_NAME']
+        server_name = "nova1" if server_name.nil?
 
         image_name=ENV.fetch('FOG_IMAGE_NAME', "ami-tty")
         flavor_ref=ENV.fetch('FOG_FLAVOR_REF', "1")
@@ -11,7 +13,7 @@ task :fog do
         # By default we just run the compute tests
         shindo_tests=ENV.fetch('FOG_SHINDO_TESTS', "tests/openstack/requests/compute")
 
-	remote_exec %{
+        remote_exec %{
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 #{BASH_COMMON}
 
@@ -48,12 +50,36 @@ cat > tests/.fog <<-EOF_CAT
 EOF_CAT
 
 echo "OPENSTACK_IMAGE_REF=$IMG_ID OPENSTACK_FLAVOR_REF=#{flavor_ref} OPENSTACK_SET_PASSWORD_ENABLED=#{passwd_check_enabled} shindont #{shindo_tests}" > run.sh
-bash run.sh
+#bash run.sh
 
 EOF_SERVER_NAME
         } do |ok, out|
             puts out
             fail "Fog tests failed!" unless ok
         end
+
+  end
+
+  desc "Build fog packages"
+  task :build_packages => :distro_name do
+
+    saved_env = ENV.to_hash
+
+    ENV["RPM_PACKAGER_URL"] = "git://github.com/dprince/rubygem-excon.git"
+    ENV["GIT_MASTER"] = "git://github.com/geemus/excon.git"
+    ENV["PROJECT_NAME"] = "excon"
+    ENV["SOURCE_URL"] = "git://github.com/geemus/excon.git"
+    Rake::Task["#{ENV['DISTRO_NAME']}:build_packages"].execute
+
+    ENV.clear
+    ENV.update(saved_env)
+
+    ENV["RPM_PACKAGER_URL"] = "git://github.com/dprince/rubygem-fog.git"
+    ENV["GIT_MASTER"] = "git://github.com/fog/fog.git"
+    ENV["PROJECT_NAME"] = "fog"
+    ENV["SOURCE_URL"] = "git://github.com/fog/fog.git"
+    Rake::Task["#{ENV['DISTRO_NAME']}:build_packages"].execute
+
+  end
 
 end
