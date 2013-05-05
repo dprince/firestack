@@ -98,7 +98,6 @@ EOF_SERVER_NAME
     end
     ENV["PROJECT_NAME"] = "torpedo"
     ENV["SOURCE_URL"] = "git://github.com/dprince/torpedo.git"
-    ENV["SOURCE_BRANCH"] = "fog"
     Rake::Task["#{ENV['DISTRO_NAME']}:build_packages"].execute
   end
 
