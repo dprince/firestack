@@ -26,7 +26,7 @@ for SRCDIR in $(ls -d *_source) ; do
     # If we're not at the head of master then we wont be caching
     [ $SRCUUID != $(cat .git/refs/heads/master) ] && continue
 
-    cd ~/rpm-$PROJECT
+    cd ~/rpm_$PROJECT
     PKGUUID=$(git log -n 1 --pretty=format:%H)
     # If we're not at the head of master then we wont be caching
     [ $PKGUUID != $(cat .git/refs/heads/master) ] && continue
