@@ -34,53 +34,7 @@ namespace :fedora do
         remote_exec %{
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 #{BASH_COMMON}
-
-# Test if the rpms we require are in the cache allready
-# If present this function downloads them to ~/rpms
-function download_cached_rpm {
-    install_package git
-    local PROJECT="$1"
-    local SRC_URL="$2"
-    local SRC_BRANCH="$3"
-    local SRC_REVISION="$4"
-    local PKG_URL="$5"
-    local PKG_BRANCH="$6"
-
-    SRCUUID=$SRC_REVISION
-    if [ -z $SRCUUID ] ; then
-        SRCUUID=$(git ls-remote "$SRC_URL" "$SRC_BRANCH" | cut -f 1)
-        if [ -z $SRCUUID ] ; then
-            echo "Invalid source URL:BRANCH $SRC_URL:$SRC_BRANCH"
-            return 1
-        fi
-    fi
-    PKGUUID=$(git ls-remote "$PKG_URL" "$PKG_BRANCH" | cut -f 1)
-    if [ -z $PKGUUID ] ; then
-        echo "Invalid package URL:BRANCH $PKG_URL:$PKG_BRANCH"
-        return 1
-    fi
-
-    echo "Checking cache For $PKGUUID $SRCUUID"
-    FILESFROMCACHE=$(curl $CACHEURL/rpmcache/$PKGUUID/$SRCUUID 2> /dev/null) \
-      || { echo "No files in RPM cache."; return 1; }
-
-    mkdir -p "${PROJECT}_cached_rpms"
-    for file in $FILESFROMCACHE ; do
-        HADFILE=1
-        filename="${PROJECT}_cached_rpms/$(echo $file | sed -e 's/.*\\///g')"
-        echo Downloading $file -\\> $filename
-        curl $CACHEURL/$file 2> /dev/null > "$filename" || HADERROR=1
-    done
-
-    if [ -z "$HADERROR" -a -n "$HADFILE" ] ; then
-        mkdir -p rpms
-        cp "${PROJECT}_cached_rpms"/* rpms
-        echo "$(echo $PROJECT | tr [:lower:] [:upper:])_REVISION=${SRCUUID:0:7}"
-        return 0
-    fi
-    return 1
-}
-
+#{CACHE_COMMON}
 install_package git rpm-build python-setuptools
 
 BUILD_LOG=$(mktemp)
@@ -92,7 +46,7 @@ if [ -n "$CACHEURL" ] ; then
     test $? -eq 0 && { echo "Retrieved rpm's from cache" ; exit 0 ; }
 fi
 
-test -e openstack-#{project} && rm -rf openstack-#{project}
+test -e rpm_#{project} && rm -rf rpm_#{project}
 test -e $SRC_DIR && rm -rf $SRC_DIR
 
 # if no .gitconfig exists create one (we may need it when merging below)
@@ -127,40 +81,48 @@ fi
 
 PROJECT_NAME="#{project}"
 
-SKIP_GENERATE_AUTHORS=1 SKIP_WRITE_GIT_CHANGELOG=1 python setup.py sdist &> $BUILD_LOG || { echo "Failed to run sdist."; cat $BUILD_LOG; exit 1; }
+# prep our rpmbuild tree
+mkdir -p ~/rpmbuild/SPECS
+mkdir -p ~/rpmbuild/SOURCES
 
-# determine version from tarball name
-VERSION=$(ls dist/* | sed -e "s|.*$PROJECT_NAME-\\(.*\\)\\.tar.gz|\\1|")
-echo "Tarball version: $VERSION"
+if [ -f setup.py ]; then
+  SKIP_GENERATE_AUTHORS=1 SKIP_WRITE_GIT_CHANGELOG=1 python setup.py sdist &> $BUILD_LOG || { echo "Failed to run sdist."; cat $BUILD_LOG; exit 1; }
+  # determine version from tarball name
+  VERSION=$(ls dist/* | sed -e "s|.*$PROJECT_NAME-\\(.*\\)\\.tar.gz|\\1|")
+  echo "Tarball version: $VERSION"
+  cd dist
+  SOURCE_FILE=$(ls *.tar.gz)
+elif [ -f Rakefile ]; then
+  install_package rubygems
+  gem build *.gemspec
+  # determine version from tarball name
+  VERSION=$(ls *.gem | sed -e "s|.*$PROJECT_NAME-\\(.*\\)\\.gem|\\1|")
+  echo "Gem version: $VERSION"
+  SOURCE_FILE=$(ls *.gem)
+fi
+cp $SOURCE_FILE ~/rpmbuild/SOURCES/
+md5sum $SOURCE_FILE > sources
+mv sources ~/rpmbuild/SOURCES/
 
 cd 
-git_clone_with_retry "#{packager_url}" "openstack-#{project}" || { echo "Unable to clone repos : #{packager_url}"; exit 1; }
-cd openstack-#{project}
+git_clone_with_retry "#{packager_url}" "rpm_#{project}" || { echo "Unable to clone repos : #{packager_url}"; exit 1; }
+cd rpm_#{project}
 GIT_REVISION_INSTALLER="$(git rev-parse --short HEAD)"
 SPEC_FILE_NAME=$(ls *.spec | head -n 1)
 RPM_BASE_NAME=${SPEC_FILE_NAME:0:-5}
 [ #{packager_branch} != "master" ] && { git checkout -t -b #{packager_branch} origin/#{packager_branch} || { echo "Unable to checkout branch :  #{packager_branch}"; exit 1; } }
-cp ~/$SRC_DIR/dist/*.tar.gz .
 PACKAGE_REVISION="${GIT_COMMITS_PROJECT}.${GIT_REVISION:0:7}_${GIT_REVISION_INSTALLER:0:7}"
 sed -i.bk -e "s/Release:.*/Release:0.1.$PACKAGE_REVISION/g" "$SPEC_FILE_NAME"
-sed -i.bk -e "s/Source0:.*/Source0:      $(ls *.tar.gz)/g" "$SPEC_FILE_NAME"
+sed -i.bk -e "s/Source0:.*/Source0:      $SOURCE_FILE/g" "$SPEC_FILE_NAME"
 [ -z "#{build_docs}" ] && sed -i -e 's/%global with_doc .*/%global with_doc 0/g' "$SPEC_FILE_NAME"
-md5sum *.tar.gz > sources 
+cp $SPEC_FILE_NAME ~/rpmbuild/SPECS/
+cp * ~/rpmbuild/SOURCES/
 
 # custom version
 sed -i.bk "$SPEC_FILE_NAME" -e "s/^Version:.*/Version:          $VERSION/g"
 
-# Rip out patches
-#sed -i.bk "$SPEC_FILE_NAME" -e 's|^%patch.*||g'
-
 # clean any pre-existing RPMS dir (from previous build caching)
 rm -Rf RPMS
-
-# prep our rpmbuild tree
-mkdir -p ~/rpmbuild/SPECS
-cp $SPEC_FILE_NAME ~/rpmbuild/SPECS/
-mkdir -p ~/rpmbuild/SOURCES
-cp * ~/rpmbuild/SOURCES/
 
 #build source RPM
 rpmbuild -bs $SPEC_FILE_NAME &> $BUILD_LOG || { echo "Failed to build srpm."; cat $BUILD_LOG; exit 1; }
@@ -195,49 +157,7 @@ exit $RETVAL
 
     end
 
-    # uploader to rpm cache
-    task :fill_cache do
-
-        cacheurl=ENV["CACHEURL"]
-        raise "Please specify a CACHEURL" if cacheurl.nil?
-        server_name=ENV['SERVER_NAME']
-        server_name = "localhost" if server_name.nil?
-
-        remote_exec %{
-ssh #{server_name} bash <<-"EOF_SERVER_NAME"
-#{BASH_COMMON}
-ls -d *_source || { echo "No RPMS to upload"; exit 0; }
-
-for SRCDIR in $(ls -d *_source) ; do
-    PROJECT=$(echo $SRCDIR | cut -d _ -f 1)
-    echo Checking $PROJECT
-
-    cd ~/$SRCDIR
-    SRCUUID=$(git log -n 1 --pretty=format:%H)
-    # If we're not at the head of master then we wont be caching
-    [ $SRCUUID != $(cat .git/refs/heads/master) ] && continue
-
-    cd ~/openstack-$PROJECT
-    PKGUUID=$(git log -n 1 --pretty=format:%H)
-    # If we're not at the head of master then we wont be caching
-    [ $PKGUUID != $(cat .git/refs/heads/master) ] && continue
-
-    URL=#{cacheurl}/rpmcache/$PKGUUID/$SRCUUID
-    echo Cache : $PKGUUID $SRCUUID
-
-    FILESWEHAVE=$(curl $URL 2> /dev/null)
-    for file in $(find . -name "*rpm") ; do
-        if [[ ! "$FILESWEHAVE" == *$(echo $file | sed -e 's/.*\\///g')* ]] ; then
-            echo POSTING $file to $PKGUUID $SRCUUID
-            curl -X POST $URL -Ffile=@$file 2> /dev/null || { echo ERROR POSTING FILE ; exit 1 ; }
-        fi
-    done
-done
-EOF_SERVER_NAME
-        } do |ok, out|
-            fail "Cache of packages failed!" unless ok
-        end
-    end
+    task :fill_cache => 'cache:fill_cache'
 
     #desc "Configure the server group to use a set of mirrors."
     task :configure_package_mirrors do
