@@ -1,9 +1,5 @@
 namespace :cache do
 
-    task :test do
-      puts "poo"
-    end
-
     # uploader to rpm cache
     task :fill_cache do
 
