@@ -523,9 +523,59 @@ wget #{repo_file_url}
 
     end
 
+    task :build_python_d2to1 do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/python-d2to1.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/iguananaut/d2to1.git"
+        end
+        ENV["PROJECT_NAME"] = "d2to1"
+        ENV["SOURCE_URL"] = "git://github.com/iguananaut/d2to1.git"
+        Rake::Task["fedora:build_packages"].execute
+
+    end
+
+    task :build_python_pbr do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/python-pbr.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/openstack-dev/pbr.git"
+        end
+        ENV["PROJECT_NAME"] = "pbr"
+        ENV["SOURCE_URL"] = "git://github.com/openstack-dev/pbr.git"
+        Rake::Task["fedora:build_packages"].execute
+
+    end
+
     task :build_misc do
 
+        server_name=ENV['SERVER_NAME']
+        server_name = "localhost" if server_name.nil?
+
         saved_env = ENV.to_hash
+        Rake::Task["fedora:build_python_d2to1"].execute
+
+
+        remote_exec %{
+ssh #{server_name} bash <<-"EOF_SERVER_NAME"
+rpm -Uvh ~/rpms/python-d2to1*
+EOF_SERVER_NAME
+}
+
+        ENV.clear
+        ENV.update(saved_env)
+        Rake::Task["fedora:build_python_pbr"].execute
+
+        remote_exec %{
+ssh #{server_name} bash <<-"EOF_SERVER_NAME"
+rpm -Uvh ~/rpms/python-pbr*
+EOF_SERVER_NAME
+}
+
+        ENV.clear
+        ENV.update(saved_env)
         Rake::Task["fedora:build_python_stevedore"].execute
 
         ENV.clear
