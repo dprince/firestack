@@ -544,8 +544,8 @@ wget #{repo_file_url}
             ENV["GIT_MASTER"] = "git://github.com/dprince/pbr.git"
         end
         ENV["PROJECT_NAME"] = "pbr"
-        ENV["source_branch"] = "tarball_doc"
         #NOTE: Use dprince until this lands: https://review.openstack.org/#/c/28641/
+        ENV["SOURCE_BRANCH"] = "tarball_doc"
         ENV["SOURCE_URL"] = "git://github.com/dprince/pbr.git"
         Rake::Task["fedora:build_packages"].execute
 
