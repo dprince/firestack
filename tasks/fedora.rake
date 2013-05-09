@@ -562,7 +562,7 @@ wget #{repo_file_url}
 
         remote_exec %{
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
-rpm -qUvh ~/rpms/python-d2to1*
+rpm -U ~/rpms/python-d2to1*
 EOF_SERVER_NAME
 }
 
@@ -572,7 +572,7 @@ EOF_SERVER_NAME
 
         remote_exec %{
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
-rpm -qUvh ~/rpms/python-pbr*
+rpm -U ~/rpms/python-pbr*
 EOF_SERVER_NAME
 }
 
