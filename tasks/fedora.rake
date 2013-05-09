@@ -541,10 +541,12 @@ wget #{repo_file_url}
         packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/python-pbr.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
-            ENV["GIT_MASTER"] = "git://github.com/openstack-dev/pbr.git"
+            ENV["GIT_MASTER"] = "git://github.com/dprince/pbr.git"
         end
         ENV["PROJECT_NAME"] = "pbr"
-        ENV["SOURCE_URL"] = "git://github.com/openstack-dev/pbr.git"
+        ENV["source_branch"] = "tarball_doc"
+        #NOTE: Use dprince until this lands: https://review.openstack.org/#/c/28641/
+        ENV["SOURCE_URL"] = "git://github.com/dprince/pbr.git"
         Rake::Task["fedora:build_packages"].execute
 
     end
@@ -560,7 +562,7 @@ wget #{repo_file_url}
 
         remote_exec %{
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
-rpm -Uvh ~/rpms/python-d2to1*
+rpm -qUvh ~/rpms/python-d2to1*
 EOF_SERVER_NAME
 }
 
@@ -570,7 +572,7 @@ EOF_SERVER_NAME
 
         remote_exec %{
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
-rpm -Uvh ~/rpms/python-pbr*
+rpm -qUvh ~/rpms/python-pbr*
 EOF_SERVER_NAME
 }
 
