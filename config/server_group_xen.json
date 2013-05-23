@@ -11,13 +11,13 @@
     "servers": [
         {
             "hostname": "login",
-            "image_path": "/images/fedora-buildbox.xva",
+            "image_path": "/images/fedora18-buildbox.xva",
             "ip_address": "192.168.0.2",
             "mac": "e2:6d:71:67:7e:66"
         },
         {
             "hostname": "nova1",
-            "image_path": "/images/fedora-db.xva",
+            "image_path": "/images/fedora18-db.xva",
             "ip_address": "192.168.0.3",
             "mac": "e2:ad:a1:a7:ae:67"
         }

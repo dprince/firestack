@@ -1,0 +1,40 @@
+modules:
+    - name: nova
+      url: "https://review.openstack.org/stackforge/puppet-nova"
+      branch: master
+      git_master: "git://github.com/stackforge/puppet-nova.git"
+      revision: 
+      merge_master: false
+    - name: glance
+      url: "https://review.openstack.org/stackforge/puppet-glance"
+      branch: master
+      git_master: "git://github.com/stackforge/puppet-glance.git"
+      revision: 
+      merge_master: false
+    - name: keystone
+      url: "git://github.com/stackforge/puppet-keystone.git"
+      branch: master
+      git_master: "git://github.com/stackforge/puppet-keystone.git"
+      revision: 
+      merge_master: false
+    - name: swift
+      url: "git://github.com/stackforge/puppet-swift.git"
+      branch: master
+      git_master: "git://github.com/stackforge/puppet-swift.git"
+      revision: 
+      merge_master: false
+    - name: cinder
+      url: "git://github.com/stackforge/puppet-cinder.git"
+      branch: master
+      git_master: "git://github.com/stackforge/puppet-cinder.git"
+      revision: 
+      merge_master: false
+    - name: quantum
+      url: "git://github.com/stackforge/puppet-quantum.git"
+      branch: master
+      git_master: "git://github.com/stackforge/puppet-quantum.git"
+      revision: 
+      merge_master: false
+nodes:
+    - name: nova1
+      manifest: nova1.pp
