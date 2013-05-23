@@ -40,11 +40,28 @@ namespace :keystone do
     task :configure do
 
         server_name=ENV['SERVER_NAME']
+
+        #API server hosts to be used as public endpoints
+        nova_host=ENV['NOVA_HOST'] || 'localhost'
+        glance_host=ENV['GLANCE_HOST'] || 'localhost'
+        keystone_host=ENV['KEYSTONE_HOST'] || 'localhost'
+        swift_host=ENV['SWIFT_HOST'] || 'localhost'
+        cinder_host=ENV['CINDER_HOST'] || 'localhost'
+        quantum_host=ENV['QUANTUM_HOST'] || 'localhost'
+
         server_name = "nova1" if server_name.nil?
         keystone_data_file = File.join(File.dirname(__FILE__), '..', 'scripts','keystone_data.sh')
         script = IO.read(keystone_data_file)
         remote_exec %{
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
+
+NOVA_HOST=#{nova_host}
+GLANCE_HOST=#{glance_host}
+KEYSTONE_HOST=#{keystone_host}
+SWIFT_HOST=#{swift_host}
+CINDER_HOST=#{cinder_host}
+QUANTUM_HOST=#{quantum_host}
+
 SERVICE_TOKEN=ADMIN
 SERVICE_ENDPOINT=http://localhost:35357/v2.0
 AUTH_ENDPOINT=http://localhost:5000/v2.0
