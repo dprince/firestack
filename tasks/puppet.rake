@@ -12,8 +12,8 @@ namespace :puppet do
         puppet_config=ENV['PUPPET_CONFIG']
         puppet_config="default" if puppet_config.nil?
 
-        #specify if you only want to run puppet on a single server
         server_name=ENV['SERVER_NAME']
+        server_name = "localhost" if server_name.nil?
 
         config=YAML.load_file("#{KYTOON_PROJECT}/config/puppet-configs/#{puppet_config}/config.yml")
         node_cmds = ""
@@ -21,7 +21,7 @@ namespace :puppet do
         config["nodes"].each do |node|
             hostname = node["name"]
             manifest = node["manifest"]
-            if server_name.nil? or server_name == hostname
+            if server_name != hostname
                 hostnames << hostname
                 node_cmds += "scp -r puppet-modules #{hostname}: && scp puppet-configs/#{puppet_config}/#{manifest} #{hostname}:manifest.pp\n"
             end
@@ -41,6 +41,9 @@ namespace :puppet do
 
 puts "Downloading puppet modules..."
         remote_exec %{
+ssh #{server_name} bash <<-"EOF_SERVER_NAME"
+#{BASH_COMMON}
+#{CACHE_COMMON}
 rm -rf puppet-modules
 echo Getting Puppet modules from #{source_url}
 git_clone_with_retry "#{source_url}" puppet-modules
@@ -72,7 +75,7 @@ function checkout_module {
                   fail "Failed to obtain $PROJ_NAME revision from git."
   fi
 
-  echo "${PROJ_NAME^^}_CONFIG_MODULE_REVISION=$GIT_REVISION"
+  echo "$(echo $PROJ_NAME | tr '[a-z]' '[A-Z]')_CONFIG_MODULE_REVISION=$GIT_REVISION"
 
   if [ -n "$MERGE_MASTER" ]; then
     git merge master || fail "Failed to merge $GIT_MASTER."
@@ -84,6 +87,7 @@ function checkout_module {
 cd ~
 #run commands to scp modules and manifests here
 #{node_cmds}
+EOF_SERVER_NAME
         } do |ok, out|
             if ok
               puts out
