@@ -155,7 +155,9 @@ class { 'cinder::scheduler':
   scheduler_driver => 'cinder.scheduler.chance.ChanceScheduler',
 }
 
-class { 'cinder::volume': }
+class { 'cinder::volume':
+  require => Class['qpid::server']
+}
 class { 'cinder::volume::iscsi':
   iscsi_ip_address => '127.0.0.1',
 }

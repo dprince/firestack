@@ -7,7 +7,7 @@ modules:
       merge_master: false
     - name: glance
       url: "https://review.openstack.org/stackforge/puppet-glance"
-      branch: refs/changes/42/27542/1
+      branch: master
       git_master: "git://github.com/stackforge/puppet-glance.git"
       revision: 
       merge_master: false
