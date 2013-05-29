@@ -3,6 +3,8 @@ export DISTRO_NAME=fedora
 
 rake kytoon:create GROUP_CONFIG="config/server_group_xen.json" GATEWAY_IP="<YOUR XENSERVER IP GOES HERE>"
 
+export SERVER_NAME="login"
+
 rake build_misc
 
 rake nova:build_packages \
