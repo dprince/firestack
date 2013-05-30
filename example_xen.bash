@@ -1,9 +1,30 @@
+#!/bin/bash
+
+set -eu
+
+function print_usage_and_die()
+{
+cat >&2 << EOF
+usage: $0 XENSERVER_IP XENSERVER_PASSWORD
+
+Setup OpenStack
+
+positional arguments:
+ XENSERVER_IP         IP address of the XenServer
+ XENSERVER_PASSWORD   Password for your XenServer
+EOF
+exit 1
+}
+
+XENSERVER_IP="${1-$(print_usage_and_die)}"
+XENSERVER_PASSWORD="${2-$(print_usage_and_die)}"
+
 export GROUP_TYPE=xenserver
 export DISTRO_NAME=fedora
 
 rake kytoon:create \
     GROUP_CONFIG="config/server_group_xen.json" \
-    GATEWAY_IP="<YOUR XENSERVER IP GOES HERE>"
+    GATEWAY_IP="$XENSERVER_IP"
 
 export SERVER_NAME="login"
 
@@ -71,6 +92,7 @@ XENBR0_IP=$(
         'ip a | grep xenbr0 | grep inet | sed -e "s|.*inet \([^/]*\).*|\1|"')
 sed \
     -e "s|XENAPI_CONNECTION_URL|http://$XENBR0_IP|g" \
+    -e "s|fixme|$XENSERVER_PASSWORD|g" \
     -i config/puppet-configs/$CONFIGURATION/nova1.pp
 
 unset SERVER_NAME
