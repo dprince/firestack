@@ -1,53 +1,76 @@
+#!/bin/bash
+
+set -eu
+
+function print_usage_and_die()
+{
+cat >&2 << EOF
+usage: $0 XENSERVER_IP XENSERVER_PASSWORD
+
+Setup OpenStack
+
+positional arguments:
+ XENSERVER_IP         IP address of the XenServer
+ XENSERVER_PASSWORD   Password for your XenServer
+EOF
+exit 1
+}
+
+XENSERVER_IP="${1-$(print_usage_and_die)}"
+XENSERVER_PASSWORD="${2-$(print_usage_and_die)}"
+
 export GROUP_TYPE=xenserver
 export DISTRO_NAME=fedora
 
-rake kytoon:create GROUP_CONFIG="config/server_group_xen.json" GATEWAY_IP="<YOUR XENSERVER IP GOES HERE>"
+rake kytoon:create \
+    GROUP_CONFIG="config/server_group_xen.json" \
+    GATEWAY_IP="$XENSERVER_IP"
 
 export SERVER_NAME="login"
 
 rake build_misc
 
 rake nova:build_packages \
-	SOURCE_URL="git://github.com/openstack/nova.git" \
-	SOURCE_BRANCH="master" GIT_MERGE="master"
+    SOURCE_URL="git://github.com/openstack/nova.git" \
+    SOURCE_BRANCH="master" GIT_MERGE="master"
 
 rake glance:build_packages \
-	SOURCE_URL="git://github.com/openstack/glance.git" \
-	SOURCE_BRANCH="master" GIT_MERGE="master"
+    SOURCE_URL="git://github.com/openstack/glance.git" \
+    SOURCE_BRANCH="master" GIT_MERGE="master"
 
 rake swift:build_packages \
-	SOURCE_URL="git://github.com/openstack/swift.git" \
-	SOURCE_BRANCH="master" GIT_MERGE="master"
+    SOURCE_URL="git://github.com/openstack/swift.git" \
+    SOURCE_BRANCH="master" GIT_MERGE="master"
 
 rake keystone:build_packages \
-        SOURCE_URL="git://github.com/openstack/keystone.git" \
-	SOURCE_BRANCH="master" GIT_MERGE="master"
+    SOURCE_URL="git://github.com/openstack/keystone.git" \
+    SOURCE_BRANCH="master" GIT_MERGE="master"
 
 rake cinder:build_packages \
-	SOURCE_URL="git://github.com/openstack/cinder.git" \
-	SOURCE_BRANCH="master" GIT_MERGE="master"
+    SOURCE_URL="git://github.com/openstack/cinder.git" \
+    SOURCE_BRANCH="master" GIT_MERGE="master"
 
 rake quantum:build_packages \
-        SOURCE_URL="git://github.com/openstack/quantum.git" \
-        SOURCE_BRANCH="master" GIT_MERGE="master"
+    SOURCE_URL="git://github.com/openstack/quantum.git" \
+    SOURCE_BRANCH="master" GIT_MERGE="master"
 
 rake nova:build_python_novaclient \
-	SOURCE_URL="git://github.com/openstack/python-novaclient.git"
+    SOURCE_URL="git://github.com/openstack/python-novaclient.git"
 
 rake glance:build_python_glanceclient \
-	SOURCE_URL="git://github.com/openstack/python-glanceclient.git"
+    SOURCE_URL="git://github.com/openstack/python-glanceclient.git"
 
 rake keystone:build_python_keystoneclient \
-	SOURCE_URL="git://github.com/openstack/python-keystoneclient.git"
+    SOURCE_URL="git://github.com/openstack/python-keystoneclient.git"
 
 rake cinder:build_python_cinderclient \
-	SOURCE_URL="git://github.com/openstack/python-cinderclient.git"
+    SOURCE_URL="git://github.com/openstack/python-cinderclient.git"
 
 rake swift:build_python_swiftclient \
-	SOURCE_URL="git://github.com/openstack/python-swiftclient.git"
+    SOURCE_URL="git://github.com/openstack/python-swiftclient.git"
 
 rake quantum:build_python_quantumclient \
-        SOURCE_URL="git://github.com/openstack/python-quantumclient.git"
+    SOURCE_URL="git://github.com/openstack/python-quantumclient.git"
 
 rake create_package_repo
 
@@ -62,13 +85,20 @@ rake fedora:create_rpm_repo
 rake xen:install_plugins SOURCE_URL="git://github.com/openstack/nova.git"
 
 CONFIGURATION="xen"
-# FIXME: need to figure out how to make xenbr1 a XenServer management interface.
-# For now we replace XENAPI_CONNECTION_URL with the IP of xenbr0
-XENBR0_IP=$(rake ssh 'ip a | grep xenbr0 | grep inet | sed -e "s|.*inet \([^/]*\).*|\1|"')
-sed -e "s|XENAPI_CONNECTION_URL|http://$XENBR0_IP|g" -i config/puppet-configs/$CONFIGURATION/nova1.pp
+# FIXME: need to figure out how to make xenbr1 a XenServer management
+# interface.  For now we replace XENAPI_CONNECTION_URL with the IP of xenbr0
+XENBR0_IP=$(
+    rake ssh \
+        'ip a | grep xenbr0 | grep inet | sed -e "s|.*inet \([^/]*\).*|\1|"')
+sed \
+    -e "s|XENAPI_CONNECTION_URL|http://$XENBR0_IP|g" \
+    -e "s|fixme|$XENSERVER_PASSWORD|g" \
+    -i config/puppet-configs/$CONFIGURATION/nova1.pp
 
 unset SERVER_NAME
-rake puppet:install SOURCE_URL="git://github.com/redhat-openstack/openstack-puppet.git" PUPPET_CONFIG="test_xen" || { echo "puppet failed."; exit 1; }
+rake puppet:install \
+    SOURCE_URL="git://github.com/redhat-openstack/openstack-puppet.git" \
+    PUPPET_CONFIG="$CONFIGURATION" || { echo "puppet failed."; exit 1; }
 
 #reserve the first 5 IPs for the server group
 rake ssh bash <<-"EOF_RESERVE_IPS"
@@ -79,5 +109,11 @@ done
 EOF_NOVA1
 EOF_RESERVE_IPS
 
-rake keystone:configure SERVER_NAME=nova1 GLANCE_HOST=nova1 NOVA_HOST=nova1 SWIFT_HOST=nova1 KEYSTONE_HOST=nova1
+rake keystone:configure \
+    SERVER_NAME=nova1 \
+    GLANCE_HOST=nova1 \
+    NOVA_HOST=nova1 \
+    SWIFT_HOST=nova1 \
+    KEYSTONE_HOST=nova1
+
 rake glance:load_images_xen SERVER_NAME=nova1
