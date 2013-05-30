@@ -12,16 +12,13 @@ namespace :puppet do
         puppet_config=ENV['PUPPET_CONFIG']
         puppet_config="default" if puppet_config.nil?
 
-        server_name=ENV['SERVER_NAME']
-        server_name = "localhost" if server_name.nil?
-
         config=YAML.load_file("#{KYTOON_PROJECT}/config/puppet-configs/#{puppet_config}/config.yml")
         node_cmds = ""
         hostnames = []
         config["nodes"].each do |node|
             hostname = node["name"]
             manifest = node["manifest"]
-            if server_name != hostname
+            if "localhost" != hostname
                 hostnames << hostname
                 node_cmds += "scp -r puppet-modules #{hostname}: && scp puppet-configs/#{puppet_config}/#{manifest} #{hostname}:manifest.pp\n"
             end
@@ -41,7 +38,6 @@ namespace :puppet do
 
 puts "Downloading puppet modules..."
         remote_exec %{
-ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 #{BASH_COMMON}
 #{CACHE_COMMON}
 rm -rf puppet-modules
@@ -87,7 +83,6 @@ function checkout_module {
 cd ~
 #run commands to scp modules and manifests here
 #{node_cmds}
-EOF_SERVER_NAME
         } do |ok, out|
             if ok
               puts out
