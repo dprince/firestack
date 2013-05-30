@@ -111,6 +111,7 @@ EOF_RESERVE_IPS
 
 rake keystone:configure \
     SERVER_NAME=nova1 \
+    CINDER_HOST=nova1 \
     GLANCE_HOST=nova1 \
     NOVA_HOST=nova1 \
     SWIFT_HOST=nova1 \
