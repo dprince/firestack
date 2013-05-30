@@ -76,7 +76,7 @@ sed \
 unset SERVER_NAME
 rake puppet:install \
     SOURCE_URL="git://github.com/redhat-openstack/openstack-puppet.git" \
-    PUPPET_CONFIG="test_xen" || { echo "puppet failed."; exit 1; }
+    PUPPET_CONFIG="$CONFIGURATION" || { echo "puppet failed."; exit 1; }
 
 #reserve the first 5 IPs for the server group
 rake ssh bash <<-"EOF_RESERVE_IPS"
