@@ -115,7 +115,7 @@ nova_config {
   'DEFAULT/scheduler_default_filters': value => 'AvailabilityZoneFilter,ComputeFilter';
   'DEFAULT/firewall_driver': value => 'nova.virt.xenapi.firewall.Dom0IptablesFirewallDriver';
   'DEFAULT/allow_resize_to_same_host': value => true;
-  'DEFAULT/libvirt_wait_soft_reboot_seconds': value => 15;
+  'DEFAULT/xenapi_use_agent_default': value => true;
   'DEFAULT/force_dhcp_release': value => false;
 }
 
