@@ -1,5 +1,8 @@
 export GROUP_TYPE=libvirt
+export DISTRO_NAME=fedora
 rake kytoon:create GROUP_CONFIG="config/server_group_libvirt.json"
+
+rake build_misc
 
 rake nova:build_packages \
 	SOURCE_URL="git://github.com/openstack/nova.git" \
@@ -43,12 +46,14 @@ rake swift:build_python_swiftclient \
 rake quantum:build_python_quantumclient \
 	SOURCE_URL="git://github.com/openstack/python-quantumclient.git"
 
-# hook to build distro specific packages
-rake build_misc
 
-rake fedora:create_rpm_repo
+# required for Torpedo
+rake fog:build_packages
+rake torpedo:build_packages
 
-rake puppet:install SOURCE_URL="git://github.com/fedora-openstack/openstack-puppet.git" PUPPET_CONFIG="single_node_mysql"
+rake create_package_repo
+
+rake puppet:install SOURCE_URL="git://github.com/redhat-openstack/openstack-puppet.git" PUPPET_CONFIG="single_node_mysql"
 
 rake keystone:configure
 rake glance:load_images
