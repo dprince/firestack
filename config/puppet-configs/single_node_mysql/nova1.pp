@@ -166,7 +166,7 @@ class { 'cinder::setup_test_volume':
 }
 
 # Swift All In One
-$swift_local_net_ip='127.0.0.1'
+$swift_local_net_ip='0.0.0.0'
 
 $swift_shared_secret='changeme'
 
