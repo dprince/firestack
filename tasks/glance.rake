@@ -70,14 +70,14 @@ EOF_SERVER_NAME
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
   mkdir -p /var/lib/glance/
   [ -f /root/openstackrc ] && source /root/openstackrc
-  if [ ! -d "/tmp/tty_linux" ]; then
-    curl http://c3226372.r72.cf0.rackcdn.com/tty_linux.tar.gz | tar xvz -C /tmp/
+  if [ ! -d "/root/tty_linux" ]; then
+    curl http://c3226372.r72.cf0.rackcdn.com/tty_linux.tar.gz | tar xvz -C /root/
   fi
-  ARI_ID=$(glance image-create --name "ari-tty" --disk-format="ari" --container-format="ari" --is-public=true < /tmp/tty_linux/ramdisk | awk '/ id / { print $4 }')
+  ARI_ID=$(glance image-create --name "ari-tty" --disk-format="ari" --container-format="ari" --is-public=true < /root/tty_linux/ramdisk | awk '/ id / { print $4 }')
   echo "ARI_ID=$ARI_ID"
-  AKI_ID=$(glance image-create --name "aki-tty" --disk-format="aki" --container-format="aki" --is-public=true < /tmp/tty_linux/kernel | awk '/ id / { print $4 }')
+  AKI_ID=$(glance image-create --name "aki-tty" --disk-format="aki" --container-format="aki" --is-public=true < /root/tty_linux/kernel | awk '/ id / { print $4 }')
   echo "AKI_ID=$AKI_ID"
-  glance image-create --name "ami-tty" --disk-format="ami" --container-format="ami" --is-public=true --property ramdisk_id=$ARI_ID --property kernel_id=$AKI_ID < /tmp/tty_linux/image
+  glance image-create --name "ami-tty" --disk-format="ami" --container-format="ami" --is-public=true --property ramdisk_id=$ARI_ID --property kernel_id=$AKI_ID < /root/tty_linux/image
 EOF_SERVER_NAME
         } do |ok, out|
             puts out
