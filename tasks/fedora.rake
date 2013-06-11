@@ -35,7 +35,7 @@ namespace :fedora do
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 #{BASH_COMMON}
 #{CACHE_COMMON}
-install_package git rpm-build python-setuptools
+install_package git rpm-build python-setuptools yum-utils
 
 BUILD_LOG=$(mktemp)
 SRC_DIR="#{project}_source"
