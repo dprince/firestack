@@ -560,7 +560,7 @@ wget #{repo_file_url}
 
         remote_exec %{
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
-yum install -y -q ~/rpms/python-d2to1*
+yum install -y -q $(ls ~/rpms/python-d2to1*.noarch.rpm | tail -n 1)
 EOF_SERVER_NAME
 }
 
@@ -570,7 +570,7 @@ EOF_SERVER_NAME
 
         remote_exec %{
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
-yum install -y -q ~/rpms/python-pbr*
+yum install -y -q $(ls ~/rpms/python-pbr*.noarch.rpm | tail -n 1)
 EOF_SERVER_NAME
 }
 
