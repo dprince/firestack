@@ -8,10 +8,13 @@ namespace :fedora do
         project=ENV['PROJECT_NAME']
         raise "Please specify a PROJECT_NAME." if project.nil?
 
-        packager_url=ENV['RPM_PACKAGER_URL']
-        raise "Please specify a RPM_PACKAGER_URL." if packager_url.nil?
+        packager_url=ENV['RPM_PACKAGER_URL'] || ENV['PACKAGER_URL']
+        raise "Please specify a PACKAGER_URL." if packager_url.nil?
 
-        packager_branch= ENV.fetch("RPM_PACKAGER_BRANCH", "master")
+        packager_branch=ENV['RPM_PACKAGER_BRANCH'] || ENV['PACKAGER_BRANCH']
+        if packager_branch.nil? then
+          packager_branch='master'
+        end
 
         git_master=ENV['GIT_MASTER']
         raise "Please specify a GIT_MASTER." if git_master.nil?
@@ -608,6 +611,39 @@ EOF_SERVER_NAME
         #ENV.update(saved_env)
         #Rake::Task["fedora:build_python_cliff"].execute
 
+    end
+
+    task :build_fog do
+
+      saved_env = ENV.to_hash
+
+      ENV["RPM_PACKAGER_URL"] = "git://github.com/dprince/rubygem-excon.git"
+      ENV["GIT_MASTER"] = "git://github.com/geemus/excon.git"
+      ENV["PROJECT_NAME"] = "excon"
+      ENV["SOURCE_URL"] = "git://github.com/geemus/excon.git"
+      Rake::Task["fedora:build_packages"].execute
+
+      ENV.clear
+      ENV.update(saved_env)
+
+      ENV["RPM_PACKAGER_URL"] = "git://github.com/dprince/rubygem-fog.git"
+      ENV["GIT_MASTER"] = "git://github.com/fog/fog.git"
+      ENV["PROJECT_NAME"] = "fog"
+      ENV["SOURCE_URL"] = "git://github.com/fog/fog.git"
+      Rake::Task["fedora:build_packages"].execute
+
+    end
+
+    task :build_torpedo => :distro_name do
+
+      packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/rubygem-torpedo.git")
+      ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+      if ENV["GIT_MASTER"].nil?
+        ENV["GIT_MASTER"] = "git://github.com/dprince/torpedo.git"
+      end
+      ENV["PROJECT_NAME"] = "torpedo"
+      ENV["SOURCE_URL"] = "git://github.com/dprince/torpedo.git"
+      Rake::Task["fedora:build_packages"].execute
     end
 
 end

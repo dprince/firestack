@@ -90,19 +90,10 @@ EOF_SERVER_NAME
 
   desc "Build torpedo packages"
   task :build_packages => :distro_name do
-
-    packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/rubygem-torpedo.git")
-    ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
-    if ENV["GIT_MASTER"].nil?
-      ENV["GIT_MASTER"] = "git://github.com/dprince/torpedo.git"
-    end
-    ENV["PROJECT_NAME"] = "torpedo"
-    ENV["SOURCE_URL"] = "git://github.com/dprince/torpedo.git"
-    Rake::Task["#{ENV['DISTRO_NAME']}:build_packages"].execute
+    Rake::Task["#{ENV['DISTRO_NAME']}:build_torpedo"].execute
   end
 
 end
-
 
 task :torpedo do
   Rake::Task['torpedo:fire'].invoke

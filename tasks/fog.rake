@@ -62,24 +62,8 @@ EOF_SERVER_NAME
 
   desc "Build fog packages"
   task :build_packages => :distro_name do
-
-    saved_env = ENV.to_hash
-
-    ENV["RPM_PACKAGER_URL"] = "git://github.com/dprince/rubygem-excon.git"
-    ENV["GIT_MASTER"] = "git://github.com/geemus/excon.git"
-    ENV["PROJECT_NAME"] = "excon"
-    ENV["SOURCE_URL"] = "git://github.com/geemus/excon.git"
-    Rake::Task["#{ENV['DISTRO_NAME']}:build_packages"].execute
-
-    ENV.clear
-    ENV.update(saved_env)
-
-    ENV["RPM_PACKAGER_URL"] = "git://github.com/dprince/rubygem-fog.git"
-    ENV["GIT_MASTER"] = "git://github.com/fog/fog.git"
-    ENV["PROJECT_NAME"] = "fog"
-    ENV["SOURCE_URL"] = "git://github.com/fog/fog.git"
-    Rake::Task["#{ENV['DISTRO_NAME']}:build_packages"].execute
-
+    puts "#{ENV['DISTRO_NAME']}"
+    Rake::Task["#{ENV['DISTRO_NAME']}:build_fog"].execute
   end
 
 end
