@@ -1,0 +1,120 @@
+package_builds:
+    - name: nova
+      url: "git://github.com/openstack/nova.git"
+      branch: master
+      git_master: "git://github.com/openstack/nova.git"
+      revision: 
+      merge_master: true
+      packager_url: "git://github.com/redhat-openstack/openstack-nova.git"
+      packager_branch: "el6"
+      build_docs: false
+
+    - name: python-novaclient
+      url: "git://github.com/openstack/python-novaclient.git"
+      branch: master
+      git_master: "git://github.com/openstack/python-novaclient.git"
+      revision: 
+      merge_master: true
+      packager_url: "git://github.com/redhat-openstack/openstack-python-novaclient.git"
+      packager_branch: "el6"
+      build_docs: false
+
+    - name: glance
+      url: "git://github.com/openstack/glance.git"
+      branch: master
+      git_master: "git://github.com/openstack/glance.git"
+      revision: 
+      merge_master: true
+      packager_url: "git://github.com/redhat-openstack/openstack-glance.git"
+      packager_branch: "el6"
+      build_docs: false
+
+    - name: python-glanceclient
+      url: "git://github.com/openstack/python-glanceclient.git"
+      branch: master
+      git_master: "git://github.com/openstack/python-glanceclient.git"
+      revision: 
+      merge_master: true
+      packager_url: "git://github.com/redhat-openstack/openstack-python-glanceclient.git"
+      packager_branch: "el6"
+      build_docs: false
+
+    - name: keystone
+      url: "git://github.com/openstack/keystone.git"
+      branch: master
+      git_master: "git://github.com/openstack/keystone.git"
+      revision: 
+      merge_master: true
+      packager_url: "git://github.com/redhat-openstack/openstack-keystone.git"
+      packager_branch: "el6"
+      build_docs: false
+
+    - name: python-keystoneclient
+      url: "git://github.com/openstack/python-keystoneclient.git"
+      branch: master
+      git_master: "git://github.com/openstack/python-keystoneclient.git"
+      revision: 
+      merge_master: true
+      packager_url: "git://github.com/redhat-openstack/openstack-python-keystoneclient.git"
+      packager_branch: "el6"
+      build_docs: false
+
+    - name: swift
+      url: "git://github.com/openstack/swift.git"
+      branch: master
+      git_master: "git://github.com/openstack/swift.git"
+      revision: 
+      merge_master: true
+      packager_url: "git://github.com/redhat-openstack/openstack-swift.git"
+      packager_branch: "el6"
+      build_docs: false
+
+    - name: python-swiftclient
+      url: "git://github.com/openstack/python-swiftclient.git"
+      branch: master
+      git_master: "git://github.com/openstack/python-swiftclient.git"
+      revision: 
+      merge_master: true
+      packager_url: "git://github.com/redhat-openstack/openstack-python-swiftclient.git"
+      packager_branch: "el6"
+      build_docs: false
+
+    - name: cinder
+      url: "git://github.com/openstack/cinder.git"
+      branch: master
+      git_master: "git://github.com/openstack/cinder.git"
+      revision: 
+      merge_master: true
+      packager_url: "git://github.com/redhat-openstack/openstack-cinder.git"
+      packager_branch: "el6"
+      build_docs: false
+
+    - name: python-cinderclient
+      url: "git://github.com/openstack/python-cinderclient.git"
+      branch: master
+      git_master: "git://github.com/openstack/python-cinderclient.git"
+      revision: 
+      merge_master: true
+      packager_url: "git://github.com/redhat-openstack/openstack-python-cinderclient.git"
+      packager_branch: "el6"
+      build_docs: false
+
+    - name: quantum
+      url: "git://github.com/openstack/quantum.git"
+      branch: master
+      git_master: "git://github.com/openstack/quantum.git"
+      revision: 
+      merge_master: true
+      packager_url: "git://github.com/redhat-openstack/openstack-quantum.git"
+      packager_branch: "el6"
+      build_docs: false
+
+    - name: python-quantumclient
+      url: "git://github.com/openstack/python-quantumclient.git"
+      branch: master
+      git_master: "git://github.com/openstack/python-quantumclient.git"
+      revision: 
+      merge_master: true
+      packager_url: "git://github.com/redhat-openstack/openstack-python-quantumclient.git"
+      packager_branch: "el6"
+      build_docs: false
