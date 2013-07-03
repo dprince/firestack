@@ -94,8 +94,25 @@ cd ~
 puts "Running puppet apply on hostnames: " + hostnames.to_s
 
         results = remote_multi_exec hostnames, %{
+
+if cat /etc/*release | grep -e "CentOS" -e "Red Hat" &> /dev/null; then
+    rpm -qi epel-release &> /dev/null || rpm -Uvh http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+    rpm -ivh http://yum.puppetlabs.com/el/6/products/x86_64/puppetlabs-release-6-6.noarch.rpm
+
+    cat > /etc/yum.repos.d/puppetlabs.repo <<"EOF"
+[puppetlabs-products]
+name=Puppet Labs Products El 6 - $basearch
+baseurl=http://yum.puppetlabs.com/el/6/products/$basearch
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-puppetlabs
+enabled=1
+gpgcheck=1
+exclude=puppet-2.8* puppet-2.9* puppet-3*
+EOF
+fi
+
 # NOTE: we upgrade systemd due to a potential issue w/ the MySQL init scripts
 rpm -q puppet &> /dev/null || yum -q -y install puppet yum-plugin-priorities systemd
+[ -d /etc/puppet/modules ] && rm -Rf /etc/puppet/modules
 ln -sf /root/puppet-modules/modules /etc/puppet/modules
 puppet apply --verbose --detailed-exitcodes manifest.pp &> /var/log/puppet/puppet.log
 RETVAL=$?
