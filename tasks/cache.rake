@@ -24,8 +24,8 @@ for SRCDIR in $(ls -d *_source) ; do
 
     cd ~/rpm_$PROJECT
     PKGUUID=$(git log -n 1 --pretty=format:%H)
-    # If we're not at the head of master then we wont be caching
-    [ $PKGUUID != $(cat .git/refs/heads/master) ] && continue
+    # NOTE: we allow caching of non-master packagers (el6 for example)
+    #[ $PKGUUID != $(cat .git/refs/heads/master) ] && continue
 
     URL=#{cacheurl}/rpmcache/$PKGUUID/$SRCUUID
     echo Cache : $PKGUUID $SRCUUID
