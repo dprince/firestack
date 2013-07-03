@@ -36,8 +36,6 @@ namespace :centos do
 
         remote_exec %{
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
-set -x
-
 #{BASH_COMMON}
 #{CACHE_COMMON}
 install_package git rpm-build python-setuptools yum-utils
@@ -244,7 +242,7 @@ fi
         remote_exec %{
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 #{BASH_COMMON}
-install_package httpd
+install_package httpd createrepo
 
 mkdir -p /var/www/html/repos/
 rm -rf /var/www/html/repos/*
@@ -483,7 +481,7 @@ wget #{repo_file_url}
         end
         ENV["PROJECT_NAME"] = "jsonpatch"
         ENV["SOURCE_URL"] = "git://github.com/stefankoegl/python-json-patch.git"
-        ENV["SOURCE_BRANCH"] = "v0.12"
+        ENV["SOURCE_BRANCH"] = "refs/tags/v0.12"
         Rake::Task["centos:build_packages"].execute
 
     end
@@ -497,7 +495,7 @@ wget #{repo_file_url}
         end
         ENV["PROJECT_NAME"] = "jsonpointer"
         ENV["SOURCE_URL"] = "git://github.com/stefankoegl/python-json-pointer.git"
-        ENV["SOURCE_BRANCH"] = "v0.6"
+        ENV["SOURCE_BRANCH"] = "refs/tags/v0.6"
         Rake::Task["centos:build_packages"].execute
 
     end
@@ -511,52 +509,7 @@ wget #{repo_file_url}
         end
         ENV["PROJECT_NAME"] = "jsonschema"
         ENV["SOURCE_URL"] = "git://github.com/Julian/jsonschema.git"
-        ENV["SOURCE_BRANCH"] = "v0.8.0"
-        Rake::Task["centos:build_packages"].execute
-
-    end
-
-    # Fedora 17 includes python-prettytable 0.5
-    # Most openstack projects require > 0.6 so we build our own here.
-    task :build_python_prettytable do
-
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/fedora-python-prettytable.git")
-        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
-        if ENV["GIT_MASTER"].nil?
-            ENV["GIT_MASTER"] = "git://github.com/dprince/python-prettytable.git"
-        end
-        ENV["PROJECT_NAME"] = "prettytable"
-        ENV["SOURCE_BRANCH"] = "0.6"
-        ENV["SOURCE_URL"] = "git://github.com/dprince/python-prettytable.git"
-        Rake::Task["centos:build_packages"].execute
-
-    end
-
-    # Stevedore is a fairly new Nova requirement so we provide a builder
-    # in FireStack for now until stable releases of distros pick it up
-    task :build_python_stevedore do
-
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{CENTOS_GIT_BASE}/python-stevedore.git")
-        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
-        if ENV["GIT_MASTER"].nil?
-            ENV["GIT_MASTER"] = "git://github.com/dreamhost/stevedore.git"
-        end
-        ENV["PROJECT_NAME"] = "stevedore"
-        ENV["SOURCE_URL"] = "git://github.com/dreamhost/stevedore.git"
-        Rake::Task["centos:build_packages"].execute
-
-    end
-
-    task :build_python_cliff do
-
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/python-cliff.git")
-        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
-        if ENV["GIT_MASTER"].nil?
-            ENV["GIT_MASTER"] = "git://github.com/dreamhost/cliff.git"
-        end
-        ENV["PROJECT_NAME"] = "cliff"
-        ENV["SOURCE_BRANCH"] = "1.3"
-        ENV["SOURCE_URL"] = "git://github.com/dreamhost/cliff.git"
+        ENV["SOURCE_BRANCH"] = "refs/tags/v0.8.0"
         Rake::Task["centos:build_packages"].execute
 
     end
@@ -574,10 +527,25 @@ wget #{repo_file_url}
 
     end
 
+    task :build_python_setuptools_git do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/python-setuptools_git.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        ENV["RPM_PACKAGER_BRANCH"] = "el6"
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/wichert/setuptools-git.git"
+        end
+        ENV["PROJECT_NAME"] = "setuptools-git"
+        ENV["SOURCE_URL"] = "git://github.com/wichert/setuptools-git.git"
+        Rake::Task["centos:build_packages"].execute
+
+    end
+
     task :build_python_pbr do
 
         packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/python-pbr.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        ENV["RPM_PACKAGER_BRANCH"] = "el6"
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack-dev/pbr.git"
         end
@@ -593,12 +561,10 @@ wget #{repo_file_url}
         server_name = "localhost" if server_name.nil?
 
         saved_env = ENV.to_hash
-        Rake::Task["centos:build_python_d2to1"].execute
-
-
+        Rake::Task["centos:build_python_setuptools_git"].execute
         remote_exec %{
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
-yum install -y -q $(ls ~/rpms/python-d2to1*.noarch.rpm | tail -n 1)
+yum install -y -q $(ls ~/rpms/python-setuptools_git*.noarch.rpm | tail -n 1)
 EOF_SERVER_NAME
 }
 
@@ -611,14 +577,9 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 yum install -y -q $(ls ~/rpms/python-pbr*.noarch.rpm | tail -n 1)
 EOF_SERVER_NAME
 }
-
         ENV.clear
         ENV.update(saved_env)
-        Rake::Task["centos:build_python_stevedore"].execute
-
-        ENV.clear
-        ENV.update(saved_env)
-        Rake::Task["centos:build_python_prettytable"].execute
+        Rake::Task["centos:build_oslo_config"].execute
 
         # Latest glanceclient requires the following for Warlock:
         # jsonpointer, jsonpatch, jsonschema (updated from 0.2)
@@ -638,14 +599,61 @@ EOF_SERVER_NAME
         ENV.update(saved_env)
         Rake::Task["centos:build_python_warlock"].execute
 
-        ENV.clear
-        ENV.update(saved_env)
-        Rake::Task["centos:build_oslo_config"].execute
+    end
 
-        #ENV.clear
-        #ENV.update(saved_env)
-        #Rake::Task["centos:build_python_cliff"].execute
+    task :build_fog do
 
+      saved_env = ENV.to_hash
+
+      server_name=ENV['SERVER_NAME']
+      server_name = "localhost" if server_name.nil?
+
+      # FIXME: Centos is missing some rubygem deps to support Fog.
+      # For now we ninja those in here using the Foreman package repo:
+      remote_exec %{
+ssh #{server_name} bash <<-"EOF_SERVER_NAME"
+#{BASH_COMMON}
+install_package wget
+mkdir -p ~/rpms
+cd rpms
+for PACKAGE in rubygems-1.8.10-1.el6.noarch.rpm rubygem-mime-types-1.18-1.el6.noarch.rpm rubygem-builder-2.1.2-1.el6.noarch.rpm rubygem-thor-0.14.6-2.el6.noarch.rpm rubygem-net-ssh-2.3.0-1.el6.noarch.rpm rubygem-formatador-0.2.1-1.el6.noarch.rpm rubygem-multi_json-1.2.0-1.el6.noarch.rpm rubygem-net-scp-1.0.4-1.el6.noarch.rpm rubygem-nokogiri-1.5.2-1.el6.x86_64.rpm rubygem-ruby-hmac-0.4.0-1.el6.noarch.rpm; do
+[ -f "$PACKAGE" ] || wget -q http://yum.theforeman.org/releases/1.0/el6/x86_64/$PACKAGE
+done
+EOF_SERVER_NAME
+}
+
+      Rake::Task["centos:create_package_repo"].execute
+
+      ENV["RPM_PACKAGER_URL"] = "git://github.com/dprince/rubygem-excon.git"
+      ENV["RPM_PACKAGER_BRANCH"] = "el6"
+      ENV["GIT_MASTER"] = "git://github.com/geemus/excon.git"
+      ENV["PROJECT_NAME"] = "excon"
+      ENV["SOURCE_URL"] = "git://github.com/geemus/excon.git"
+      Rake::Task["centos:build_packages"].execute
+
+      ENV.clear
+      ENV.update(saved_env)
+
+      ENV["RPM_PACKAGER_URL"] = "git://github.com/dprince/rubygem-fog.git"
+      ENV["RPM_PACKAGER_BRANCH"] = "el6"
+      ENV["GIT_MASTER"] = "git://github.com/fog/fog.git"
+      ENV["PROJECT_NAME"] = "fog"
+      ENV["SOURCE_URL"] = "git://github.com/fog/fog.git"
+      Rake::Task["centos:build_packages"].execute
+
+    end
+
+    task :build_torpedo => :distro_name do
+
+      packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/rubygem-torpedo.git")
+      ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+      ENV["RPM_PACKAGER_BRANCH"] = "el6"
+      if ENV["GIT_MASTER"].nil?
+        ENV["GIT_MASTER"] = "git://github.com/dprince/torpedo.git"
+      end
+      ENV["PROJECT_NAME"] = "torpedo"
+      ENV["SOURCE_URL"] = "git://github.com/dprince/torpedo.git"
+      Rake::Task["centos:build_packages"].execute
     end
 
 end
