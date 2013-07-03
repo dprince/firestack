@@ -113,8 +113,8 @@ package_builds:
       url: "git://github.com/openstack/python-quantumclient.git"
       branch: master
       git_master: "git://github.com/openstack/python-quantumclient.git"
-      revision: 
-      merge_master: true
+      revision: 8ed38707b12ae6e77480ae8d8542712d63b7fc70
+      merge_master: false
       packager_url: "git://github.com/redhat-openstack/openstack-python-quantumclient.git"
       packager_branch: "master"
       build_docs: false
