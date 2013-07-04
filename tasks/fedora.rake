@@ -87,6 +87,8 @@ PROJECT_NAME="#{project}"
 # prep our rpmbuild tree
 mkdir -p ~/rpmbuild/SPECS
 mkdir -p ~/rpmbuild/SOURCES
+rm -Rf ~/rpmbuild/RPMS/*
+rm -Rf ~/rpmbuild/SRPMS/*
 
 if [ -f setup.py ]; then
   SKIP_GENERATE_AUTHORS=1 SKIP_WRITE_GIT_CHANGELOG=1 python setup.py sdist &> $BUILD_LOG || { echo "Failed to run sdist."; cat $BUILD_LOG; exit 1; }
@@ -126,6 +128,7 @@ sed -i.bk "$SPEC_FILE_NAME" -e "s/^Version:.*/Version:          $VERSION/g"
 
 # clean any pre-existing RPMS dir (from previous build caching)
 rm -Rf RPMS
+rm -Rf SRPMS
 
 #build source RPM
 rpmbuild -bs $SPEC_FILE_NAME &> $BUILD_LOG || { echo "Failed to build srpm."; cat $BUILD_LOG; exit 1; }
@@ -140,6 +143,7 @@ mkdir -p ~/rpms
 find ~/rpmbuild -name "*rpm" -exec cp {} ~/rpms \\;
 # keep a backup of RPMs within this project build dir for caching (if enabled)
 mv ~/rpmbuild/RPMS .
+mv ~/rpmbuild/SRPMS .
 
 if ls ~/rpms/${RPM_BASE_NAME}*.noarch.rpm &> /dev/null; then
   rm $BUILD_LOG
