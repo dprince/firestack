@@ -372,6 +372,17 @@ wget #{repo_file_url}
         Rake::Task["fedora:build_packages"].execute
     end
 
+    task :build_oslo_sphinx do
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-python-oslo-sphinx.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/openstack/oslo.sphinx.git"
+        end
+        ENV['SOURCE_URL'] = 'git://github.com/openstack/oslo.sphinx.git'
+        ENV["PROJECT_NAME"] = "oslo.sphinx"
+        Rake::Task["fedora:build_packages"].execute
+    end
+
     task :build_python_swiftclient do
 
         packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-python-swiftclient.git")
@@ -580,6 +591,16 @@ EOF_SERVER_NAME
         remote_exec %{
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 yum install -y -q $(ls ~/rpms/python-pbr*.noarch.rpm | tail -n 1)
+EOF_SERVER_NAME
+}
+
+        ENV.clear
+        ENV.update(saved_env)
+        Rake::Task["fedora:build_oslo_sphinx"].execute
+
+        remote_exec %{
+ssh #{server_name} bash <<-"EOF_SERVER_NAME"
+yum install -y -q $(ls ~/rpms/python-oslo-sphinx*.noarch.rpm | tail -n 1)
 EOF_SERVER_NAME
 }
 
