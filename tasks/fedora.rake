@@ -441,6 +441,16 @@ wget #{repo_file_url}
         Rake::Task["fedora:build_packages"].execute
     end
 
+    task :build_python_neutronclient do
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-python-neutronclient.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/openstack/python-neutronclient.git"
+        end
+        ENV["PROJECT_NAME"] = "python-neutronclient"
+        Rake::Task["fedora:build_packages"].execute
+    end
+
     # Warlock is a fairly new Glance requirement so we provide a builder
     # in FireStack for now until stable releases of distros pick it up
     task :build_python_warlock do
@@ -637,6 +647,11 @@ EOF_SERVER_NAME
         #ENV.clear
         #ENV.update(saved_env)
         #Rake::Task["fedora:build_python_cliff"].execute
+
+        ENV.clear
+        ENV.update(saved_env)
+        ENV["SOURCE_URL"] = "git://github.com/openstack/python-neutronclient.git"
+        Rake::Task["fedora:build_python_neutronclient"].execute
 
     end
 
