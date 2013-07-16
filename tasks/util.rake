@@ -5,7 +5,7 @@ task :distro_name do
         remote_exec %{
 #{BASH_COMMON_PKG}
 # try to install lsb-release if not present (preinstall would be best)
-if [ -f /etc/fedora-release ]; then
+if [ -f /etc/fedora-release -o -f /etc/redhat-release ]; then
   install_package redhat-lsb-core
 else
   install_package lsb-release
