@@ -38,7 +38,7 @@ namespace :fedora do
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 #{BASH_COMMON}
 #{CACHE_COMMON}
-install_package git rpm-build python-setuptools yum-utils
+install_package git rpm-build python-setuptools yum-utils make
 
 BUILD_LOG=$(mktemp)
 SRC_DIR="#{project}_source"
@@ -226,7 +226,7 @@ fi
         remote_exec %{
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 #{BASH_COMMON}
-install_package httpd
+install_package httpd createrepo
 
 mkdir -p /var/www/html/repos/
 rm -rf /var/www/html/repos/*
@@ -662,6 +662,8 @@ EOF_SERVER_NAME
       ENV["RPM_PACKAGER_URL"] = "git://github.com/dprince/rubygem-excon.git"
       ENV["GIT_MASTER"] = "git://github.com/geemus/excon.git"
       ENV["PROJECT_NAME"] = "excon"
+      # Nail it at 0.25.1
+      ENV["REVISION"] = "93b3fd27833b66b5bcc82bf62f92bc0e8aa42c58"
       ENV["SOURCE_URL"] = "git://github.com/geemus/excon.git"
       Rake::Task["fedora:build_packages"].execute
 
