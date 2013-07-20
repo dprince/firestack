@@ -1,10 +1,14 @@
 namespace :cache do
 
     # uploader to rpm cache
-    task :fill_cache do
+    task :fill_cache => :distro_name do
 
         cacheurl=ENV["CACHEURL"]
         raise "Please specify a CACHEURL" if cacheurl.nil?
+        cache_user=ENV["CACHE_USER"]
+        raise "Please specify a CACHE_USER" if cache_user.nil?
+        cache_password=ENV["CACHE_PASSWORD"]
+        raise "Please specify a CACHE_PASSWORD" if cache_password.nil?
         server_name=ENV['SERVER_NAME']
         server_name = "localhost" if server_name.nil?
 
@@ -27,14 +31,14 @@ for SRCDIR in $(ls -d *_source) ; do
     # NOTE: we allow caching of non-master packagers (el6 for example)
     #[ $PKGUUID != $(cat .git/refs/heads/master) ] && continue
 
-    URL=#{cacheurl}/rpmcache/$PKGUUID/$SRCUUID
+    URL=#{cacheurl}/pkgcache/pkgcache/#{ENV['DISTRO_NAME']}/$PKGUUID/$SRCUUID
     echo Cache : $PKGUUID $SRCUUID
 
-    FILESWEHAVE=$(curl $URL 2> /dev/null)
+    FILESWEHAVE=$(curl -k $URL 2> /dev/null)
     for file in $(find . -name "*rpm") ; do
         if [[ ! "$FILESWEHAVE" == *$(echo $file | sed -e 's/.*\\///g')* ]] ; then
             echo POSTING $file to $PKGUUID $SRCUUID
-            curl -X POST $URL -Ffile=@$file 2> /dev/null || { echo ERROR POSTING FILE ; exit 1 ; }
+            curl -k -u "#{cache_user}:#{cache_password}" -X POST $URL -Ffile=@$file 2> /dev/null || { echo ERROR POSTING FILE ; exit 1 ; }
         fi
     done
 done
@@ -54,12 +58,13 @@ CACHE_COMMON=%{
 function download_cached_rpm {
     install_package git
 
-    local PROJECT="$1"
-    local SRC_URL="$2"
-    local SRC_BRANCH="$3"
-    local SRC_REVISION="$4"
-    local PKG_URL="$5"
-    local PKG_BRANCH="$6"
+    local DISTRO_NAME="$1"
+    local PROJECT="$2"
+    local SRC_URL="$3"
+    local SRC_BRANCH="$4"
+    local SRC_REVISION="$5"
+    local PKG_URL="$6"
+    local PKG_BRANCH="$7"
 
     SRCUUID=$SRC_REVISION
     if [ -z $SRCUUID ] ; then
@@ -76,7 +81,7 @@ function download_cached_rpm {
     fi
 
     echo "Checking cache For $PKGUUID $SRCUUID"
-    FILESFROMCACHE=$(curl $CACHEURL/rpmcache/$PKGUUID/$SRCUUID 2> /dev/null) \
+    FILESFROMCACHE=$(curl -k $CACHEURL/pkgcache/pkgcache/$DISTRO_NAME/$PKGUUID/$SRCUUID 2> /dev/null) \
       || { echo "No files in RPM cache."; return 1; }
 
     mkdir -p "${PROJECT}_cached_rpms"
@@ -84,7 +89,7 @@ function download_cached_rpm {
         HADFILE=1
         filename="${PROJECT}_cached_rpms/$(echo $file | sed -e 's/.*\\///g')"
         echo Downloading $file -\\> $filename
-        curl $CACHEURL/$file 2> /dev/null > "$filename" || HADERROR=1
+        curl -k $CACHEURL/pkgcache/$file 2> /dev/null > "$filename" || HADERROR=1
     done
 
     if [ -z "$HADERROR" -a -n "$HADFILE" ] ; then

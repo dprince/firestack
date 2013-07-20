@@ -3,7 +3,7 @@ namespace :fedora do
     FEDORA_GIT_BASE="git://github.com/redhat-openstack"
 
     #generic package builder to build RPMs for all Openstack projects
-    task :build_packages do
+    task :build_packages => :distro_name do
 
         project=ENV['PROJECT_NAME']
         raise "Please specify a PROJECT_NAME." if project.nil?
@@ -45,7 +45,7 @@ SRC_DIR="#{project}_source"
 
 CACHEURL="#{cacheurl}"
 if [ -n "$CACHEURL" ] ; then
-    download_cached_rpm #{project} "#{src_url}" "#{src_branch}" "#{git_revision}" "#{packager_url}" "#{packager_branch}" 
+    download_cached_rpm "#{ENV['DISTRO_NAME']}" "#{project}" "#{src_url}" "#{src_branch}" "#{git_revision}" "#{packager_url}" "#{packager_branch}" 
     test $? -eq 0 && { echo "Retrieved rpm's from cache" ; exit 0 ; }
 fi
 
