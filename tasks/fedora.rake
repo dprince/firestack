@@ -430,15 +430,16 @@ wget #{repo_file_url}
     end
 
     task :build_python_quantumclient do
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-python-quantumclient.git")
-        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
-        if ENV["GIT_MASTER"].nil?
-            ENV["GIT_MASTER"] = "git://github.com/openstack/python-quantumclient.git"
-        end
-        ENV["PROJECT_NAME"] = "python-quantumclient"
+        puts "Please build neutronclient"
+        #packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-python-quantumclient.git")
+        #ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        #if ENV["GIT_MASTER"].nil?
+        #    ENV["GIT_MASTER"] = "git://github.com/openstack/python-quantumclient.git"
+        #end
+        #ENV["PROJECT_NAME"] = "python-quantumclient"
         # Nail right before neutronclient rename
-        ENV["REVISION"] = "8ed38707b12ae6e77480ae8d8542712d63b7fc70"
-        Rake::Task["fedora:build_packages"].execute
+        #ENV["REVISION"] = "8ed38707b12ae6e77480ae8d8542712d63b7fc70"
+        #Rake::Task["fedora:build_packages"].execute
     end
 
     task :build_python_neutronclient do
