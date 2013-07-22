@@ -579,6 +579,8 @@ wget #{repo_file_url}
             ENV["GIT_MASTER"] = "git://github.com/openstack-dev/pbr.git"
         end
         ENV["PROJECT_NAME"] = "pbr"
+        #FIXME: nail to a working version of PBR (migrate.cfg missing)
+        ENV["REVISION"] = "705c04becdef75efbc67cb294981a7f6ab298a61"
         ENV["SOURCE_URL"] = "git://github.com/openstack-dev/pbr.git"
         Rake::Task["centos:build_packages"].execute
 
