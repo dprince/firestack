@@ -17,6 +17,8 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 #{BASH_COMMON}
 ls -d *_source || { echo "No RPMS to upload"; exit 0; }
 
+grep -i #{ENV['DISTRO_NAME']} /etc/*release &> /dev/null || { echo "Distro name mismatch. Caching disabled."; exit 0; }
+
 for SRCDIR in $(ls -d *_source) ; do
     PROJECT=$(echo $SRCDIR | cut -d _ -f 1)
     echo Checking $PROJECT
