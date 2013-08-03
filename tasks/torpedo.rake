@@ -20,6 +20,7 @@ namespace :torpedo do
     test_admin_password=ENV['TORPEDO_TEST_ADMIN_PASSWORD'] || 'false'
     test_resize_server=ENV['TORPEDO_TEST_RESIZE_SERVER'] || 'false'
     test_revert_resize_server=ENV['TORPEDO_TEST_REVERT_RESIZE_SERVER'] || 'false'
+    volumes_enabled=ENV['TORPEDO_VOLUMES_ENABLED'] || 'false'
     test_hostid_on_resize=ENV['TORPEDO_TEST_HOSTID_ON_RESIZE'] || 'false'
     flavor_ref=ENV['TORPEDO_FLAVOR_REF'] || '' #defaults to 2 (m1.small)
     sleep_after_image_create=ENV['TORPEDO_SLEEP_AFTER_IMAGE_CREATE'] || '10'
@@ -50,20 +51,22 @@ if ! nova secgroup-list-rules default | grep -c icmp &> /dev/null; then
 fi
 
 cat > ~/.torpedo.conf <<-EOF_CAT
-	server_build_timeout: #{server_build_timeout}
-	ssh_timeout: #{ssh_timeout}
-	ping_timeout: #{ping_timeout}
-	image_name: #{image_name}
-	test_rebuild_server: #{test_rebuild_server}
-	test_create_image: #{test_create_image}
-	test_resize_server: #{test_resize_server}
-	test_revert_resize_server: #{test_revert_resize_server}
-	test_hostid_on_resize: #{test_hostid_on_resize}
-	test_soft_reboot_server: #{test_soft_reboot_server}
-	test_hard_reboot_server: #{test_hard_reboot_server}
-	test_admin_password: #{test_admin_password}
-	flavor_ref: #{flavor_ref}
-	sleep_after_image_create: #{sleep_after_image_create}
+server_build_timeout: #{server_build_timeout}
+ssh_timeout: #{ssh_timeout}
+ping_timeout: #{ping_timeout}
+image_name: #{image_name}
+test_rebuild_server: #{test_rebuild_server}
+test_create_image: #{test_create_image}
+test_resize_server: #{test_resize_server}
+test_revert_resize_server: #{test_revert_resize_server}
+test_hostid_on_resize: #{test_hostid_on_resize}
+test_soft_reboot_server: #{test_soft_reboot_server}
+test_hard_reboot_server: #{test_hard_reboot_server}
+test_admin_password: #{test_admin_password}
+flavor_ref: #{flavor_ref}
+sleep_after_image_create: #{sleep_after_image_create}
+volumes:
+  enabled: #{volumes_enabled}
 EOF_CAT
 
 if [[ "#{use_keypairs}" == "true" ]]; then
