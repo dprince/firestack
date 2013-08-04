@@ -65,21 +65,10 @@ test_hard_reboot_server: #{test_hard_reboot_server}
 test_admin_password: #{test_admin_password}
 flavor_ref: #{flavor_ref}
 sleep_after_image_create: #{sleep_after_image_create}
+keypairs: #{use_keypairs}
 volumes:
   enabled: #{volumes_enabled}
 EOF_CAT
-
-if [[ "#{use_keypairs}" == "true" ]]; then
-	export KEYPAIR="/root/test.pem"
-	export KEYNAME="test"
-	[ -f "$KEYPAIR" ] || nova keypair-add "$KEYNAME" > "$KEYPAIR"
-	chmod 600 "$KEYPAIR"
-
-	cat >> ~/.torpedo.conf <<-EOF_CAT
-		keypair: $KEYPAIR
-		keyname: $KEYNAME
-	EOF_CAT
-fi
 
 torpedo fire
 
