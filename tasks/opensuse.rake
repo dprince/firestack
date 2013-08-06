@@ -501,23 +501,23 @@ wget #{repo_file_url}
         Rake::Task["opensuse:build_packages"].execute
     end
 
-    task :build_quantum do
-        ENV["OBS_PACKAGE"] = "openstack-quantum" if ENV["OBS_PACKAGE"].nil?
+    task :build_neutron do
+        ENV["OBS_PACKAGE"] = "openstack-neutron" if ENV["OBS_PACKAGE"].nil?
         ENV["OBS_USE_GIT_TARBALLS"] = "1"
         if ENV["GIT_MASTER"].nil?
-            ENV["GIT_MASTER"] = "git://github.com/openstack/quantum.git"
+            ENV["GIT_MASTER"] = "git://github.com/openstack/neutron.git"
         end
-        ENV["PROJECT_NAME"] = "quantum"
+        ENV["PROJECT_NAME"] = "neutron"
         Rake::Task["opensuse:build_packages"].execute
     end
 
-    task :build_python_quantumclient do
-        ENV["OBS_PACKAGE"] = "python-quantumclient" if ENV["OBS_PACKAGE"].nil?
+    task :build_python_neutronclient do
+        ENV["OBS_PACKAGE"] = "python-neutronclient" if ENV["OBS_PACKAGE"].nil?
         ENV["OBS_USE_GIT_TARBALLS"] = "1"
         if ENV["GIT_MASTER"].nil?
-            ENV["GIT_MASTER"] = "git://github.com/openstack/python-quantumclient.git"
+            ENV["GIT_MASTER"] = "git://github.com/openstack/python-neutronclient.git"
         end
-        ENV["PROJECT_NAME"] = "python-quantumclient"
+        ENV["PROJECT_NAME"] = "python-neutronclient"
         Rake::Task["opensuse:build_packages"].execute
     end
 

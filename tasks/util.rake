@@ -72,7 +72,7 @@ echo "BEGIN logs for: $HOSTNAME"
 [ -d /var/log/glance ] && tail -n #{line_count} /var/log/glance/*.log || true
 [ -d /var/log/keystone ] && tail -n #{line_count} /var/log/keystone/*.log || true
 [ -d /var/log/cinder ] && tail -n #{line_count} /var/log/cinder/*.log || true
-[ -d /var/log/quantum ] && tail -n #{line_count} /var/log/quantum/*.log || true
+[ -d /var/log/neutron ] && tail -n #{line_count} /var/log/neutron/*.log || true
 echo "END logs for: $HOSTNAME"
 fi
 EOF_SERVER_NAME

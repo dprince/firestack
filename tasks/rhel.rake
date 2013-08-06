@@ -320,23 +320,23 @@ wget #{repo_file_url}
 
     end
 
-    task :build_quantum do
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/redhat-openstack/openstack-quantum.git")
+    task :build_neutron do
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/redhat-openstack/openstack-neutron.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
-            ENV["GIT_MASTER"] = "git://github.com/openstack/quantum.git"
+            ENV["GIT_MASTER"] = "git://github.com/openstack/neutron.git"
         end
-        ENV["PROJECT_NAME"] = "quantum"
+        ENV["PROJECT_NAME"] = "neutron"
         Rake::Task["rhel:build_packages"].execute
     end
 
-    task :build_python_quantumclient do
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/redhat-openstack/openstack-python-quantumclient.git")
+    task :build_python_neutronclient do
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/redhat-openstack/openstack-python-neutronclient.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
-            ENV["GIT_MASTER"] = "git://github.com/openstack/python-quantumclient.git"
+            ENV["GIT_MASTER"] = "git://github.com/openstack/python-neutronclient.git"
         end
-        ENV["PROJECT_NAME"] = "python-quantumclient"
+        ENV["PROJECT_NAME"] = "python-neutronclient"
         Rake::Task["rhel:build_packages"].execute
     end
 

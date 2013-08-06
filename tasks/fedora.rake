@@ -112,10 +112,10 @@ mv sources ~/rpmbuild/SOURCES/
 cd 
 git_clone_with_retry "#{packager_url}" "rpm_#{project}" || { echo "Unable to clone repos : #{packager_url}"; exit 1; }
 cd rpm_#{project}
+[ #{packager_branch} != "master" ] && { git checkout -t -b #{packager_branch} origin/#{packager_branch} || { echo "Unable to checkout branch :  #{packager_branch}"; exit 1; } }
 GIT_REVISION_INSTALLER="$(git rev-parse --short HEAD)"
 SPEC_FILE_NAME=$(ls *.spec | head -n 1)
 RPM_BASE_NAME=${SPEC_FILE_NAME:0:-5}
-[ #{packager_branch} != "master" ] && { git checkout -t -b #{packager_branch} origin/#{packager_branch} || { echo "Unable to checkout branch :  #{packager_branch}"; exit 1; } }
 PACKAGE_REVISION="${GIT_COMMITS_PROJECT}.${GIT_REVISION:0:7}_${GIT_REVISION_INSTALLER:0:7}"
 sed -i.bk -e "s/Release:.*/Release:0.1.$PACKAGE_REVISION/g" "$SPEC_FILE_NAME"
 sed -i.bk -e "s/Source0:.*/Source0:      $SOURCE_FILE/g" "$SPEC_FILE_NAME"
@@ -419,27 +419,14 @@ wget #{repo_file_url}
 
     end
 
-    task :build_quantum do
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-quantum.git")
+    task :build_neutron do
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-neutron.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
-            ENV["GIT_MASTER"] = "git://github.com/openstack/quantum.git"
+            ENV["GIT_MASTER"] = "git://github.com/openstack/neutron.git"
         end
-        ENV["PROJECT_NAME"] = "quantum"
+        ENV["PROJECT_NAME"] = "neutron"
         Rake::Task["fedora:build_packages"].execute
-    end
-
-    task :build_python_quantumclient do
-        puts "Please build neutronclient"
-        #packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-python-quantumclient.git")
-        #ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
-        #if ENV["GIT_MASTER"].nil?
-        #    ENV["GIT_MASTER"] = "git://github.com/openstack/python-quantumclient.git"
-        #end
-        #ENV["PROJECT_NAME"] = "python-quantumclient"
-        # Nail right before neutronclient rename
-        #ENV["REVISION"] = "8ed38707b12ae6e77480ae8d8542712d63b7fc70"
-        #Rake::Task["fedora:build_packages"].execute
     end
 
     task :build_python_neutronclient do

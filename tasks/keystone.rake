@@ -47,7 +47,7 @@ namespace :keystone do
         keystone_host=ENV['KEYSTONE_HOST'] || 'localhost'
         swift_host=ENV['SWIFT_HOST'] || 'localhost'
         cinder_host=ENV['CINDER_HOST'] || 'localhost'
-        quantum_host=ENV['QUANTUM_HOST'] || 'localhost'
+        neutron_host=ENV['NEUTRON_HOST'] || 'localhost'
 
         server_name = "nova1" if server_name.nil?
         keystone_data_file = File.join(File.dirname(__FILE__), '..', 'scripts','keystone_data.sh')
@@ -60,7 +60,7 @@ GLANCE_HOST=#{glance_host}
 KEYSTONE_HOST=#{keystone_host}
 SWIFT_HOST=#{swift_host}
 CINDER_HOST=#{cinder_host}
-QUANTUM_HOST=#{quantum_host}
+NEUTRON_HOST=#{neutron_host}
 
 SERVICE_TOKEN=ADMIN
 SERVICE_ENDPOINT=http://localhost:35357/v2.0

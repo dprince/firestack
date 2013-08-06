@@ -1,16 +1,16 @@
-namespace :quantum do
+namespace :neutron do
 
-    desc "Build Quantum packages."
+    desc "Build Neutron packages."
     task :build_packages => :distro_name do
-        Rake::Task["#{ENV['DISTRO_NAME']}:build_quantum"].invoke
+        Rake::Task["#{ENV['DISTRO_NAME']}:build_neutron"].invoke
     end
 
-    desc "Build Python Quantumclient packages."
-    task :build_python_quantumclient => :distro_name do
-        Rake::Task["#{ENV['DISTRO_NAME']}:build_python_quantumclient"].invoke
+    desc "Build Python Neutronclient packages."
+    task :build_python_neutronclient => :distro_name do
+        Rake::Task["#{ENV['DISTRO_NAME']}:build_python_neutronclient"].invoke
     end
 
-    desc "Configure a sample Quantum network."
+    desc "Configure a sample Neutron network."
     task :configure do
         server_name=ENV['SERVER_NAME']
         # default to nova1 if SERVER_NAME is unset
@@ -37,14 +37,14 @@ FLOATING_RANGE="#{floating_range}"
 FIXED_RANGE="#{fixed_range}"
 NETWORK_GATEWAY="#{network_gateway}"
 
-NET_ID=$(quantum net-create public --shared | grep ' id ' | get_field 2)
-SUBNET_ID=$(quantum subnet-create --ip_version 4 --gateway $NETWORK_GATEWAY $NET_ID $FIXED_RANGE | grep ' id ' | get_field 2)
-ROUTER_ID=$(quantum router-create router1 | grep ' id ' | get_field 2)
-quantum router-interface-add $ROUTER_ID $SUBNET_ID
+NET_ID=$(neutron net-create public --shared | grep ' id ' | get_field 2)
+SUBNET_ID=$(neutron subnet-create --ip_version 4 --gateway $NETWORK_GATEWAY $NET_ID $FIXED_RANGE | grep ' id ' | get_field 2)
+ROUTER_ID=$(neutron router-create router1 | grep ' id ' | get_field 2)
+neutron router-interface-add $ROUTER_ID $SUBNET_ID
 
-if [ -f /etc/quantum/l3_agent.ini ]; then
-  sed -e "s|.*router_id *=|router_id=$ROUTER_ID|g" -i /etc/quantum/l3_agent.ini
-  service quantum-l3-agent restart
+if [ -f /etc/neutron/l3_agent.ini ]; then
+  sed -e "s|.*router_id *=|router_id=$ROUTER_ID|g" -i /etc/neutron/l3_agent.ini
+  service neutron-l3-agent restart
 fi
 
 EOF_SERVER_NAME
