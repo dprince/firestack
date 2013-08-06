@@ -461,6 +461,10 @@ wget #{repo_file_url}
         Rake::Task["centos:build_packages"].execute
     end
 
+    task :build_python_quantumclient do
+        puts "Use build_python_neutronclient instead."
+    end
+
     task :build_python_neutronclient do
         packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-python-neutronclient.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
