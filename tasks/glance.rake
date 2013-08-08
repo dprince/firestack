@@ -63,6 +63,15 @@ EOF_SERVER_NAME
 
     desc "Load images into Glance."
     task :load_images do
+      type = ENV['FIRESTACK_IMAGE_TYPE'] || 'tty_linux'
+      if type == 'cirros' then
+        Rake::Task["glance:load_cirros"].invoke
+      else
+        Rake::Task["glance:load_tty_linux"].invoke
+      end
+    end
+
+    task :load_tty_linux do
         server_name=ENV['SERVER_NAME']
         # default to nova1 if SERVER_NAME is unset
         server_name = "nova1" if server_name.nil?
@@ -78,6 +87,26 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
   AKI_ID=$(glance image-create --name "aki-tty" --disk-format="aki" --container-format="aki" --is-public=true < /root/tty_linux/kernel | awk '/ id / { print $4 }')
   echo "AKI_ID=$AKI_ID"
   glance image-create --name "ami-tty" --disk-format="ami" --container-format="ami" --is-public=true --property ramdisk_id=$ARI_ID --property kernel_id=$AKI_ID < /root/tty_linux/image
+EOF_SERVER_NAME
+        } do |ok, out|
+            puts out
+            fail "Load images failed!" unless ok
+        end
+    end
+
+    task :load_cirros do
+        server_name=ENV['SERVER_NAME']
+        # default to nova1 if SERVER_NAME is unset
+        server_name = "nova1" if server_name.nil?
+        remote_exec %{
+ssh #{server_name} bash <<-"EOF_SERVER_NAME"
+  mkdir -p /var/lib/glance/
+  [ -f /root/openstackrc ] && source /root/openstackrc
+  if [ ! -f "/root/cirros-0.3.0-i386-disk.img" ]; then
+    cd /root
+    wget https://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-i386-disk.img
+  fi
+  glance image-create --name cirros --disk-format qcow2 --container-format bare --is-public 1 < cirros-0.3.0-i386-disk.img
 EOF_SERVER_NAME
         } do |ok, out|
             puts out
