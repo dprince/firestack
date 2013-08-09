@@ -256,7 +256,7 @@ mv "$CHANGES_FILE_NAME".tmp "$CHANGES_FILE_NAME"
 
 # build rpm's
 export OSC_BUILD_ROOT="/var/tmp/build-root-#{obs_target}"
-osc build "$SPEC_FILE_NAME" "#{obs_target}" &> $BUILD_LOG || { echo "Failed to build #{project} packages."; cat $BUILD_LOG; exit 1; }
+osc build "$SPEC_FILE_NAME" "#{obs_target}" &>> $BUILD_LOG || { echo "Failed to build #{project} packages."; cat $BUILD_LOG; exit 1; }
 mkdir -p ~/rpms
 find "${OSC_BUILD_ROOT}/home/abuild/rpmbuild/"{RPMS,SRPMS} -name "*rpm" -exec cp {} ~/rpms \\;
 

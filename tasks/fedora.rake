@@ -131,13 +131,13 @@ rm -Rf RPMS
 rm -Rf SRPMS
 
 #build source RPM
-rpmbuild -bs $SPEC_FILE_NAME &> $BUILD_LOG || { echo "Failed to build srpm."; cat $BUILD_LOG; exit 1; }
+rpmbuild -bs $SPEC_FILE_NAME &>> $BUILD_LOG || { echo "Failed to build srpm."; cat $BUILD_LOG; exit 1; }
 
 # install dependency projects
-yum-builddep --nogpgcheck -y ~/rpmbuild/SRPMS/${RPM_BASE_NAME}-${VERSION}-*.src.rpm &> $BUILD_LOG || { echo "Failed to yum-builddep."; cat $BUILD_LOG; exit 1; }
+yum-builddep --nogpgcheck -y ~/rpmbuild/SRPMS/${RPM_BASE_NAME}-${VERSION}-*.src.rpm &>> $BUILD_LOG || { echo "Failed to yum-builddep."; cat $BUILD_LOG; exit 1; }
 
 # build rpm's
-rpmbuild -bb --nocheck $SPEC_FILE_NAME &> $BUILD_LOG || { echo "Failed to build srpm."; cat $BUILD_LOG; exit 1; }
+rpmbuild -bb --nocheck $SPEC_FILE_NAME &>> $BUILD_LOG || { echo "Failed to build srpm."; cat $BUILD_LOG; exit 1; }
 
 mkdir -p ~/rpms
 find ~/rpmbuild -name "*rpm" -exec cp {} ~/rpms \\;
