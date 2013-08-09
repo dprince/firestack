@@ -136,7 +136,7 @@ rake kytoon:create SERVER_GROUP_JSON="config/server_group_fedora.json"
 
 #build Nova packages
 rake nova:build_packages \
-    RPM_PACKAGER_URL="git://github.com/fedora-openstack/openstack-nova.git" \
+    RPM_PACKAGER_URL="git://github.com/redhat-openstack/openstack-nova.git" \
     SOURCE_URL="git://github.com/openstack/nova.git" \
     SOURCE_BRANCH="master"
 
@@ -144,7 +144,7 @@ rake nova:build_packages \
 rake fedora:create_rpm_repo
 
 #install/configure packages with Puppet
-rake puppet:install SOURCE_URL="git://github.com/fedora-openstack/openstack-puppet.git" PUPPET_CONFIG="single_node_mysql"
+rake puppet:install SOURCE_URL="git://github.com/redhat-openstack/openstack-puppet.git" PUPPET_CONFIG="single_node_mysql"
 
 #configure keystone
 rake keystone:configure
