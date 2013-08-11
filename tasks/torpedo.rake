@@ -23,6 +23,7 @@ namespace :torpedo do
     volumes_enabled=ENV['TORPEDO_VOLUMES_ENABLED'] || 'false'
     test_hostid_on_resize=ENV['TORPEDO_TEST_HOSTID_ON_RESIZE'] || 'false'
     flavor_ref=ENV['TORPEDO_FLAVOR_REF'] || '' #defaults to 2 (m1.small)
+    network_label=ENV['TORPEDO_NETWORK_LABEL'] || 'public'
     sleep_after_image_create=ENV['TORPEDO_SLEEP_AFTER_IMAGE_CREATE'] || '10'
     
     remote_exec %{
@@ -31,12 +32,7 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 
 install_package rubygem-torpedo
 
-if [ -f /root/openstackrc ]; then
-  source /root/openstackrc
-else
-  configure_noauth
-  source ~/novarc
-fi
+source /root/user1rc
 
 if [ ! -f ~/.ssh/id_rsa ]; then
   [ -d ~/.ssh ] || mkdir ~/.ssh
@@ -66,9 +62,19 @@ test_admin_password: #{test_admin_password}
 flavor_ref: #{flavor_ref}
 sleep_after_image_create: #{sleep_after_image_create}
 keypairs: #{use_keypairs}
+network_label: #{network_label}
 volumes:
   enabled: #{volumes_enabled}
 EOF_CAT
+
+if [ -d /var/log/neutron/ ]; then
+  NAMESPACE=$(ip netns | grep qrouter)
+  if [ -n "$NAMESPACE" ]; then
+cat >> ~/.torpedo.conf <<-EOF_CAT
+network_namespace: $NAMESPACE
+EOF_CAT
+  fi
+fi
 
 torpedo fire
 
