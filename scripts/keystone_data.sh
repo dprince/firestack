@@ -5,7 +5,7 @@ export NOVA_HOST=${NOVA_HOST:-"localhost"}
 export KEYSTONE_HOST=${KEYSTONE_HOST:-"localhost"}
 export SWIFT_HOST=${SWIFT_HOST:-"localhost"}
 export CINDER_HOST=${CINDER_HOST:-"localhost"}
-export QUANTUM_HOST=${QUANTUM_HOST:-"localhost"}
+export NEUTRON_HOST=${NEUTRON_HOST:-"localhost"}
 
 export SERVICE_TOKEN=$SERVICE_TOKEN
 export SERVICE_ENDPOINT=$SERVICE_ENDPOINT
@@ -172,24 +172,24 @@ keystone endpoint-create \
 
 
 # Quantum Service
-QUANTUM_USER=`get_id keystone user-create \
-                                 --name=quantum \
+NEUTRON_USER=`get_id keystone user-create \
+                                 --name=neutron \
                                  --pass="$SERVICE_PASSWORD" \
-                                 --email=quantum@example.com`
+                                 --email=neutron@example.com`
 keystone user-role-add --tenant_id $SERVICE_TENANT \
-                       --user_id $QUANTUM_USER \
+                       --user_id $NEUTRON_USER \
                        --role_id $ADMIN_ROLE
 
-QUANTUM_SERVICE=$(get_id keystone service-create \
+NEUTRON_SERVICE=$(get_id keystone service-create \
             --name=network \
             --type=network \
             --description="Network")
 keystone endpoint-create \
             --region RegionOne \
-            --service_id $QUANTUM_SERVICE \
-            --publicurl "http://$QUANTUM_HOST:9696" \
-            --adminurl "http://$QUANTUM_HOST:9696" \
-            --internalurl "http://$QUANTUM_HOST:9696"
+            --service_id $NEUTRON_SERVICE \
+            --publicurl "http://$NEUTRON_HOST:9696" \
+            --adminurl "http://$NEUTRON_HOST:9696" \
+            --internalurl "http://$NEUTRON_HOST:9696"
 
 # Keystone Service
 KEYSTONE_SERVICE=$(get_id keystone service-create \
