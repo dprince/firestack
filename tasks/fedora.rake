@@ -571,6 +571,33 @@ wget #{repo_file_url}
 
     end
 
+    task  :build_ceilometer do
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-ceilometer.git")
+        packager_branch= ENV.fetch("RPM_PACKAGER_BRANCH", "smokestack")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        ENV["RPM_PACKAGER_BRANCH"] = packager_branch if ENV["RPM_PACKAGER_BRANCH"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/openstack/ceilometer.git"
+        end
+        ENV["PROJECT_NAME"] = "ceilometer"
+        ENV["SOURCE_URL"] = "git://github.com/openstack/ceilometer.git"
+        Rake::Task["fedora:build_packages"].execute
+    end
+
+    task :build_python_ceilometerclient do
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/ianw/openstack-python-ceilometerclient.git")
+        packager_branch= ENV.fetch("RPM_PACKAGER_BRANCH", "readme-fix")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        ENV["RPM_PACKAGER_BRANCH"] = packager_branch if ENV["RPM_PACKAGER_BRANCH"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/openstack/python-ceilometerclient.git"
+        end
+        ENV["PROJECT_NAME"] = "python-ceilometerclient"
+        ENV["SOURCE_URL"] = "git://github.com/openstack/python-ceilometerclient.git"
+        Rake::Task["fedora:build_packages"].execute
+    end
+
+
     task :build_misc do
 
         server_name=ENV['SERVER_NAME']
