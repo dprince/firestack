@@ -160,7 +160,15 @@ function install_git {
 }
 
 #git clone w/ retry
+
+firestack_debug=ENV.fetch("FIRESTACK_DEBUG", "")
+
 BASH_COMMON=%{
+
+if [ -n "#{firestack_debug}" ]; then
+    set -x
+fi
+
 #{BASH_COMMON_PKG}
 
 function fail {
