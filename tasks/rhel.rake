@@ -466,4 +466,41 @@ wget #{repo_file_url}
 
     end
 
+    desc "Create a packstack rpm."
+    task :build_packstack do
+
+        server_name=ENV['SERVER_NAME']
+        server_name = "localhost" if server_name.nil?
+
+        puts "Building packstack rpm on local server"
+        remote_exec %{
+ssh #{server_name} bash <<-"EOF_SERVER_NAME"
+#{BASH_COMMON}
+yum -y install git rpm-build python2-devel wget
+git clone --recursive https://github.com/stackforge/packstack.git packstack-build
+cd packstack-build
+wget https://raw.github.com/redhat-openstack/openstack-packstack/master/openstack-packstack.spec
+bin/release.sh
+VERSION=`ls dist/packstack* | awk -F'-' '{print $2}'| awk -F'dev' '{print $1}'`
+RELEASE=`ls dist/packstack* | awk -F'dev' '{print $2}'| awk -F'.tar.gz' '{print $1}'`
+sed -i "/Version:*/c\Version:        $VERSION" openstack-packstack.spec
+sed -i "/%global git_revno*/c\%global git_revno $RELEASE" openstack-packstack.spec
+mkdir -p $HOME/rpmbuild/SOURCES
+mkdir -p $HOME/rpmbuild/SPECS
+cp openstack-packstack.spec $HOME/rpmbuild/SPECS
+cp dist/packstack*.tar.gz $HOME/rpmbuild/SOURCES
+
+rpmbuild -bb $HOME/rpmbuild/SPECS/openstack-packstack.spec -D '_without_doc 1'
+mkdir $HOME/rpms
+cp $HOME/rpmbuild/RPMS/noarch/openstack-packstack* $HOME/rpms/
+cp $HOME/rpmbuild/RPMS/noarch/packstack-modules-puppet* $HOME/rpms/
+
+
+EOF_SERVER_NAME
+        } do |ok, out|
+            fail "Failed to create packstack RPM!" unless ok
+        end
+
+    end
+
 end
