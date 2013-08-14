@@ -479,7 +479,7 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 yum -y install git rpm-build python2-devel wget
 git clone --recursive https://github.com/stackforge/packstack.git packstack-build
 cd packstack-build
-wget http://pkgs.fedoraproject.org/cgit/openstack-packstack.git/plain/openstack-packstack.spec
+wget https://raw.github.com/redhat-openstack/openstack-packstack/master/openstack-packstack.spec
 bin/release.sh
 VERSION=`ls dist/packstack* | awk -F'-' '{print $2}'| awk -F'dev' '{print $1}'`
 RELEASE=`ls dist/packstack* | awk -F'dev' '{print $2}'| awk -F'.tar.gz' '{print $1}'`
@@ -490,7 +490,7 @@ mkdir -p $HOME/rpmbuild/SPECS
 cp openstack-packstack.spec $HOME/rpmbuild/SPECS
 cp dist/packstack*.tar.gz $HOME/rpmbuild/SOURCES
 
-rpmbuild -bb $HOME/rpmbuild/SPECS/openstack-packstack.spec #-D '_without_doc 1'
+rpmbuild -bb $HOME/rpmbuild/SPECS/openstack-packstack.spec -D '_without_doc 1'
 mkdir $HOME/rpms
 cp $HOME/rpmbuild/RPMS/noarch/openstack-packstack* $HOME/rpms/
 cp $HOME/rpmbuild/RPMS/noarch/packstack-modules-puppet* $HOME/rpms/
