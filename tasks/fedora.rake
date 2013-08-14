@@ -105,6 +105,10 @@ elif [ -f Rakefile ]; then
   echo "Gem version: $VERSION"
   SOURCE_FILE=$(ls *.gem)
 fi
+if [ -z "${SOURCE_FILE}" ]; then
+   echo "Source not found, can not continue"
+   exit 1
+fi
 cp $SOURCE_FILE ~/rpmbuild/SOURCES/
 md5sum $SOURCE_FILE > sources
 mv sources ~/rpmbuild/SOURCES/
