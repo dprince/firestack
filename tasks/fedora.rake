@@ -589,10 +589,8 @@ wget #{repo_file_url}
     end
 
     task :build_python_ceilometerclient do
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/ianw/openstack-python-ceilometerclient.git")
-        packager_branch= ENV.fetch("RPM_PACKAGER_BRANCH", "readme-fix")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-python-ceilometerclient.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
-        ENV["RPM_PACKAGER_BRANCH"] = packager_branch if ENV["RPM_PACKAGER_BRANCH"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/python-ceilometerclient.git"
         end
