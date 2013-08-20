@@ -29,10 +29,10 @@ modules:
       git_master: "git://github.com/stackforge/puppet-cinder.git"
       revision: 
       merge_master: false
-    - name: quantum
-      url: "git://github.com/stackforge/puppet-quantum.git"
+    - name: neutron
+      url: "https://review.openstack.org/stackforge/puppet-neutron"
       branch: master
-      git_master: "git://github.com/stackforge/puppet-quantum.git"
+      git_master: "git://github.com/stackforge/puppet-neutron.git"
       revision: 
       merge_master: false
 nodes:

@@ -106,6 +106,7 @@ nova_config {
   'DEFAULT/scheduler_default_filters': value => 'AvailabilityZoneFilter,ComputeFilter';
   'DEFAULT/allow_resize_to_same_host': value => true;
   'DEFAULT/libvirt_wait_soft_reboot_seconds': value => 15;
+  'DEFAULT/libvirt_cpu_mode': value => 'none';
 }
 
 class { "nova::objectstore": enabled => true }
@@ -162,7 +163,7 @@ class { 'cinder::volume::iscsi':
   iscsi_ip_address => '127.0.0.1',
 }
 class { 'cinder::setup_test_volume':
-  size => '1G',
+  size => '3G',
 }
 
 # Swift All In One

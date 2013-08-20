@@ -99,15 +99,15 @@ package_builds:
       packager_branch: "master"
       build_docs: false
 
-    #- name: quantum
-      #url: "git://github.com/openstack/quantum.git"
-      #branch: master
-      #git_master: "git://github.com/openstack/quantum.git"
-      #revision: 
-      #merge_master: true
-      #packager_url: "git://github.com/redhat-openstack/openstack-quantum.git"
-      #packager_branch: "master"
-      #build_docs: false
+    - name: neutron
+      url: "git://github.com/openstack/neutron.git"
+      branch: master
+      git_master: "git://github.com/openstack/neutron.git"
+      revision: 
+      merge_master: true
+      packager_url: "git://github.com/redhat-openstack/openstack-neutron.git"
+      packager_branch: "master"
+      build_docs: false
 
     - name: python-neutronclient
       url: "git://github.com/openstack/python-neutronclient.git"

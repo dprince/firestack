@@ -1,7 +1,8 @@
 package_builds:
+#git fetch https://review.openstack.org/openstack/nova refs/changes/26/40426/2 && git checkout FETCH_HEAD
     - name: nova
-      url: "git://github.com/openstack/nova.git"
-      branch: master
+      url: "https://review.openstack.org/openstack/nova"
+      branch: refs/changes/26/40426/2
       git_master: "git://github.com/openstack/nova.git"
       revision: 
       merge_master: true
@@ -99,15 +100,15 @@ package_builds:
       packager_branch: "el6"
       build_docs: false
 
-    #- name: quantum
-      #url: "git://github.com/openstack/quantum.git"
-      #branch: master
-      #git_master: "git://github.com/openstack/quantum.git"
-      #revision: 
-      #merge_master: true
-      #packager_url: "git://github.com/redhat-openstack/openstack-quantum.git"
-      #packager_branch: "el6"
-      #build_docs: false
+    - name: neutron
+      url: "git://github.com/openstack/neutron.git"
+      branch: master
+      git_master: "git://github.com/openstack/neutron.git"
+      revision:
+      merge_master: true
+      packager_url: "git://github.com/redhat-openstack/openstack-neutron.git"
+      packager_branch: "el6"
+      build_docs: false
 
     - name: python-neutronclient
       url: "git://github.com/openstack/python-neutronclient.git"
