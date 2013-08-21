@@ -112,6 +112,11 @@ fi
 
 # NOTE: we upgrade systemd due to a potential issue w/ the MySQL init scripts
 rpm -q puppet &> /dev/null || yum -q -y install puppet yum-plugin-priorities systemd
+
+# NOTE: Fedora 19 sysctl.conf contains a '-e' line which doesn't play nice
+# w/ the sysctl module. Until we fix that remove the line here.
+sed -e "s|^-e.*||g" -i /etc/sysctl.conf
+
 [ -d /etc/puppet/modules ] && rm -Rf /etc/puppet/modules
 ln -sf /root/puppet-modules/modules /etc/puppet/modules
 puppet apply --verbose --detailed-exitcodes manifest.pp &> /var/log/puppet/puppet.log
