@@ -33,8 +33,21 @@ modules:
       url: "https://review.openstack.org/stackforge/puppet-neutron"
       branch: master
       git_master: "git://github.com/stackforge/puppet-neutron.git"
-      revision: 
+      revision:
       merge_master: false
+    - name: ceilometer
+      url: "git://github.com/stackforge/puppet-ceilometer"
+      branch: master
+      git_master: "git://github.com/stackforge/puppet-ceilometer.git"
+      revision:
+      merge_master: false
+    - name: heat
+      url: "git://github.com/stackforge/puppet-heat"
+      branch: master
+      git_master: "git://github.com/stackforge/puppet-heat.git"
+      revision:
+      merge_master: false
+
 nodes:
     - name: nova1
       manifest: nova1.pp
