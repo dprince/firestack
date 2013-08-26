@@ -261,3 +261,23 @@ class { 'glance::api':
   keystone_password => 'SERVICE_PASSWORD',
   sql_connection => $glance_sql_connection,
 }
+
+# ceilometer
+
+class { 'ceilometer::db::mysql':
+  password => 'ceilometer',
+}
+
+class { 'ceilometer':
+  metering_secret => 'secret'
+}
+
+class { 'ceilometer::db':
+}
+
+class { 'ceilometer::api':
+  keystone_password => 'password'
+}
+
+class { 'ceilometer::agent::compute':
+}
