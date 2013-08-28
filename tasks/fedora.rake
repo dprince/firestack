@@ -549,19 +549,6 @@ wget #{repo_file_url}
 
     end
 
-    task :build_python_d2to1 do
-
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/python-d2to1.git")
-        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
-        if ENV["GIT_MASTER"].nil?
-            ENV["GIT_MASTER"] = "git://github.com/iguananaut/d2to1.git"
-        end
-        ENV["PROJECT_NAME"] = "d2to1"
-        ENV["SOURCE_URL"] = "git://github.com/iguananaut/d2to1.git"
-        Rake::Task["fedora:build_packages"].execute
-
-    end
-
     task :build_python_pbr do
 
         packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/python-pbr.git")
@@ -569,8 +556,23 @@ wget #{repo_file_url}
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack-dev/pbr.git"
         end
+        ENV["RPM_PACKAGER_BRANCH"] = "testing" #FIXME testing
         ENV["PROJECT_NAME"] = "pbr"
         ENV["SOURCE_URL"] = "git://github.com/openstack-dev/pbr.git"
+        Rake::Task["fedora:build_packages"].execute
+
+    end
+
+    task :build_python_dogpile_cache do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/python-dogpile-cache.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        ENV["RPM_PACKAGER_BRANCH"] = "master"
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "https://bitbucket.org/zzzeek/dogpile.cache.git"
+        end
+        ENV["PROJECT_NAME"] = "dogpile.cache"
+        ENV["SOURCE_URL"] = "https://bitbucket.org/zzzeek/dogpile.cache.git"
         Rake::Task["fedora:build_packages"].execute
 
     end
@@ -629,15 +631,6 @@ wget #{repo_file_url}
         server_name = "localhost" if server_name.nil?
 
         saved_env = ENV.to_hash
-        Rake::Task["fedora:build_python_d2to1"].execute
-
-
-        remote_exec %{
-ssh #{server_name} bash <<-"EOF_SERVER_NAME"
-yum install -y -q $(ls ~/rpms/python-d2to1*.noarch.rpm | tail -n 1)
-EOF_SERVER_NAME
-}
-
         ENV.clear
         ENV.update(saved_env)
         Rake::Task["fedora:build_python_pbr"].execute
@@ -657,6 +650,10 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 yum install -y -q $(ls ~/rpms/python-oslo-sphinx*.noarch.rpm | tail -n 1)
 EOF_SERVER_NAME
 }
+
+        ENV.clear
+        ENV.update(saved_env)
+        Rake::Task["fedora:build_python_dogpile_cache"].execute
 
         ENV.clear
         ENV.update(saved_env)
