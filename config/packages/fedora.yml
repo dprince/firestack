@@ -23,7 +23,7 @@ package_builds:
       url: "git://github.com/openstack/glance.git"
       branch: master
       git_master: "git://github.com/openstack/glance.git"
-      revision: 
+      revision:
       merge_master: true
       packager_url: "git://github.com/redhat-openstack/openstack-glance.git"
       packager_branch: "master"
@@ -116,5 +116,25 @@ package_builds:
       revision:
       merge_master: false
       packager_url: "git://github.com/redhat-openstack/openstack-python-neutronclient.git"
+      packager_branch: "master"
+      build_docs: false
+
+    - name: ceilometer
+      url: "git://github.com/openstack/ceilometer.git"
+      branch: master
+      git_master: "git://github.com/openstack/ceilometer.git"
+      revision: 
+      merge_master: true
+      packager_url: "git://github.com/redhat-openstack/openstack-ceilometer.git"
+      packager_branch: "master"
+      build_docs: false
+
+    - name: python-ceilometerclient
+      url: "git://github.com/openstack/python-ceilometerclient.git"
+      branch: master
+      git_master: "git://github.com/openstack/python-ceilometerclient.git"
+      revision:
+      merge_master: false
+      packager_url: "git://github.com/redhat-openstack/openstack-python-ceilometerclient.git"
       packager_branch: "master"
       build_docs: false
