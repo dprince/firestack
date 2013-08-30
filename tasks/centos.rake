@@ -584,10 +584,12 @@ wget #{repo_file_url}
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         ENV["RPM_PACKAGER_BRANCH"] = "master"
         if ENV["GIT_MASTER"].nil?
-            ENV["GIT_MASTER"] = "https://bitbucket.org/zzzeek/dogpile.cache.git"
+            #ENV["GIT_MASTER"] = "https://bitbucket.org/zzzeek/dogpile.cache.git"
+            ENV["GIT_MASTER"] = "git://github.com/dprince/dogpile.cache.git"
         end
         ENV["PROJECT_NAME"] = "dogpile.cache"
-        ENV["SOURCE_URL"] = "https://bitbucket.org/zzzeek/dogpile.cache.git"
+        #ENV["SOURCE_URL"] = "https://bitbucket.org/zzzeek/dogpile.cache.git"
+        ENV["SOURCE_URL"] = "git://github.com/dprince/dogpile.cache.git"
         Rake::Task["centos:build_packages"].execute
 
     end
