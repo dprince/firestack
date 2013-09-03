@@ -148,6 +148,12 @@ function install_package {
             apt-get -y -q install ${PKGS} &> /dev/null
         fi
     fi
+
+    # sanity check
+    for PKG in $*; do
+        is_package_installed "${PKG}" || \
+          { echo "Package <${PKG}> not installed"; exit 1; }
+    done
 }
 
 function install_git {
