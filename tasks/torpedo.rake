@@ -21,6 +21,7 @@ namespace :torpedo do
     test_resize_server=ENV['TORPEDO_TEST_RESIZE_SERVER'] || 'false'
     test_revert_resize_server=ENV['TORPEDO_TEST_REVERT_RESIZE_SERVER'] || 'false'
     volumes_enabled=ENV['TORPEDO_VOLUMES_ENABLED'] || 'false'
+    metering_enabled=ENV['TORPEDO_METERING_ENABLED'] || 'false'
     test_hostid_on_resize=ENV['TORPEDO_TEST_HOSTID_ON_RESIZE'] || 'false'
     flavor_ref=ENV['TORPEDO_FLAVOR_REF'] || '' #defaults to 2 (m1.small)
     network_label=ENV['TORPEDO_NETWORK_LABEL'] || 'public'
@@ -65,6 +66,8 @@ keypairs: #{use_keypairs}
 network_label: #{network_label}
 volumes:
   enabled: #{volumes_enabled}
+metering:
+  enabled: #{metering_enabled}
 EOF_CAT
 
 if [ -d /var/log/neutron/ ]; then
