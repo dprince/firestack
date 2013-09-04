@@ -596,7 +596,7 @@ wget #{repo_file_url}
 
     task  :build_ceilometer do
         packager_url= ENV.fetch("RPM_PACKAGER_URL", "http://github.com/ianw/openstack-ceilometer.git")
-        packager_branch= ENV.fetch("RPM_PACKAGER_BRANCH", "el6-firestack")
+        packager_branch= ENV.fetch("RPM_PACKAGER_BRANCH", "el6")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         ENV["RPM_PACKAGER_BRANCH"] = packager_branch if ENV["RPM_PACKAGER_BRANCH"].nil?
         if ENV["GIT_MASTER"].nil?

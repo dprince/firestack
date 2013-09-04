@@ -118,3 +118,43 @@ package_builds:
       packager_url: "git://github.com/redhat-openstack/openstack-python-neutronclient.git"
       packager_branch: "el6"
       build_docs: false
+
+    - name: ceilometer
+      url: "git://github.com/openstack/ceilometer.git"
+      branch: master
+      git_master: "git://github.com/openstack/ceilometer.git"
+      revision:
+      merge_master: true
+      packager_url: "git://github.com/redhat-openstack/openstack-ceilometer.git"
+      packager_branch: "el6"
+      build_docs: false
+
+    - name: python-ceilometerclient
+      url: "git://github.com/openstack/python-ceilometerclient.git"
+      branch: master
+      git_master: "git://github.com/openstack/python-ceilometerclient.git"
+      revision:
+      merge_master: false
+      packager_url: "git://github.com/redhat-openstack/openstack-python-ceilometerclient.git"
+      packager_branch: "el6"
+      build_docs: false
+
+    - name: heat
+      url: "git://github.com/openstack/heat.git"
+      branch: master
+      git_master: "git://github.com/openstack/heat.git"
+      revision:
+      merge_master: true
+      packager_url: "git://github.com/redhat-openstack/openstack-heat.git"
+      packager_branch: "el6"
+      build_docs: false
+
+    - name: python-heatclient
+      url: "git://github.com/openstack/python-heatclient.git"
+      branch: master
+      git_master: "git://github.com/openstack/python-heatclient.git"
+      revision:
+      merge_master: false
+      packager_url: "git://github.com/redhat-openstack/openstack-python-heatclient.git"
+      packager_branch: "el6"
+      build_docs: false

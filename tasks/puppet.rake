@@ -1,8 +1,51 @@
 require 'yaml'
 
 namespace :puppet do
-    desc "Install and configure packages on clients with puppet."
-    task :install do
+
+PUPPET_INSTALL_SCRIPT=%{
+if cat /etc/*release | grep -e "CentOS" -e "Red Hat" &> /dev/null; then
+    rpm -qi epel-release &> /dev/null || rpm -Uvh http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+    rpm -ivh http://yum.puppetlabs.com/el/6/products/x86_64/puppetlabs-release-6-6.noarch.rpm
+
+    cat > /etc/yum.repos.d/puppetlabs.repo <<"EOF"
+[puppetlabs-products]
+name=Puppet Labs Products El 6 - $basearch
+baseurl=http://yum.puppetlabs.com/el/6/products/$basearch
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-puppetlabs
+enabled=1
+gpgcheck=1
+exclude=puppet-2.8* puppet-2.9* puppet-3*
+EOF
+fi
+
+# Setup hiera (to avoid warnings)
+mkdir -p /etc/puppet/hieradata
+cat > /etc/puppet/hiera.yaml <<"EOF"
+---
+:hierarchy:
+  - production
+:backends:
+  - yaml
+:yaml:
+  :datadir: '/etc/puppet/hieradata'
+EOF
+
+# NOTE: we upgrade systemd due to a potential issue w/ the MySQL init scripts
+rpm -q puppet &> /dev/null || yum -q -y install puppet yum-plugin-priorities
+
+# NOTE: RAX Fedora 19 sysctl.conf contains a '-e' line which doesn't play nice
+# w/ the sysctl module. Until we fix that remove the line here.
+sed -e "s|^-e.*||g" -i /etc/sysctl.conf
+
+[ -d /etc/puppet/modules ] && rm -Rf /etc/puppet/modules
+ln -sf /root/puppet-modules/modules /etc/puppet/modules
+}
+
+    desc "Install puppet, run manifest."
+    task :install => [:modules, :run]
+
+    desc "Install puppet modules."
+    task :modules do
 
         source_url=ENV['SOURCE_URL']
         raise "Please specify a SOURCE_URL." if source_url.nil?
@@ -14,12 +57,10 @@ namespace :puppet do
 
         config=YAML.load_file("#{KYTOON_PROJECT}/config/puppet-configs/#{puppet_config}/config.yml")
         node_cmds = ""
-        hostnames = []
         config["nodes"].each do |node|
             hostname = node["name"]
             manifest = node["manifest"]
             if "localhost" != hostname
-                hostnames << hostname
                 node_cmds += "scp -r puppet-modules #{hostname}: && scp puppet-configs/#{puppet_config}/#{manifest} #{hostname}:manifest.pp\n"
             end
         end
@@ -87,7 +128,24 @@ cd ~
             if ok
               puts out
             else
-              fail "Puppet errors occurred! \n #{out}"
+              fail "Failed to install puppet modules! \n #{out}"
+            end
+        end
+end
+
+    desc "Run puppet."
+    task :run do
+
+        puppet_config=ENV['PUPPET_CONFIG']
+        puppet_config="default" if puppet_config.nil?
+
+        config=YAML.load_file("#{KYTOON_PROJECT}/config/puppet-configs/#{puppet_config}/config.yml")
+        hostnames = []
+        config["nodes"].each do |node|
+            hostname = node["name"]
+            manifest = node["manifest"]
+            if "localhost" != hostname
+                hostnames << hostname
             end
         end
 
@@ -95,30 +153,8 @@ puts "Running puppet apply on hostnames: " + hostnames.to_s
 
         results = remote_multi_exec hostnames, %{
 
-if cat /etc/*release | grep -e "CentOS" -e "Red Hat" &> /dev/null; then
-    rpm -qi epel-release &> /dev/null || rpm -Uvh http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
-    rpm -ivh http://yum.puppetlabs.com/el/6/products/x86_64/puppetlabs-release-6-6.noarch.rpm
+#{PUPPET_INSTALL_SCRIPT}
 
-    cat > /etc/yum.repos.d/puppetlabs.repo <<"EOF"
-[puppetlabs-products]
-name=Puppet Labs Products El 6 - $basearch
-baseurl=http://yum.puppetlabs.com/el/6/products/$basearch
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-puppetlabs
-enabled=1
-gpgcheck=1
-exclude=puppet-2.8* puppet-2.9* puppet-3*
-EOF
-fi
-
-# NOTE: we upgrade systemd due to a potential issue w/ the MySQL init scripts
-rpm -q puppet &> /dev/null || yum -q -y install puppet yum-plugin-priorities systemd
-
-# NOTE: Fedora 19 sysctl.conf contains a '-e' line which doesn't play nice
-# w/ the sysctl module. Until we fix that remove the line here.
-sed -e "s|^-e.*||g" -i /etc/sysctl.conf
-
-[ -d /etc/puppet/modules ] && rm -Rf /etc/puppet/modules
-ln -sf /root/puppet-modules/modules /etc/puppet/modules
 puppet apply --verbose --detailed-exitcodes manifest.pp &> /var/log/puppet/puppet.log
 RETVAL=$?
 if [ "$RETVAL" -eq 1 -o "$RETVAL" -gt 2 ]; then

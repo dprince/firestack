@@ -87,7 +87,7 @@ class {"nova::compute::libvirt":
 class { "nova::api":
   enabled => true,
   admin_user          => 'nova',
-  admin_tenant_name   => 'service',
+  admin_tenant_name   => 'services',
   admin_password      => 'SERVICE_PASSWORD',
   auth_host           => '127.0.0.1',
   auth_port           => '35357',
@@ -109,6 +109,7 @@ nova_config {
   'DEFAULT/allow_resize_to_same_host': value => true;
   'DEFAULT/libvirt_wait_soft_reboot_seconds': value => 15;
   'DEFAULT/libvirt_cpu_mode': value => 'none';
+  'DEFAULT/notify_on_state_change': value => 'vm_and_task_state';
 }
 
 class { "nova::objectstore": enabled => true }
@@ -142,7 +143,7 @@ class { 'cinder::db::mysql':
 
 class { "cinder::api":
   keystone_user => 'cinder',
-  keystone_tenant => 'service',
+  keystone_tenant => 'services',
   keystone_password => 'SERVICE_PASSWORD',
   keystone_auth_host => '127.0.0.1'
 }
@@ -153,6 +154,8 @@ class { 'cinder':
   qpid_password => $qpid_password,
   sql_connection => $cinder_sql_connection
 }
+
+class { "cinder::quota": }
 
 class { 'cinder::scheduler':
   scheduler_driver => 'cinder.scheduler.chance.ChanceScheduler',
@@ -218,7 +221,7 @@ class { 'swift::proxy':
 
 class { 'swift::proxy::authtoken':
   admin_user          => 'swift',
-  admin_tenant_name   => 'service',
+  admin_tenant_name   => 'services',
   admin_password      => 'SERVICE_PASSWORD',
   auth_host           => '127.0.0.1',
   auth_port           => '35357',
@@ -250,7 +253,7 @@ class { 'glance::backend::swift':
 
 class { 'glance::registry':
   auth_type         => 'keystone',
-  keystone_tenant   => 'service',
+  keystone_tenant   => 'services',
   keystone_user     => 'glance',
   keystone_password => 'SERVICE_PASSWORD',
   sql_connection => $glance_sql_connection,
@@ -258,7 +261,7 @@ class { 'glance::registry':
 
 class { 'glance::api':
   auth_type         => 'keystone',
-  keystone_tenant   => 'service',
+  keystone_tenant   => 'services',
   keystone_user     => 'glance',
   keystone_password => 'SERVICE_PASSWORD',
   sql_connection => $glance_sql_connection,
@@ -278,14 +281,24 @@ class { 'ceilometer':
 }
 
 class { 'ceilometer::db':
-  database_connection => "mongodb://localhost:27017/ceilometer"
+  database_connection => "mongodb://localhost:27017/ceilometer",
+  require => Class['mongodb']
 }
+
+class { 'ceilometer::collector': }
 
 class { 'ceilometer::api':
-  keystone_password => 'SERVICE_PASSWORD'
+  keystone_user => 'ceilometer',
+  keystone_tenant => 'services',
+  keystone_password => 'SERVICE_PASSWORD',
 }
 
-class { 'ceilometer::agent::compute':
+class { 'ceilometer::agent::compute': }
+
+class { 'ceilometer::agent::auth':
+  auth_user           => 'admin',
+  auth_password       => 'AABBCC112233',
+  auth_tenant_name    => 'admin'
 }
 
 # heat
