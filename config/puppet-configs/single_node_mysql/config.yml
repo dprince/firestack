@@ -47,6 +47,12 @@ modules:
       git_master: "git://github.com/stackforge/puppet-heat.git"
       revision:
       merge_master: false
+    - name: mongodb
+      url: "git://github.com/puppetlabs/puppetlabs-mongodb.git"
+      branch: master
+      git_master: "git://github.com/puppetlabs/puppetlabs-mongodb.git"
+      revision:
+      merge_master: false
 
 nodes:
     - name: nova1
