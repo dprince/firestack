@@ -266,19 +266,23 @@ class { 'glance::api':
 
 # ceilometer
 
-class { 'ceilometer::db::mysql':
-  password => 'ceilometer',
+# currently relies on mongodb
+class { 'mongodb':
 }
 
 class { 'ceilometer':
-  metering_secret => 'secret'
+  metering_secret => 'secret',
+  rpc_backend => 'ceilometer.openstack.common.rpc.impl_qpid',
+  qpid_username => $qpid_user,
+  qpid_password => $qpid_password,
 }
 
 class { 'ceilometer::db':
+  database_connection => "mongodb://localhost:27017/ceilometer"
 }
 
 class { 'ceilometer::api':
-  keystone_password => 'password'
+  keystone_password => 'SERVICE_PASSWORD'
 }
 
 class { 'ceilometer::agent::compute':
