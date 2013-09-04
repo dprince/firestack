@@ -35,6 +35,8 @@ $cinder_db_user = 'cinder'
 $cinder_db_password = 'password'
 $cinder_sql_connection = "mysql://${cinder_db_user}:${cinder_db_password}@${cinder_db_host}/${cinder_db_name}"
 
+$heat_db_password = 'password'
+
 class { 'nova::qpid':
   user => $qpid_user,
   password => $qpid_password,
@@ -280,4 +282,31 @@ class { 'ceilometer::api':
 }
 
 class { 'ceilometer::agent::compute':
+}
+
+# heat
+
+class { 'heat::db::mysql':
+   password => $heat_db_password
+}
+
+class { 'heat::db':
+}
+
+class { 'heat':
+   rpc_backend => 'heat.openstack.common.rpc.impl_qpid',
+   qpid_username => $qpid_user,
+   qpid_password => $qpid_password,
+}
+
+class { 'heat::api':
+}
+
+class { 'heat::engine':
+}
+
+class { 'heat::api_cfn':
+}
+
+class { 'heat::api_cloudwatch':
 }
