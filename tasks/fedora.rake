@@ -586,7 +586,6 @@ wget #{repo_file_url}
             ENV["GIT_MASTER"] = "git://github.com/openstack/ceilometer.git"
         end
         ENV["PROJECT_NAME"] = "ceilometer"
-        ENV["SOURCE_URL"] = "git://github.com/openstack/ceilometer.git"
         Rake::Task["fedora:build_packages"].execute
     end
 
@@ -597,7 +596,6 @@ wget #{repo_file_url}
             ENV["GIT_MASTER"] = "git://github.com/openstack/python-ceilometerclient.git"
         end
         ENV["PROJECT_NAME"] = "python-ceilometerclient"
-        ENV["SOURCE_URL"] = "git://github.com/openstack/python-ceilometerclient.git"
         Rake::Task["fedora:build_packages"].execute
     end
 
@@ -610,7 +608,6 @@ wget #{repo_file_url}
             ENV["GIT_MASTER"] = "git://github.com/openstack/heat.git"
         end
         ENV["PROJECT_NAME"] = "heat"
-        ENV["SOURCE_URL"] = "git://github.com/openstack/heat.git"
         Rake::Task["fedora:build_packages"].execute
     end
 
@@ -623,7 +620,6 @@ wget #{repo_file_url}
             ENV["GIT_MASTER"] = "git://github.com/openstack/python-heatclient.git"
         end
         ENV["PROJECT_NAME"] = "python-heatclient"
-        ENV["SOURCE_URL"] = "git://github.com/openstack/python-heatclient.git"
         Rake::Task["fedora:build_packages"].execute
     end
 

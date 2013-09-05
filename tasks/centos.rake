@@ -603,7 +603,6 @@ wget #{repo_file_url}
             ENV["GIT_MASTER"] = "git://github.com/openstack/ceilometer.git"
         end
         ENV["PROJECT_NAME"] = "ceilometer"
-        ENV["SOURCE_URL"] = "git://github.com/openstack/ceilometer.git"
         Rake::Task["centos:build_packages"].execute
     end
 
@@ -616,7 +615,6 @@ wget #{repo_file_url}
             ENV["GIT_MASTER"] = "git://github.com/openstack/python-ceilometerclient.git"
         end
         ENV["PROJECT_NAME"] = "python-ceilometerclient"
-        ENV["SOURCE_URL"] = "git://github.com/openstack/python-ceilometerclient.git"
         Rake::Task["centos:build_packages"].execute
     end
 
@@ -629,20 +627,16 @@ wget #{repo_file_url}
             ENV["GIT_MASTER"] = "git://github.com/openstack/heat.git"
         end
         ENV["PROJECT_NAME"] = "heat"
-        ENV["SOURCE_URL"] = "git://github.com/openstack/heat.git"
         Rake::Task["centos:build_packages"].execute
     end
 
     task :build_python_heatclient do
         packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-python-heatclient.git")
-#        packager_branch= ENV.fetch("RPM_PACKAGER_BRANCH", "el6")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
-#        ENV["RPM_PACKAGER_BRANCH"] = packager_branch if ENV["RPM_PACKAGER_BRANCH"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/python-heatclient.git"
         end
         ENV["PROJECT_NAME"] = "python-heatclient"
-        ENV["SOURCE_URL"] = "git://github.com/openstack/python-heatclient.git"
         Rake::Task["centos:build_packages"].execute
     end
 
