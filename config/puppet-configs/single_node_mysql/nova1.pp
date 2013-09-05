@@ -46,6 +46,7 @@ class { 'nova::qpid':
 class { 'mysql::server':
   config_hash => {
                   'bind_address' => '0.0.0.0',
+                  'default_engine' => 'INNODB',
                  }
 }
 
@@ -268,11 +269,6 @@ class { 'glance::api':
 }
 
 # ceilometer
-
-# currently relies on mongodb
-class { 'mongodb':
-}
-
 class { 'ceilometer':
   metering_secret => 'secret',
   rpc_backend => 'ceilometer.openstack.common.rpc.impl_qpid',
@@ -280,10 +276,11 @@ class { 'ceilometer':
   qpid_password => $qpid_password,
 }
 
-class { 'ceilometer::db':
-  database_connection => "mongodb://localhost:27017/ceilometer",
-  require => Class['mongodb']
+class { 'ceilometer::db::mysql':
+  password => 'ceilometer',
 }
+
+class { 'ceilometer::db': }
 
 class { 'ceilometer::collector': }
 
@@ -302,28 +299,27 @@ class { 'ceilometer::agent::auth':
 }
 
 # heat
+#class { 'heat::db::mysql':
+#   password => $heat_db_password
+#}
 
-class { 'heat::db::mysql':
-   password => $heat_db_password
-}
+#class { 'heat::db':
+#}
 
-class { 'heat::db':
-}
+#class { 'heat':
+#   rpc_backend => 'heat.openstack.common.rpc.impl_qpid',
+#   qpid_username => $qpid_user,
+#   qpid_password => $qpid_password,
+#}
 
-class { 'heat':
-   rpc_backend => 'heat.openstack.common.rpc.impl_qpid',
-   qpid_username => $qpid_user,
-   qpid_password => $qpid_password,
-}
+#class { 'heat::api':
+#}
 
-class { 'heat::api':
-}
+#class { 'heat::engine':
+#}
 
-class { 'heat::engine':
-}
+#class { 'heat::api_cfn':
+#}
 
-class { 'heat::api_cfn':
-}
-
-class { 'heat::api_cloudwatch':
-}
+#class { 'heat::api_cloudwatch':
+#}

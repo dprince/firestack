@@ -61,6 +61,7 @@ cat >/root/keystone.pp <<-"EOF_CAT"
 class { 'mysql::server':
   config_hash => {
     'bind_address' => '0.0.0.0',
+    'default_engine' => 'INNODB',
   }
 }
 

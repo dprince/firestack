@@ -49,7 +49,7 @@ modules:
       merge_master: false
     - name: openstack
       url: "https://review.openstack.org/stackforge/puppet-openstack"
-      branch: refs/changes/63/44763/2
+      branch: master
       git_master: "https://review.openstack.org/stackforge/puppet-openstack"
       revision:
       merge_master: false
