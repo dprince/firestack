@@ -35,7 +35,13 @@ $cinder_db_user = 'cinder'
 $cinder_db_password = 'password'
 $cinder_sql_connection = "mysql://${cinder_db_user}:${cinder_db_password}@${cinder_db_host}/${cinder_db_name}"
 
+$heat_db_driver     = 'mysql'
+$heat_db_host     = '127.0.0.1'
+$heat_db_name     = 'heat'
+$heat_db_user = 'heat'
 $heat_db_password = 'password'
+$heat_sql_connection = "mysql://${heat_db_user}:${heat_db_password}@${heat_db_host}/${heat_db_name}"
+
 
 class { 'nova::qpid':
   user => $qpid_user,
@@ -299,27 +305,39 @@ class { 'ceilometer::agent::auth':
 }
 
 # heat
-#class { 'heat::db::mysql':
-#   password => $heat_db_password
-#}
 
-#class { 'heat::db':
-#}
+class { 'heat::db::mysql':
+   password => $heat_db_password,
+   allowed_hosts => ['%', $hostname]
+}
 
-#class { 'heat':
-#   rpc_backend => 'heat.openstack.common.rpc.impl_qpid',
-#   qpid_username => $qpid_user,
-#   qpid_password => $qpid_password,
-#}
+class { 'heat':
+   rpc_backend => 'heat.openstack.common.rpc.impl_qpid',
+   sql_connection => $heat_sql_connection,
+   qpid_username => $qpid_user,
+   qpid_password => $qpid_password,
+   keystone_password => 'SERVICE_PASSWORD',
+}
 
-#class { 'heat::api':
-#}
+class { 'heat::keystone::auth':
+   auth_user        => 'admin',
+   auth_password    => 'AABBCC112233',
+   auth_tenant_name => 'admin'
+}
+class { 'heat::keystone::auth_cfn':
+   auth_user        => 'admin',
+   auth_password    => 'AABBCC112233',
+   auth_tenant_name => 'admin'
+}
 
-#class { 'heat::engine':
-#}
+class { 'heat::api':
+}
 
-#class { 'heat::api_cfn':
-#}
+class { 'heat::engine':
+}
 
-#class { 'heat::api_cloudwatch':
-#}
+class { 'heat::api_cfn':
+}
+
+class { 'heat::api_cloudwatch':
+}
