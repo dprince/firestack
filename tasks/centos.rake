@@ -594,11 +594,10 @@ wget #{repo_file_url}
 
     end
 
-    task  :build_ceilometer do
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "http://github.com/ianw/openstack-ceilometer.git")
-        packager_branch= ENV.fetch("RPM_PACKAGER_BRANCH", "el6")
+    task :build_ceilometer do
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{CENTOS_GIT_BASE}/openstack-ceilometer.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
-        ENV["RPM_PACKAGER_BRANCH"] = packager_branch if ENV["RPM_PACKAGER_BRANCH"].nil?
+        ENV["RPM_PACKAGER_BRANCH"] = 'el6'
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/ceilometer.git"
         end
@@ -607,10 +606,9 @@ wget #{repo_file_url}
     end
 
     task :build_python_ceilometerclient do
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-python-ceilometerclient.git")
-        packager_branch= ENV.fetch("RPM_PACKAGER_BRANCH", "el6")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{CENTOS_GIT_BASE}/openstack-python-ceilometerclient.git")
+        ENV["RPM_PACKAGER_BRANCH"] = 'el6'
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
-        ENV["RPM_PACKAGER_BRANCH"] = packager_branch if ENV["RPM_PACKAGER_BRANCH"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/python-ceilometerclient.git"
         end
@@ -618,11 +616,10 @@ wget #{repo_file_url}
         Rake::Task["centos:build_packages"].execute
     end
 
-    task  :build_heat do
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "http://github.com/ianw/openstack-heat.git")
-        packager_branch= ENV.fetch("RPM_PACKAGER_BRANCH", "el6")
+    task :build_heat do
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{CENTOS_GIT_BASE}/openstack-heat.git")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
-        ENV["RPM_PACKAGER_BRANCH"] = packager_branch if ENV["RPM_PACKAGER_BRANCH"].nil?
+        ENV["RPM_PACKAGER_BRANCH"] = 'el6'
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/heat.git"
         end
@@ -631,7 +628,8 @@ wget #{repo_file_url}
     end
 
     task :build_python_heatclient do
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-python-heatclient.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{CENTOS_GIT_BASE}/openstack-python-heatclient.git")
+        ENV["RPM_PACKAGER_BRANCH"] = 'el6'
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/python-heatclient.git"
@@ -698,11 +696,6 @@ EOF_SERVER_NAME
         ENV.clear
         ENV.update(saved_env)
         Rake::Task["centos:build_python_warlock"].execute
-
-        ENV.clear
-        ENV.update(saved_env)
-        ENV["SOURCE_URL"] = "git://github.com/openstack/python-neutronclient.git"
-        Rake::Task["centos:build_python_neutronclient"].execute
 
     end
 

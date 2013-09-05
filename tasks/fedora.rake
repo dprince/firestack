@@ -683,15 +683,6 @@ EOF_SERVER_NAME
         ENV.update(saved_env)
         Rake::Task["fedora:build_oslo_config"].execute
 
-        #ENV.clear
-        #ENV.update(saved_env)
-        #Rake::Task["fedora:build_python_cliff"].execute
-
-        ENV.clear
-        ENV.update(saved_env)
-        ENV["SOURCE_URL"] = "git://github.com/openstack/python-neutronclient.git"
-        Rake::Task["fedora:build_python_neutronclient"].execute
-
     end
 
     task :build_fog do
