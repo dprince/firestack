@@ -595,8 +595,8 @@ wget #{repo_file_url}
     end
 
     task  :build_ceilometer do
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "http://github.com/ianw/openstack-ceilometer.git")
-        packager_branch= ENV.fetch("RPM_PACKAGER_BRANCH", "el6-firestack")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{CENTOS_GIT_BASE}/openstack-ceilometer.git")
+        packager_branch= ENV.fetch("RPM_PACKAGER_BRANCH", "el6")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         ENV["RPM_PACKAGER_BRANCH"] = packager_branch if ENV["RPM_PACKAGER_BRANCH"].nil?
         if ENV["GIT_MASTER"].nil?
@@ -608,7 +608,7 @@ wget #{repo_file_url}
     end
 
     task :build_python_ceilometerclient do
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-python-ceilometerclient.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{CENTOS_GIT_BASE}/openstack-python-ceilometerclient.git")
         packager_branch= ENV.fetch("RPM_PACKAGER_BRANCH", "el6")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         ENV["RPM_PACKAGER_BRANCH"] = packager_branch if ENV["RPM_PACKAGER_BRANCH"].nil?
@@ -621,7 +621,7 @@ wget #{repo_file_url}
     end
 
     task  :build_heat do
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "http://github.com/ianw/openstack-heat.git")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{CENTOS_GIT_BASE}/openstack-heat.git")
         packager_branch= ENV.fetch("RPM_PACKAGER_BRANCH", "el6")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
         ENV["RPM_PACKAGER_BRANCH"] = packager_branch if ENV["RPM_PACKAGER_BRANCH"].nil?
@@ -634,10 +634,10 @@ wget #{repo_file_url}
     end
 
     task :build_python_heatclient do
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-python-heatclient.git")
-#        packager_branch= ENV.fetch("RPM_PACKAGER_BRANCH", "el6")
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{CENTOS_GIT_BASE}/openstack-python-heatclient.git")
+        packager_branch= ENV.fetch("RPM_PACKAGER_BRANCH", "el6")
         ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
-#        ENV["RPM_PACKAGER_BRANCH"] = packager_branch if ENV["RPM_PACKAGER_BRANCH"].nil?
+        ENV["RPM_PACKAGER_BRANCH"] = packager_branch if ENV["RPM_PACKAGER_BRANCH"].nil?
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/python-heatclient.git"
         end
