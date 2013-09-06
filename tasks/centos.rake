@@ -38,7 +38,7 @@ namespace :centos do
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 #{BASH_COMMON}
 #{CACHE_COMMON}
-install_package git rpm-build python-setuptools yum-utils make
+install_package git rpm-build python-setuptools yum-utils make gcc
 
 BUILD_LOG=$(mktemp)
 SRC_DIR="#{project}_source"
@@ -149,7 +149,7 @@ find ~/rpmbuild -name "*rpm" -exec cp {} ~/rpms \\;
 mv ~/rpmbuild/RPMS .
 mv ~/rpmbuild/SRPMS .
 
-if ls ~/rpms/${RPM_BASE_NAME}*.noarch.rpm &> /dev/null; then
+if ls ~/rpms/${RPM_BASE_NAME}*.noarch.rpm &> /dev/null || ls ~/rpms/${RPM_BASE_NAME}*.$(uname -m).rpm &> /dev/null; then
   rm $BUILD_LOG
   exit 0
 else
@@ -413,6 +413,44 @@ wget #{repo_file_url}
         ENV['SOURCE_URL'] = 'git://github.com/openstack/oslo.sphinx.git'
         ENV["PROJECT_NAME"] = "oslo.sphinx"
         Rake::Task["centos:build_packages"].execute
+    end
+
+    task :build_oslo_messaging do
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{FEDORA_GIT_BASE}/openstack-python-oslo-messaging.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        ENV["RPM_PACKAGER_BRANCH"] = 'el6'
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/openstack/oslo.messaging.git"
+        end
+        ENV['SOURCE_URL'] = 'git://github.com/openstack/oslo.messaging.git'
+        ENV["PROJECT_NAME"] = "oslo.messaging"
+        Rake::Task["centos:build_packages"].execute
+    end
+
+    task :build_python_thrift do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/python-thrift.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/dprince/thrift.git"
+        end
+        ENV["PROJECT_NAME"] = "thrift"
+        ENV["SOURCE_URL"] = "git://github.com/dprince/thrift.git"
+        Rake::Task["centos:build_packages"].execute
+
+    end
+
+    task :build_python_happybase do
+
+        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/python-happybase.git")
+        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
+        if ENV["GIT_MASTER"].nil?
+            ENV["GIT_MASTER"] = "git://github.com/wbolster/happybase.git"
+        end
+        ENV["PROJECT_NAME"] = "happybase"
+        ENV["SOURCE_URL"] = "git://github.com/wbolster/happybase.git"
+        Rake::Task["centos:build_packages"].execute
+
     end
 
     task :build_python_swiftclient do
@@ -679,6 +717,10 @@ EOF_SERVER_NAME
         ENV.update(saved_env)
         Rake::Task["centos:build_oslo_config"].execute
 
+        ENV.clear
+        ENV.update(saved_env)
+        Rake::Task["centos:build_oslo_messaging"].execute
+
         # Latest glanceclient requires the following for Warlock:
         # jsonpointer, jsonpatch, jsonschema (updated from 0.2)
         ENV.clear
@@ -696,6 +738,14 @@ EOF_SERVER_NAME
         ENV.clear
         ENV.update(saved_env)
         Rake::Task["centos:build_python_warlock"].execute
+
+        ENV.clear
+        ENV.update(saved_env)
+        Rake::Task["centos:build_python_thrift"].execute
+
+        ENV.clear
+        ENV.update(saved_env)
+        Rake::Task["centos:build_python_happybase"].execute
 
     end
 
