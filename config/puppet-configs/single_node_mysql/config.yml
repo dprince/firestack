@@ -47,12 +47,6 @@ modules:
       git_master: "git://github.com/stackforge/puppet-heat.git"
       revision:
       merge_master: false
-    - name: openstack
-      url: "https://review.openstack.org/stackforge/puppet-openstack"
-      branch: master
-      git_master: "https://review.openstack.org/stackforge/puppet-openstack"
-      revision:
-      merge_master: false
 
 nodes:
     - name: nova1
