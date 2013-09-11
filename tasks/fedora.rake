@@ -116,7 +116,7 @@ mv sources ~/rpmbuild/SOURCES/
 cd 
 git_clone_with_retry "#{packager_url}" "rpm_#{project}" || { echo "Unable to clone repos : #{packager_url}"; exit 1; }
 cd rpm_#{project}
-[ #{packager_branch} != "master" ] && { git checkout -t -b #{packager_branch} origin/#{packager_branch} || { echo "Unable to checkout branch :  #{packager_branch}"; exit 1; } }
+[ "#{packager_branch}" != "master" ] && { git checkout -t -b #{packager_branch} origin/#{packager_branch} || { echo "Unable to checkout branch :  #{packager_branch}"; exit 1; } }
 GIT_REVISION_INSTALLER="$(git rev-parse --short HEAD)"
 SPEC_FILE_NAME=$(ls *.spec | head -n 1)
 RPM_BASE_NAME=${SPEC_FILE_NAME:0:-5}
