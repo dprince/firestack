@@ -427,32 +427,6 @@ wget #{repo_file_url}
         Rake::Task["centos:build_packages"].execute
     end
 
-    task :build_python_thrift do
-
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/python-thrift.git")
-        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
-        if ENV["GIT_MASTER"].nil?
-            ENV["GIT_MASTER"] = "git://github.com/dprince/thrift.git"
-        end
-        ENV["PROJECT_NAME"] = "thrift"
-        ENV["SOURCE_URL"] = "git://github.com/dprince/thrift.git"
-        Rake::Task["centos:build_packages"].execute
-
-    end
-
-    task :build_python_happybase do
-
-        packager_url= ENV.fetch("RPM_PACKAGER_URL", "git://github.com/dprince/python-happybase.git")
-        ENV["RPM_PACKAGER_URL"] = packager_url if ENV["RPM_PACKAGER_URL"].nil?
-        if ENV["GIT_MASTER"].nil?
-            ENV["GIT_MASTER"] = "git://github.com/wbolster/happybase.git"
-        end
-        ENV["PROJECT_NAME"] = "happybase"
-        ENV["SOURCE_URL"] = "git://github.com/wbolster/happybase.git"
-        Rake::Task["centos:build_packages"].execute
-
-    end
-
     task :build_python_swiftclient do
 
         packager_url= ENV.fetch("RPM_PACKAGER_URL", "#{CENTOS_GIT_BASE}/openstack-python-swiftclient.git")
@@ -738,14 +712,6 @@ EOF_SERVER_NAME
         ENV.clear
         ENV.update(saved_env)
         Rake::Task["centos:build_python_warlock"].execute
-
-        ENV.clear
-        ENV.update(saved_env)
-        Rake::Task["centos:build_python_thrift"].execute
-
-        ENV.clear
-        ENV.update(saved_env)
-        Rake::Task["centos:build_python_happybase"].execute
 
     end
 
