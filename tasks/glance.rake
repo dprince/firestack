@@ -64,10 +64,10 @@ EOF_SERVER_NAME
     desc "Load images into Glance."
     task :load_images do
       type = ENV['FIRESTACK_IMAGE_TYPE'] || 'tty_linux'
-      if type == 'cirros' then
-        Rake::Task["glance:load_cirros"].invoke
-      else
+      if type == 'tty_linux' then
         Rake::Task["glance:load_tty_linux"].invoke
+      else
+        Rake::Task["glance:load_cirros"].invoke
       end
     end
 
