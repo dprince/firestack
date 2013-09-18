@@ -49,6 +49,7 @@ namespace :keystone do
         cinder_host=ENV['CINDER_HOST'] || 'localhost'
         neutron_host=ENV['NEUTRON_HOST'] || 'localhost'
         ceilometer_host=ENV['CEILOMETER_HOST'] || 'localhost'
+        heat_host=ENV['HEAT_HOST'] || 'localhost'
 
         server_name = "nova1" if server_name.nil?
         keystone_users_script = File.join(File.dirname(__FILE__), '..', 'scripts','keystone_users.bash')
@@ -92,12 +93,16 @@ class { 'openstack::keystone':
   admin_password              => 'AABBCC112233',
   swift                       => true,
   ceilometer                  => true,
+  heat                        => true,
+  heat_cfn                    => true,
   glance_user_password        => 'SERVICE_PASSWORD',
   nova_user_password          => 'SERVICE_PASSWORD',
   cinder_user_password        => 'SERVICE_PASSWORD',
   neutron_user_password       => 'SERVICE_PASSWORD',
   swift_user_password         => 'SERVICE_PASSWORD',
   ceilometer_user_password    => 'SERVICE_PASSWORD',
+  heat_user_password          => 'SERVICE_PASSWORD',
+  heat_cfn_user_password      => 'SERVICE_PASSWORD',
   nova_public_address         => '#{nova_host}',
   public_address              => '#{keystone_host}',
   glance_public_address       => '#{glance_host}',
@@ -105,6 +110,8 @@ class { 'openstack::keystone':
   neutron_public_address      => '#{neutron_host}',
   swift_public_address        => '#{swift_host}',
   ceilometer_public_address   => '#{ceilometer_host}',
+  heat_public_address         => '#{heat_host}',
+  heat_cfn_public_address     => '#{heat_host}'
 }
 
 keystone_role { ['sysadmin', 'netadmin']:

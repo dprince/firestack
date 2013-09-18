@@ -298,28 +298,23 @@ class { 'ceilometer::agent::auth':
   auth_tenant_name    => 'admin'
 }
 
-# heat
-#class { 'heat::db::mysql':
-#   password => $heat_db_password
-#}
+#heat
 
-#class { 'heat::db':
-#}
+class { 'heat::db::mysql':
+   password => $heat_db_password
+}
 
-#class { 'heat':
-#   rpc_backend => 'heat.openstack.common.rpc.impl_qpid',
-#   qpid_username => $qpid_user,
-#   qpid_password => $qpid_password,
-#}
+class { 'heat':
+   rpc_backend => 'heat.openstack.common.rpc.impl_qpid',
+   qpid_username => $qpid_user,
+   qpid_password => $qpid_password,
+}
 
-#class { 'heat::api':
-#}
+class { 'heat::engine':
+}
 
-#class { 'heat::engine':
-#}
+class { 'heat::api_cfn':
+}
 
-#class { 'heat::api_cfn':
-#}
-
-#class { 'heat::api_cloudwatch':
-#}
+class { 'heat::api':
+}
