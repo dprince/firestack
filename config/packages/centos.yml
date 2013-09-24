@@ -1,8 +1,7 @@
 package_builds:
-#git fetch https://review.openstack.org/openstack/nova refs/changes/26/40426/2 && git checkout FETCH_HEAD
     - name: nova
-      url: "https://review.openstack.org/openstack/nova"
-      branch: refs/changes/26/40426/2
+      url: "git://github.com/openstack/nova.git"
+      branch: master
       git_master: "git://github.com/openstack/nova.git"
       revision: 
       merge_master: true
