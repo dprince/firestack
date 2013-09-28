@@ -6,7 +6,7 @@ modules:
       revision: 
       merge_master: false
     - name: glance
-      url: "https://review.openstack.org/stackforge/puppet-glance"
+      url: "git://github.com/stackforge/puppet-glance.git"
       branch: master
       git_master: "git://github.com/stackforge/puppet-glance.git"
       revision: 
@@ -30,15 +30,15 @@ modules:
       revision: 
       merge_master: false
     - name: neutron
-      url: "https://review.openstack.org/stackforge/puppet-neutron"
+      url: "git://github.com/stackforge/puppet-neutron.git"
       branch: master
       git_master: "git://github.com/stackforge/puppet-neutron.git"
       revision:
       merge_master: false
     - name: ceilometer
-      url: "https://review.openstack.org/stackforge/puppet-ceilometer"
-      branch: refs/changes/83/45083/1
-      git_master: "https://review.openstack.org/stackforge/puppet-ceilometer"
+      url: "git://github.com/stackforge/puppet-ceilometer"
+      branch: master
+      git_master: "git://github.com/stackforge/puppet-ceilometer"
       revision:
       merge_master: true
     - name: heat
