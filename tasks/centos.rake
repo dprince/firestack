@@ -636,6 +636,7 @@ wget #{repo_file_url}
             ENV["GIT_MASTER"] = "git://github.com/openstack/heat.git"
         end
         ENV["PROJECT_NAME"] = "heat"
+        ENV["SOURCE_URL"] = "git://github.com/openstack/heat.git"
         Rake::Task["centos:build_packages"].execute
     end
 
@@ -646,6 +647,7 @@ wget #{repo_file_url}
         if ENV["GIT_MASTER"].nil?
             ENV["GIT_MASTER"] = "git://github.com/openstack/python-heatclient.git"
         end
+        ENV["SOURCE_URL"] = "git://github.com/openstack/python-heatclient.git"
         ENV["PROJECT_NAME"] = "python-heatclient"
         Rake::Task["centos:build_packages"].execute
     end
