@@ -754,8 +754,6 @@ EOF_SERVER_NAME
       ENV["RPM_PACKAGER_BRANCH"] = "el6"
       ENV["GIT_MASTER"] = "git://github.com/fog/fog.git"
       ENV["PROJECT_NAME"] = "fog"
-      # Nail it right before unicode requirement
-      ENV["REVISION"] = "95b353ff7ff223895b61a3f02bcac5f4a67130de"
       ENV["SOURCE_URL"] = "git://github.com/fog/fog.git"
       Rake::Task["centos:build_packages"].execute
 
