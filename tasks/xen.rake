@@ -34,6 +34,16 @@ if [ -n "$GIT_REVISION" ]; then
 fi
 
 if [ -n "#{merge_master}" ]; then
+
+  # if no .gitconfig exists create one (we may need it when merging below)
+  if [ ! -f ~/.gitconfig ]; then
+cat > ~/.gitconfig <<-EOF_GIT_CONFIG_CAT
+[user]
+        name = OpenStack
+        email = devnull@openstack.org
+EOF_GIT_CONFIG_CAT
+  fi
+
         git merge #{merge_master_branch} || fail "Failed to merge #{merge_master_branch}."
 fi
 
