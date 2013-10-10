@@ -104,7 +104,7 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
   [ -f /root/openstackrc ] && source /root/openstackrc
   if [ ! -f "/root/cirros-0.3.0-i386-disk.img" ]; then
     cd /root
-    wget https://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-i386-disk.img
+    curl -O https://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-i386-disk.img
   fi
   glance image-create --name cirros --disk-format qcow2 --container-format bare --is-public 1 < cirros-0.3.0-i386-disk.img
 EOF_SERVER_NAME
