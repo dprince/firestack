@@ -715,7 +715,7 @@ EOF_SERVER_NAME
 
         ENV.clear
         ENV.update(saved_env)
-        ENV['SOURCE_PACKAGE_URL'] = "http://fedorapeople.org/~dprince/el6/python-wsme-0.5b5-1.el6.src.rpm"
+        ENV['SOURCE_PACKAGE_URL'] = "http://fedorapeople.org/~dprince/el6/python-wsme-0.5b5-2.el6.src.rpm"
         Rake::Task["rpm:build_package_url"].execute
 
         ENV.clear
