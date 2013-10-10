@@ -38,13 +38,14 @@ if [ -n "#{cacheurl}" ]; then
     if [ "$?" -eq 0 ]; then
       cd ~/rpms
       HADFILE=0
+      HADERROR=0
       for file in $FILESFROMCACHE ; do
         HADFILE=1
         filename=$(echo $file | sed -e 's/.*\\///g')
         echo Downloading $file -\\> $filename
         curl -k #{cacheurl}/pkgcache/$file 2> /dev/null > "$filename" || HADERROR=1
       done
-      [ $HADFILE -eq 1 ] && exit 0
+      [ $HADFILE -eq 1 -a $HADERROR -ne 1 ] && exit 0
     else
       echo "No files in RPM cache."
     fi
@@ -67,7 +68,7 @@ yum-builddep --nogpgcheck -y $RPM_NAME &>> $BUILD_LOG || { echo "Failed to yum-b
 rpmbuild --rebuild $RPM_NAME &>> $BUILD_LOG || { echo "Failed to build rpm."; cat $BUILD_LOG; exit 1; }
 
 echo "RPMS built:"
-ls ~/rpmbuild/**/*.rpm
+ls ~/rpmbuild/RPMS/**/**.rpm
 RETVAL=$?
 
 if [ -n "#{cacheurl}" -a -n "#{cache_user}" -a -n "#{cache_password}" ]; then
@@ -75,7 +76,7 @@ if [ -n "#{cacheurl}" -a -n "#{cache_user}" -a -n "#{cache_password}" ]; then
     echo SRPM Cache : $PKGUUID $SRCUUID
 
     FILESWEHAVE=$(curl -k $BASE_CACHE_URL 2> /dev/null)
-    for file in ~/rpmbuild/**/*.rpm ; do
+    for file in $(find ~/rpmbuild -name "*rpm"); do
         if [[ ! "$FILESWEHAVE" == *$(echo $file | sed -e 's/.*\\///g')* ]] ; then
             echo POSTING $file to $PKGUUID $SRCUUID
             curl -k -u "#{cache_user}:#{cache_password}" -X POST $BASE_CACHE_URL -Ffile=@$file 2> /dev/null || { echo ERROR POSTING FILE ; exit 1 ; }
