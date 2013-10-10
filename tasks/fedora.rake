@@ -277,7 +277,7 @@ echo -e "[openstack]\\nname=OpenStack RPM repo\\nbaseurl=http://#{server_name}/r
 #{BASH_COMMON_PKG}
 install_package yum-priorities
 cd /etc/yum.repos.d
-wget #{repo_file_url}
+curl -O -q #{repo_file_url}
         }
 
         err_msg = ""
@@ -638,8 +638,8 @@ wget #{repo_file_url}
 
         server_name=ENV['SERVER_NAME']
         server_name = "localhost" if server_name.nil?
-
         saved_env = ENV.to_hash
+
         ENV.clear
         ENV.update(saved_env)
         Rake::Task["fedora:build_python_pbr"].execute
@@ -659,6 +659,7 @@ ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 yum install -y -q $(ls ~/rpms/python-oslo-sphinx*.noarch.rpm | tail -n 1)
 EOF_SERVER_NAME
 }
+
 
         ENV.clear
         ENV.update(saved_env)
@@ -697,6 +698,16 @@ EOF_SERVER_NAME
         ENV.clear
         ENV.update(saved_env)
         Rake::Task["fedora:build_oslo_messaging"].execute
+
+        ENV.clear
+        ENV.update(saved_env)
+        ENV['SOURCE_PACKAGE_URL'] = "http://fedorapeople.org/~dprince/fedora/python-wsme-0.5b5-1.fc20.src.rpm"
+        Rake::Task["rpm:build_package_url"].execute
+
+        ENV.clear
+        ENV.update(saved_env)
+        ENV['SOURCE_PACKAGE_URL'] = "http://fedorapeople.org/~dprince/fedora/python-six-1.4.1-1.fc20.src.rpm"
+        Rake::Task["rpm:build_package_url"].execute
 
     end
 

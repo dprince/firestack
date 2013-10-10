@@ -297,7 +297,7 @@ echo -e "[openstack]\\nname=OpenStack RPM repo\\nbaseurl=http://#{server_name}/r
 #{BASH_COMMON_PKG}
 install_package yum-priorities
 cd /etc/yum.repos.d
-wget #{repo_file_url}
+curl -O #{repo_file_url}
         }
 
         err_msg = ""
@@ -713,6 +713,16 @@ EOF_SERVER_NAME
         ENV.update(saved_env)
         Rake::Task["centos:build_python_warlock"].execute
 
+        ENV.clear
+        ENV.update(saved_env)
+        ENV['SOURCE_PACKAGE_URL'] = "http://fedorapeople.org/~dprince/el6/python-wsme-0.5b5-1.el6.src.rpm"
+        Rake::Task["rpm:build_package_url"].execute
+
+        ENV.clear
+        ENV.update(saved_env)
+        ENV['SOURCE_PACKAGE_URL'] = "http://fedorapeople.org/~dprince/el6/python-six-1.4.1-1.el6.src.rpm"
+        Rake::Task["rpm:build_package_url"].execute
+
     end
 
     task :build_fog do
@@ -727,11 +737,11 @@ EOF_SERVER_NAME
       remote_exec %{
 ssh #{server_name} bash <<-"EOF_SERVER_NAME"
 #{BASH_COMMON}
-install_package wget
+install_package curl
 mkdir -p ~/rpms
 cd rpms
 for PACKAGE in rubygems-1.8.10-1.el6.noarch.rpm rubygem-mime-types-1.18-1.el6.noarch.rpm rubygem-builder-2.1.2-1.el6.noarch.rpm rubygem-thor-0.14.6-2.el6.noarch.rpm rubygem-net-ssh-2.3.0-1.el6.noarch.rpm rubygem-formatador-0.2.1-1.el6.noarch.rpm rubygem-multi_json-1.2.0-1.el6.noarch.rpm rubygem-net-scp-1.0.4-1.el6.noarch.rpm rubygem-nokogiri-1.5.2-1.el6.x86_64.rpm rubygem-ruby-hmac-0.4.0-1.el6.noarch.rpm; do
-[ -f "$PACKAGE" ] || wget -q http://yum.theforeman.org/releases/1.0/el6/x86_64/$PACKAGE
+[ -f "$PACKAGE" ] || curl -O -q http://yum.theforeman.org/releases/1.0/el6/x86_64/$PACKAGE
 done
 EOF_SERVER_NAME
 }
