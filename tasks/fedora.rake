@@ -660,29 +660,6 @@ yum install -y -q $(ls ~/rpms/python-oslo-sphinx*.noarch.rpm | tail -n 1)
 EOF_SERVER_NAME
 }
 
-
-        ENV.clear
-        ENV.update(saved_env)
-        Rake::Task["fedora:build_python_dogpile_cache"].execute
-
-        ENV.clear
-        ENV.update(saved_env)
-        Rake::Task["fedora:build_python_stevedore"].execute
-
-        ENV.clear
-        ENV.update(saved_env)
-        Rake::Task["fedora:build_python_prettytable"].execute
-
-        # Latest glanceclient requires the following for Warlock:
-        # jsonpointer, jsonpatch, jsonschema (updated from 0.2)
-        ENV.clear
-        ENV.update(saved_env)
-        Rake::Task["fedora:build_python_jsonschema"].execute
-
-        ENV.clear
-        ENV.update(saved_env)
-        Rake::Task["fedora:build_python_jsonpointer"].execute
-
         ENV.clear
         ENV.update(saved_env)
         Rake::Task["fedora:build_python_jsonpatch"].execute
