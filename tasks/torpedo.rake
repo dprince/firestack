@@ -23,6 +23,7 @@ namespace :torpedo do
     volumes_enabled=ENV['TORPEDO_VOLUMES_ENABLED'] || 'false'
     metering_enabled=ENV['TORPEDO_METERING_ENABLED'] || 'false'
     orchestration_enabled=ENV['TORPEDO_ORCHESTRATION_ENABLED'] || 'false'
+    stack_create_timeout=ENV['TORPEDO_STACK_CREATE_TIMEOUT'] || '180'
     test_hostid_on_resize=ENV['TORPEDO_TEST_HOSTID_ON_RESIZE'] || 'false'
     flavor_ref=ENV['TORPEDO_FLAVOR_REF'] || '' #defaults to 2 (m1.small)
     network_label=ENV['TORPEDO_NETWORK_LABEL'] || 'public'
@@ -71,6 +72,7 @@ metering:
   enabled: #{metering_enabled}
 orchestration:
   enabled: #{orchestration_enabled}
+  stack_create_timeout: #{stack_create_timeout}
 EOF_CAT
 
 if [ -d /var/log/neutron/ ]; then
