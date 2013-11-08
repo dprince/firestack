@@ -729,6 +729,7 @@ EOF_SERVER_NAME
       ENV["RPM_PACKAGER_URL"] = "git://github.com/dprince/rubygem-fog.git"
       ENV["GIT_MASTER"] = "git://github.com/fog/fog.git"
       ENV["PROJECT_NAME"] = "fog"
+      ENV["REVISION"] = "cecf5d1cc428808a739632edb0b1b7f96b352a6c"
       ENV["SOURCE_URL"] = "git://github.com/fog/fog.git"
       Rake::Task["fedora:build_packages"].execute
 
